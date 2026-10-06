@@ -183,7 +183,17 @@ next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `s
   - 4 demo videos JSON via gen-sample-videos.ts: le-fleurus, sundowner, pirata, temple (youtubeId demo), colorAccent fire/magenta/lime/violet, src null placeholder
   - Integration: CineMode in [locale]/layout persistente, VideoGrid in page, docs Modo Cine en UI
   - Build verde 7.9 kB /[locale] (aumentó por video components), lint warnings fixed
-- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath DrawSVG, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
+- Fase 4 ✅ Shows/Mape/Galería/Pads/Física/Easter eggs:
+  - ShowsList: filtros país/año GSAP Flip stagger, 20 shows Zod, floating photo quickTo 0.6s power3.out, distorsion overlay, placeholder gradient
+  - ShowRow: bass/beat reactive scale+glow, accent line w-0->100% hover
+  - MapRoute: SVG 1000x400 grid, route Q curved, strokeDasharray animate 1.5s stagger, dots scale back.out, beat reactive scale, plane animateMotion 12s loop, progress 85% gradient
+  - GalleryCarousel: drag inercia velocity deltaTime RAF *=0.95, tilt 3D GSAP rotateY/X perspective 1000, 8 mock galleries, lightbox z70 backdrop-blur, scrollbar-hide
+  - PadsSection: 8 pads QWERA SDF Web Audio API osc+filter per pad (kick, shaker noise highpass, conga bandpass, vocal sawtooth), crossfader Track A/B, visualizer 24 bars bass+beat, active ping
+  - TribalPhysics: canvas physics gravity 0.15+bass*0.1, bounce bottom -0.6-bass*0.2, mouse repel/drag, words bold 24+bass*10 display shadowBlur beat*20, Matter.js dynamic import High tier
+  - EasterEggs: Konami ↑↑↓↓←→←→BA rave-mode hue-rotate 0.1s infinite + confetti 50 GSAP, Screensaver 30s inactivity canvas 64 bars visualizer, Counters 20 shows/5 países/3 años datos reales
+  - 404 interactiva: canvas visualizer 80 bars + glitch 404 random hue, GSAP notfound-char SplitText club stagger 0.1s
+  - Layout: Konami+Screensaver globales, Page: Shows, MapRoute, Counters, Gallery, Pads, Physics, Marquee Konami hint
+  - Build verde 15.8kB /[locale] + 103kB shared
 - Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG dinámico, JSON-LD, scripts CLI completos
 - Fase 6 TODO: a11y, perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer
 
