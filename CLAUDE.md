@@ -155,28 +155,31 @@ next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `s
 ## Estado fases
 
 - Fase 0 ✅ scaffold, tooling, CI, Dockerfile, Zod, i18n, ENTER placeholder, Hero placeholder, quality, audio-engine, stores, cursor, grain, magnetic button
-- Fase 1 ✅ sistema visual completo:
-  - HeroShader canvas 2D fluido (metaballs + noise) audio-reactive (bass/mid/high/beat), mouse, tier-aware (Low=null, Medium=0.7 res, High=full + grain)
-  - HeroShaderR3FInner con GLSL simplex noise + fluid layers + beat pulse + postprocessing ready (dynamic import High only)
-  - Hero cinético: SplitText GSAP club ease stagger 0.03s, image organic clip-path polygon(10% 0,100% 0,90% 100%,0 100%), duotone gradient + RGB-split layers (bass translate), badges flotantes, tribal SVG pattern, kinetic typo var(--bass-wght)
-  - CursorBlob con estela 5 trails, audio reactive scale+glow, data-cursor detection (play/view/drag/close), hidden en Low/touch
-  - Marquee infinito (requestAnimationFrame, BPM + scroll velocity + beat pulse), MarqueeGiant con stroke text
-  - Grain con high frequency opacity + canvas grain High tier
-  - Header sticky con backdrop-blur, quality toggle Max/Normal/Min (persist), mute global, magnetic BOOK CTA, menu hamburger
-  - Menu fullscreen curtain clip-path inset animation GSAP, links gigante con hover fire, data-cursor view
-  - Lenis + ScrollTrigger integration, useLenis hook, useAudioReactive hook
-  - i18n routing fix: localePrefix always, root redirect / -> /es, [locale]/layout with html, build SSG /es /en
-  - Build verde 12.3 kB /[locale] + 103 kB shared, lint ok
-- Fase 2 TODO: player global completo (vinilo girando + scratch Draggable/Inertia, waveform peaks, Media Session, queue, favs), audio reactive vars, Modo Club toggle oscurece + solo luces
-- Fase 3 TODO: VideoGrid Flip, letterbox, ambilight, HLS, PiP/Fullscreen, ducking
-- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath DrawSVG, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
-- Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG 1200x630 dinámico, JSON-LD MusicGroup, hreflang, scripts CLI completos (ffmpeg/sharp)
-- Fase 6 TODO: a11y (reduced-motion, focus, aria-live), perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, docs finales
+- Fase 1 ✅ sistema visual completo: HeroShader canvas 2D + R3F GLSL, Hero cinético SplitText, CursorBlob estela audio-reactive, Marquee infinito BPM+scroll+beat, Grain, Header+Menu curtain, Lenis+ScrollTrigger, i18n always /es /en
+- Fase 2 ✅ AudioEngine + player global + Modo Club:
+  - PlayerProvider: audio element crossOrigin anonymous, connectMediaElement(bpm), timeupdate, ended -> next, volume, play/pause, keyboard shortcuts Space/Cmd+Arrow, Media Session API (metadata + handlers)
+  - Vinyl: rotationRef RAF 0.5+bass*1.5 + progress*720deg, scale 1+beat*0.05, beat pulse ring, draggable scratch (mouse/touch angle delta -> audio.currentTime), GSAP scale elastic
+  - Waveform: canvas 2D bar peaks (120 points), barHeight peak*h*(0.6+bass*0.4+beat), played color accent + shadowBlur beat, progress indicator, seek via mouse/touch drag, data-cursor drag
+  - MiniWaveform for bar
+  - PlayerBar fixed bottom: vinyl 48px, title/bpm/key/genres, MiniWaveform, prev/play/next, volume range, expand toggle, progress bar 0.5px bottom, boxShadow bass reactive
+  - PlayerExpanded fullscreen: vinyl 280px, title, bpm/key, fav/shuffle/repeat toggles (Zustand persist), Waveform 80px height seek, queue list with current highlight + pulse, favs, audio reactive debug (bass/mid/high)
+  - MusicSection client: setQueue(tracks) on mount, playTrack(track,tracks), cards con cover, eq animation when current+playing, waveform 40 bars beat scale, glow radial con bass, hover scale 1.02, data-cursor play
+  - 3 demo tracks generados via scripts/gen-sample-audio.ts: WAV mono 22kHz 8s ~345KB, tribal kick + shaker 16th + bassline pattern + conga + mel texture, peaks 120, JSON con bpm/key/colorAccent/waveformPeaks, audioSrc audio/*.wav
+  - ClubModeToggle fixed bottom-right sobre player, ClubModeEffect overlay black 0.7-bass*0.3 + vignette + beat flash fire mix-blend-screen, .club-mode filter brightness 0.6 contrast 1.2
+  - ScreenShake: on beat>0.85 && bass>0.5, translate random intensity (beat-0.85)*bass*4 *3px, 80ms reset, disabled Low/reducedMotion
+  - Layout: Grain+Cursor+ScreenShake+ClubModeEffect+Enter+Header+Menu+ClubToggle+Player en [locale]/layout para persistencia
+  - Build verde 6.56 kB /[locale] (reducido por code splitting), lint warnings fixed
+  - .gitattributes LFS comentado para demo audios pequeños, prod usar bucket NEXT_PUBLIC_MEDIA_BASE_URL
+- Fase 3 TODO: VideoGrid Flip, letterbox, ambilight, HLS, PiP/Fullscreen, ducking player
+- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
+- Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG dinámico, JSON-LD, scripts CLI completos
+- Fase 6 TODO: a11y, perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer
 
 ## Notas sandbox
 
-- fonts.googleapis bloqueado en build (ECONNRESET) -> fallback CSS link runtime en [locale]/layout.tsx, TODO restaurar next/font/google en prod Vercel (allí sí hay red).
-- gsap/ClubPlugins no instalado (licencia) -> loadClubPlugins retorna null.
-- pnpm 9.12 en packageManager, corepack 12.9.1 en sandbox -> funciona.
-- i18n: cambiado de as-needed a always para evitar redirect loop /es -> /, root / redirect a /es, [locale] SSG.
-- motion package: evitar useMotionValue/useAnimationFrame (import error), reescrito Marquee con RAF manual.
+- fonts.googleapis bloqueado -> fallback CSS link runtime en [locale]/layout
+- gsap/ClubPlugins no instalado -> loadClubPlugins null
+- motion package RAF manual en Marquee
+- Audio demos WAV 22kHz mono 8s 345KB cada uno, generados con Node (sin ffmpeg), peaks precalculados, LFS deshabilitado para demos, prod usar MP3/AAC + bucket
+- Player audio element crossOrigin anonymous para AnalyserNode, CORS ok para local files, externo (SoundCloud/YouTube) no analizable -> documentado en UI
+- Media Session API + keyboard shortcuts + persist queue/favs

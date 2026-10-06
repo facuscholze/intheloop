@@ -1,3 +1,5 @@
-# Si se versionan audio/video procesados, usar Git LFS (o servirlos desde un bucket)
-public/media/audio/** filter=lfs diff=lfs merge=lfs -text
-public/media/video/** filter=lfs diff=lfs merge=lfs -text
+# Si se versionan audio/video pesados, usar Git LFS (opcional) o servir desde bucket
+# Para audios demo pequeños (<1MB) se commitean normal
+# public/media/audio/** filter=lfs diff=lfs merge=lfs -text
+# public/media/video/** filter=lfs diff=lfs merge=lfs -text
+# En prod usar NEXT_PUBLIC_MEDIA_BASE_URL para bucket CDN

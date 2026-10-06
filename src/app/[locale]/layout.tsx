@@ -4,6 +4,14 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Providers } from "../providers";
+import { Grain } from "@/components/effects/Grain";
+import { CursorBlob } from "@/components/effects/CursorBlob";
+import { EnterScreen } from "@/components/enter/EnterScreen";
+import { Header } from "@/components/ui/Header";
+import { Menu } from "@/components/ui/Menu";
+import { Player } from "@/components/player/Player";
+import { ClubModeToggle, ClubModeEffect } from "@/components/effects/ClubMode";
+import { ScreenShake } from "@/components/effects/ScreenShake";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -51,7 +59,18 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen bg-[var(--bg)] antialiased">
         <NextIntlClientProvider messages={messages}>
-          <Providers>{children}</Providers>
+          <Providers>
+            <Grain />
+            <CursorBlob />
+            <ScreenShake />
+            <ClubModeEffect />
+            <EnterScreen />
+            <Header />
+            <Menu />
+            <ClubModeToggle />
+            {children}
+            <Player />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>
