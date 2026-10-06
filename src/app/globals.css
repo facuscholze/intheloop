@@ -40,6 +40,21 @@
   }
 }
 
+/* Hide the native pointer while its desktop replacement is active. */
+@media (pointer: fine) and (min-width: 48rem) {
+  html.custom-cursor-active,
+  html.custom-cursor-active * {
+    cursor: none !important;
+  }
+}
+
+/* Do not leave a static custom cursor visible on touch-first devices. */
+@media (pointer: coarse) {
+  .custom-cursor-visual {
+    display: none !important;
+  }
+}
+
 /* Custom properties for audio-reactive */
 @property --bass {
   syntax: "<number>";

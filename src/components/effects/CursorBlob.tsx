@@ -11,14 +11,19 @@ export function CursorBlob() {
   const cursorType = useUIStore((s) => s.cursorType);
   const tier = useQualityStore((s) => s.tier);
   const { bass, beat } = useAudioReactive();
+  const audioRef = useRef({ bass, beat });
+  audioRef.current = { bass, beat };
 
   useEffect(() => {
     if (tier === "low") return;
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
 
     const el = ref.current;
     if (!el) return;
+
+    const root = document.documentElement;
+    root.classList.add("custom-cursor-active");
 
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
@@ -49,12 +54,13 @@ export function CursorBlob() {
       currentY += (mouseY - currentY) * 0.18;
 
       // Audio reactive scale
-      const scale = 1 + bass * 0.8 + beat * 0.5;
-      const glow = 10 + bass * 30 + beat * 20;
+      const { bass: currentBass, beat: currentBeat } = audioRef.current;
+      const scale = 1 + currentBass * 0.8 + currentBeat * 0.5;
+      const glow = 10 + currentBass * 30 + currentBeat * 20;
 
       if (el) {
         el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(${scale})`;
-        el.style.boxShadow = `0 0 ${glow}px rgba(255,90,31,${0.3 + bass * 0.4})`;
+        el.style.boxShadow = `0 0 ${glow}px rgba(255,90,31,${0.3 + currentBass * 0.4})`;
       }
 
       // Trail
@@ -82,8 +88,9 @@ export function CursorBlob() {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", handleMove);
       document.removeEventListener("mouseover", handleEnter);
+      root.classList.remove("custom-cursor-active");
     };
-  }, [tier, bass, beat]);
+  }, [tier]);
 
   if (tier === "low") return null;
 
@@ -100,7 +107,7 @@ export function CursorBlob() {
           ref={(el) => {
             if (el) trailRefs.current[i] = el;
           }}
-          className="pointer-events-none fixed left-0 top-0 z-[9997] hidden -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-difference md:block"
+          className="custom-cursor-visual pointer-events-none fixed left-0 top-0 z-[9997] hidden -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-difference md:block"
           style={{
             width: size,
             height: size,
@@ -114,7 +121,7 @@ export function CursorBlob() {
       {/* Main */}
       <div
         ref={ref}
-        className="pointer-events-none fixed left-0 top-0 z-[9998] hidden -translate-x-1/2 -translate-y-1/2 mix-blend-difference md:flex md:items-center md:justify-center"
+        className="custom-cursor-visual pointer-events-none fixed left-0 top-0 z-[9998] hidden -translate-x-1/2 -translate-y-1/2 mix-blend-difference md:flex md:items-center md:justify-center"
         style={{
           width: size,
           height: size,
