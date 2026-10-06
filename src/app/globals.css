@@ -1,0 +1,164 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-fg: var(--fg);
+  --color-fire: var(--accent-fire);
+  --color-magenta: var(--accent-magenta);
+  --color-lime: var(--accent-lime);
+  --color-gold: var(--accent-gold);
+  --font-display: var(--font-display), system-ui, sans-serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
+}
+
+/* Tailwind v4 base */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: auto; /* Lenis handles it */
+    background: var(--bg);
+    color: var(--fg);
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-fire) var(--bg);
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--accent-fire);
+    color: var(--bg);
+  }
+}
+
+/* Custom properties for audio-reactive */
+@property --bass {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --mid {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --beat {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Grain overlay */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.06;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  animation: grainMove 8s steps(10) infinite;
+}
+
+@keyframes grainMove {
+  0%, 100% { transform: translate(0,0); }
+  10% { transform: translate(-5%, -10%); }
+  20% { transform: translate(-15%, 5%); }
+  30% { transform: translate(7%, -25%); }
+  40% { transform: translate(-5%, 25%); }
+  50% { transform: translate(-15%, 10%); }
+  60% { transform: translate(15%, 0%); }
+  70% { transform: translate(0%, 15%); }
+  80% { transform: translate(3%, 35%); }
+  90% { transform: translate(-10%, 10%); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent-fire); border-radius: 3px; }
+
+/* Focus visible - WCAG 2.4.7 */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 4px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--accent-lime);
+  color: black;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 0 0 8px 8px;
+  transition: top 0.2s var(--ease-smooth);
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Ensure touch targets minimum 44px on mobile - WCAG 2.5.5 */
+@media (max-width: 768px) {
+  button,
+  [role=\"button\"],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Except inline links */
+  p a,
+  span a {
+    min-height: auto;
+    min-width: auto;
+  }
+}
+
+/* Reduced motion - pause controls */
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    display: none;
+  }
+}
+
+/* High contrast focus */
+@media (prefers-contrast: high) {
+  :focus-visible {
+    outline-width: 4px;
+    outline-offset: 3px;
+  }
+}
+
+/* Utility for kinetic typo */
+.kinetic {
+  font-variation-settings: "wght" var(--bass-wght, 700);
+  transition: font-variation-settings 0.1s linear;
+}
+
+/* Halos that react to bass */
+.halo-fire {
+  box-shadow: 0 0 calc(20px + var(--bass) * 40px) rgba(255,90,31, calc(0.2 + var(--bass)*0.3));
+}
+.halo-magenta {
+  box-shadow: 0 0 calc(20px + var(--mid) * 40px) rgba(255,46,147, calc(0.15 + var(--mid)*0.25));
+}

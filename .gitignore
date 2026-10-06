@@ -9,3 +9,5 @@ dist/
 media-src/**/*
 !media-src/**/.gitkeep
 !media-src/README.md
+tsconfig.tsbuildinfo
+.husky/_

@@ -1,0 +1,52 @@
+{
+  "enter": {
+    "title": "TOMMY PETERSEN",
+    "subtitle": "TRIBAL HOUSE / HOUSE / LATIN GROOVES",
+    "enterSound": "ENTRAR CON SONIDO",
+    "enterSilent": "ENTRAR SIN SONIDO",
+    "reduceEffects": "Reducir efectos intensos",
+    "hint": "Toca para desbloquear el audio"
+  },
+  "nav": {
+    "book": "BOOK TOMMY",
+    "music": "Música",
+    "videos": "Videos",
+    "shows": "Shows",
+    "gallery": "Galería",
+    "about": "Bio",
+    "booking": "Booking",
+    "effects": "Efectos"
+  },
+  "hero": {
+    "tagline": "Cada pista tiene su historia. Estoy acá para contar la mía.",
+    "cta": "BOOK TOMMY",
+    "scroll": "SCROLL"
+  },
+  "player": {
+    "queue": "Cola",
+    "favorites": "Favoritos",
+    "shuffle": "Aleatorio",
+    "repeat": "Repetir"
+  },
+  "booking": {
+    "title": "BOOK TOMMY",
+    "subtitle": "Hagamos algo inolvidable",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "instagram": "Instagram",
+    "form": {
+      "name": "Nombre",
+      "event": "Evento",
+      "date": "Fecha",
+      "city": "Ciudad",
+      "message": "Mensaje",
+      "submit": "Enviar",
+      "sending": "Enviando..."
+    }
+  },
+  "quality": {
+    "max": "Max",
+    "normal": "Normal",
+    "min": "Mínimo"
+  }
+}
