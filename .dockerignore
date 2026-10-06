@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+media-src
+public/media/audio
+public/media/video
+.env
+.env.local

@@ -1,0 +1,61 @@
+:root {
+  /* Base */
+  --bg: #07070a;
+  --bg-2: #12101a;
+  --bg-3: #1a102e;
+  --fg: #f5f3ef;
+  --fg-muted: #8a8890;
+  --fg-dim: #4a4852;
+
+  /* Accents - tribal sunset + rave */
+  --accent-fire: #ff5a1f;
+  --accent-fire-2: #ff8a2a;
+  --accent-magenta: #ff2e93;
+  --accent-magenta-2: #ff6bb0;
+  --accent-lime: #c8ff00;
+  --accent-gold: #ffd60a;
+  --accent-violet: #8b5cf6;
+
+  /* Semantic */
+  --border: rgba(245, 243, 239, 0.12);
+  --border-strong: rgba(245, 243, 239, 0.24);
+  --tribal-line: rgba(255, 90, 31, 0.2);
+  --overlay: rgba(7, 7, 10, 0.85);
+
+  /* Audio reactive - updated by AudioEngine */
+  --bass: 0;
+  --mid: 0;
+  --high: 0;
+  --beat: 0;
+  --level: 0;
+  --bass-wght: 700;
+
+  /* Motion tokens */
+  --ease-club: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-tribal: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  --dur-micro: 150ms;
+  --dur-ui: 300ms;
+  --dur-section: 700ms;
+  --dur-hero: 1200ms;
+
+  /* Layout */
+  --header-h: 64px;
+  --player-h: 80px;
+  --content-max: 1440px;
+}
+
+@media (prefers-color-scheme: light) {
+  /* Keep dark as brand - no light mode auto */
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 1ms;
+    --dur-ui: 1ms;
+    --dur-section: 1ms;
+  }
+}
