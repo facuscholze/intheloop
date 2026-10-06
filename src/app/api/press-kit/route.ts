@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { loadSite, loadShows } from "@/lib/content";
 
+export const dynamic = "force-static";
+
 export async function GET() {
   const site = loadSite();
   const shows = loadShows();

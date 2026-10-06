@@ -120,6 +120,14 @@ Nunca commitear secretos. `.env` está en `.gitignore`.
 
 ## Deploy
 
+### GitHub Pages
+
+Este repo incluye workflow de deploy en `.github/workflows/deploy-pages.yml`.
+
+1. En **Settings → Pages**, elegir **Source: GitHub Actions**.
+2. Hacer merge a `main` (o ejecutar el workflow manualmente).
+3. URL esperada: **https://facuscholze.github.io/intheloop/**.
+
 ### Vercel (recomendado)
 
 1. Conectar repo en Vercel, framework Next.js.
