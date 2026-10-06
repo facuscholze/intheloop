@@ -89,10 +89,64 @@
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--accent-fire); border-radius: 3px; }
 
-/* Focus visible */
+/* Focus visible - WCAG 2.4.7 */
 :focus-visible {
-  outline: 2px solid var(--accent-lime);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 4px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--accent-lime);
+  color: black;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 0 0 8px 8px;
+  transition: top 0.2s var(--ease-smooth);
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Ensure touch targets minimum 44px on mobile - WCAG 2.5.5 */
+@media (max-width: 768px) {
+  button,
+  [role=\"button\"],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Except inline links */
+  p a,
+  span a {
+    min-height: auto;
+    min-width: auto;
+  }
+}
+
+/* Reduced motion - pause controls */
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    display: none;
+  }
+}
+
+/* High contrast focus */
+@media (prefers-contrast: high) {
+  :focus-visible {
+    outline-width: 4px;
+    outline-offset: 3px;
+  }
 }
 
 /* Utility for kinetic typo */

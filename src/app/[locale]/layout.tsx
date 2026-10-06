@@ -14,6 +14,8 @@ import { ClubModeToggle, ClubModeEffect } from "@/components/effects/ClubMode";
 import { ScreenShake } from "@/components/effects/ScreenShake";
 import { CineMode } from "@/components/video/CineMode";
 import { KonamiCode, Screensaver } from "@/components/effects/EasterEggs";
+import { SkipLink } from "@/components/ui/SkipLink";
+import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -92,6 +94,7 @@ export default async function LocaleLayout({
       <body className="min-h-screen bg-[var(--bg)] antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>
+            <SkipLink />
             <Grain />
             <CursorBlob />
             <ScreenShake />
@@ -102,9 +105,12 @@ export default async function LocaleLayout({
             <Header />
             <Menu />
             <ClubModeToggle />
-            {children}
+            <main id="main-content" tabIndex={-1}>
+              {children}
+            </main>
             <Player />
             <CineMode />
+            <PerformanceMonitor />
           </Providers>
         </NextIntlClientProvider>
       </body>

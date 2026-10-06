@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, KeyboardEvent } from "react";
+import { Play } from "lucide-react";
 import { useVideoStore } from "@/stores/videoStore";
 import { useIntersectionPause } from "@/hooks/useIntersectionPause";
 import { getMediaUrl } from "@/lib/media";
 import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { useUIStore } from "@/stores/uiStore";
 import type { Video } from "@/lib/content";
 
 interface VideoCardProps {
@@ -17,6 +19,7 @@ export function VideoCard({ video }: VideoCardProps) {
   const { ref: intersectionRef, isVisible } = useIntersectionPause<HTMLDivElement>();
   const openVideo = useVideoStore((s) => s.openVideo);
   const { bass, beat } = useAudioReactive();
+  const reducedMotion = useUIStore((s) => s.reducedMotion);
   const [isHovered, setIsHovered] = useState(false);
   const [mouseX, setMouseX] = useState(0.5);
 
@@ -24,20 +27,19 @@ export function VideoCard({ video }: VideoCardProps) {
   const previewSrc = getMediaUrl(video.previewSrc) || getMediaUrl(video.src);
   const isYoutube = !!video.youtubeId;
 
-  // IntersectionObserver for preview autoplay
   useEffect(() => {
     const preview = previewRef.current;
     if (!preview) return;
     if (!previewSrc || isYoutube) return;
+    if (reducedMotion) return;
 
     if (isVisible && isHovered) {
       preview.play().catch(() => {});
     } else {
       preview.pause();
     }
-  }, [isVisible, isHovered, previewSrc, isYoutube]);
+  }, [isVisible, isHovered, previewSrc, isYoutube, reducedMotion]);
 
-  // Scrub preview based on mouse X
   const handleMouseMove = (e: React.MouseEvent) => {
     const card = cardRef.current;
     if (!card) return;
@@ -56,41 +58,52 @@ export function VideoCard({ video }: VideoCardProps) {
     openVideo(video, cardRef.current);
   };
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div
       ref={(el) => {
         (cardRef as any).current = el;
         (intersectionRef as any).current = el;
       }}
-      className="group relative aspect-video cursor-pointer overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--bg-2)] transition-all duration-500 hover:border-[var(--accent-magenta)] hover:shadow-[0_0_40px_rgba(255,46,147,0.15)]"
+      className="group relative aspect-video cursor-pointer overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--bg-2)] transition-all duration-500 hover:border-[var(--accent-magenta)] hover:shadow-[0_0_40px_rgba(255,46,147,0.15)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       data-cursor="view"
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver video ${video.title} en modo cine - ${video.venue} ${video.date}`}
       style={{
-        transform: isHovered ? `scale(${1 + bass * 0.02})` : "scale(1)",
+        transform: !reducedMotion && isHovered ? `scale(${1 + bass * 0.02})` : "scale(1)",
       }}
     >
-      {/* Background gradient placeholder */}
       <div
         className="absolute inset-0"
         style={{
           background: `radial-gradient(ellipse at ${mouseX * 100}% 50%, ${video.colorAccent || "var(--accent-magenta)"}30, transparent 70%), linear-gradient(135deg, var(--bg-2), var(--bg))`,
         }}
+        aria-hidden="true"
       />
 
-      {/* Poster / Preview */}
       {isYoutube ? (
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
-            alt={video.title}
+            alt={`Miniatura del video ${video.title}`}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
             loading="lazy"
+            decoding="async"
           />
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10" />
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10" aria-hidden="true" />
         </div>
       ) : previewSrc ? (
         <video
@@ -103,12 +116,12 @@ export function VideoCard({ video }: VideoCardProps) {
           preload="metadata"
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           style={{
-            filter: isHovered ? `hue-rotate(${bass * 20}deg) contrast(${1 + bass * 0.2})` : undefined,
+            filter: !reducedMotion && isHovered ? `hue-rotate(${bass * 20}deg) contrast(${1 + bass * 0.2})` : undefined,
           }}
+          aria-label={`Preview del video ${video.title}`}
         />
       ) : (
-        // Placeholder animated gradient when no video file
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" aria-hidden="true">
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-magenta)]/20 via-[var(--bg-2)] to-[var(--accent-fire)]/20" />
           <div
             className="absolute inset-0 opacity-50"
@@ -116,7 +129,6 @@ export function VideoCard({ video }: VideoCardProps) {
               background: `radial-gradient(circle at ${mouseX * 100}% 50%, ${video.colorAccent}40, transparent 50%)`,
             }}
           />
-          {/* Simulated waveform preview */}
           <div className="absolute bottom-0 left-0 right-0 flex h-12 items-end gap-[2px] p-3 opacity-60">
             {Array.from({ length: 40 }).map((_, i) => (
               <div
@@ -126,22 +138,24 @@ export function VideoCard({ video }: VideoCardProps) {
                   height: `${20 + Math.sin(i * 0.5 + mouseX * 10) * 30 + Math.random() * 20}%`,
                   transform: `scaleY(${1 + (isHovered ? beat * 0.5 : 0)})`,
                 }}
+                aria-hidden="true"
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Distortion shader overlay on hover */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='distort'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='${bass * 10}'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23distort)'/%3E%3C/svg%3E")`,
-          mixBlendMode: "overlay",
-        }}
-      />
+      {!reducedMotion && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='distort'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='${bass * 10}'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23distort)'/%3E%3C/svg%3E")`,
+            mixBlendMode: "overlay",
+          }}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-between p-5">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -149,16 +163,17 @@ export function VideoCard({ video }: VideoCardProps) {
               {isYoutube ? "YouTube" : "Live"} • {video.date}
             </div>
             {isHovered && (
-              <div className="hidden rounded-full bg-[var(--accent-magenta)] px-2 py-1 font-mono text-[9px] font-bold uppercase text-black md:block">
+              <div className="hidden rounded-full bg-[var(--accent-magenta)] px-2 py-1 font-mono text-[9px] font-bold uppercase text-black md:block" aria-hidden="true">
                 Scrub ← → {Math.round(mouseX * 100)}%
               </div>
             )}
           </div>
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-transform group-hover:scale-110 group-hover:bg-[var(--accent-magenta)] group-hover:text-black"
-            style={{ transform: isHovered ? `scale(${1 + beat * 0.2})` : undefined }}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-transform group-hover:scale-110 group-hover:bg-[var(--accent-magenta)] group-hover:text-black md:h-8 md:w-8"
+            style={{ transform: !reducedMotion && isHovered ? `scale(${1 + beat * 0.2})` : undefined }}
+            aria-hidden="true"
           >
-            ▶
+            <Play className="h-4 w-4 ml-0.5" />
           </div>
         </div>
 
@@ -170,22 +185,12 @@ export function VideoCard({ video }: VideoCardProps) {
         </div>
       </div>
 
-      {/* Hover border glow */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-[1.5rem] opacity-0 transition-opacity group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 rounded-[1.5rem] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
         style={{
           boxShadow: `inset 0 0 0 1px ${video.colorAccent || "var(--accent-magenta)"}, 0 0 30px ${video.colorAccent || "var(--accent-magenta)"}40`,
         }}
-      />
-
-      {/* RGB-split on beat */}
-      <div
-        className="pointer-events-none absolute inset-0 mix-blend-screen opacity-0 group-hover:opacity-100"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${video.colorAccent}20, transparent)`,
-          transform: `translateX(${bass * 10}px)`,
-          transition: "transform 0.1s linear",
-        }}
+        aria-hidden="true"
       />
     </div>
   );

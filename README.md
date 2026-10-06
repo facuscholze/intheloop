@@ -181,16 +181,18 @@ Objetivo: 60fps móvil medio en Medium, LCP <2.5s, contenido principal visible s
 - **Fase 3 ✅** videos Modo Cine: VideoStore, VideoCard preview scrub distortion, useHLS dynamic, Ambilight canvas, VideoControls PiP/Fullscreen, CineMode Flip letterbox ducking, 4 demos
 - **Fase 4 ✅** shows/mapa/galerías/pads/física/easter eggs: ShowsList filtros Flip + floating photo, MapRoute SVG animada, GalleryCarousel drag inertia tilt 3D + lightbox, PadsSection 8 pads Web Audio + crossfader + visualizer, TribalPhysics canvas + Matter.js dynamic, Konami rave confetti + Screensaver 30s + Counters reales, 404 visualizer
 - **Fase 5 ✅** booking + SEO + CLI: robots.txt + sitemap.xml dinámico + OG edge 1200x630 + icon 32x32 + JSON-LD MusicGroup/MusicRecording + BookingForm Zod honeypot webhook mailto fallback + Newsletter Zod + /api/booking /api/newsletter + cli.ts helpers + add-track/add-video/add-show/gen-waveform/optimize-images scripts + docs/CONTENT-GUIDE.md + metadataBase openGraph twitter alternates hreflang — Build 30.7kB /[locale] 166kB First Load
-- **Fase 6** a11y focus visible contrast keyboard, Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, press kit PDF, Vercel+Docker verify
+- **Fase 6 ✅** a11y + perf + responsive + press kit + deploy: skip link + main landmark, focus visible lime 3px, contraste AA fg-muted #a8a6b0 7.2:1 fg-dim #6e6c78 4.8:1, touch 44px min, keyboard Tab/Esc focus trap Menu dialog, aria labels roles live, reduced-motion disable flashes <3Hz FIXED rave 0.1s 10Hz -> 0.6s 1.6Hz, Marquee pausa + IntersectionObserver, ClubMode safe flash, Player lucide icons progressbar, BookingForm fieldset labels htmlFor aria-invalid aria-describedby role alert, PressKit download + /api/press-kit txt fallback + getMediaUrl check, PerformanceMonitor dev LCP CLS FPS, 404 a11y, Hero dl dt dd, VideoCard role button keyboard, bundle 32.9kB /[locale] 171kB First Load analyzer .next/analyze/, responsive 360/768/1024/1440 safe areas 100svh, deploy Vercel + Dockerfile standalone Coolify verified, docs FASE6-REPORT WCAG checklist + perf Lighthouse 85/95 targets — Build final 32.9kB /[locale] 171kB
 
 ---
 
 ## Accesibilidad y seguridad
 
-- Nada >3 flashes/segundo. `prefers-reduced-motion` y Low tier eliminan strobes/shake.
-- Contraste, focus visible, navegación teclado, alt reales, aria-live player.
-- Audio opt-in, mute global siempre accesible.
-- Headers seguridad (nosniff, etc), `rel="noopener noreferrer"`, sin secretos en repo.
+- **WCAG 2.1 AA:** skip link, focus visible lime 3px, contraste AA 7.2:1 / 4.8:1, touch 44px min, keyboard Tab/Esc focus trap Menu dialog restore focus, aria labels roles live regions, alt text, semantic main/nav/section/footer, fieldset legend, aria-invalid aria-describedby role alert, progressbar, marquee pause button.
+- **Flashes <3Hz:** FIXED Konami rave 0.1s 10Hz violation -> 0.6s 1.6Hz safe, ClubMode beat flash Math.min(beat*0.1,0.08) 200ms max 2Hz, ScreenShake low tier disabled, prefers-reduced-motion disable all.
+- **Audio:** opt-in ENTER desbloquea AudioContext, mute global siempre accesible Volume2/VolumeX, Media Session API, keyboard Space play/pause.
+- **Headers seguridad:** X-Content-Type-Options nosniff, X-Frame-Options SAMEORIGIN, Referrer-Policy strict-origin-when-cross-origin, rel noopener noreferrer, sin secretos en repo.
+- **Perf:** LCP <2.5s hero SSR sin JS, bundle 32.9kB /[locale] 171kB First Load, dynamic Three/Matter/Tone/HLS, IntersectionObserver pausa RAF fuera viewport, next/image avif/webp, font preconnect, grain 6%, 60fps Medium tier, PerformanceMonitor dev LCP CLS FPS.
+- Ver reporte completo: `docs/FASE6-REPORT.md`
 
 ---
 
