@@ -12,7 +12,7 @@ Sitio "bien loco, flashero" para DJ Tommy Petersen. Reemplaza builder MailerLite
 
 | Librería | Propósito | Carga |
 |---|---|---|
-| Next.js 15 App Router | Base SSR/SSG, API routes, standalone output | core |
+| Next.js 15 App Router | Base SSG, export estático (`output: "export"` → `out/`), sin API routes ni middleware | core |
 | React 19 + TS strict | UI | core |
 | Tailwind v4 | Styling, CSS vars, @property | core |
 | next-intl 4 | i18n ES (default) / EN, hreflang, middleware | core |
@@ -48,8 +48,8 @@ Sitio "bien loco, flashero" para DJ Tommy Petersen. Reemplaza builder MailerLite
 
 ```bash
 pnpm dev              # localhost:3000
-pnpm build            # next build (standalone)
-pnpm start            # prod server
+pnpm build            # next build (export estático -> out/)
+pnpm preview          # sirve out/ localmente
 pnpm lint             # next lint
 pnpm typecheck        # tsc --noEmit
 pnpm format           # prettier
@@ -143,13 +143,15 @@ Singleton `src/lib/audio-engine.ts`:
 
 ## i18n
 
-next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `src/middleware.ts`. Messages en `messages/`. `getLocale()` en layout server.
+next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (export estático): la raíz `/` redirige a `/es/` via meta-refresh. Messages en `messages/`. `setRequestLocale()` en layout server.
 
 ## SEO / Deploy
 
-- next.config.ts standalone, optimizePackageImports, headers seguridad, remotePatterns images.
-- Dockerfile multi-stage (deps, builder, runner) para Coolify.
-- Vercel: conectar repo, env vars, deploy auto.
+- next.config.ts export estático (`out/`), trailingSlash, basePath via `NEXT_PUBLIC_BASE_PATH`, optimizePackageImports, images unoptimized.
+- GitHub Pages: .github/workflows/deploy.yml (build estático + actions/deploy-pages, setea NEXT_PUBLIC_BASE_PATH=/<repo> y NEXT_PUBLIC_SITE_URL). Requiere Settings → Pages → Source: GitHub Actions.
+- Sin API routes: booking POSTea directo a `NEXT_PUBLIC_BOOKING_WEBHOOK_URL` + fallback mailto; newsletter a `NEXT_PUBLIC_NEWSLETTER_ENDPOINT`; press kit txt generado en el cliente.
+- Dockerfile multi-stage histórico (época standalone); hoy el sitio es estático.
+- Vercel/Netlify: framework Next.js, output `out/`, deploy auto.
 - CI: .github/workflows/ci.yml pnpm lint+typecheck+build.
 
 ## Estado fases

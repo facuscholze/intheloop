@@ -63,35 +63,30 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
     setStatus("sending");
     setErrorMsg("");
 
-    try {
-      const res = await fetch("/api/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error al enviar");
+    // Sitio estático (GitHub Pages): no hay API routes. Si está configurado,
+    // se POSTea directo al webhook (n8n); el mailto de respaldo siempre corre.
+    const webhook = process.env.NEXT_PUBLIC_BOOKING_WEBHOOK_URL;
+    if (webhook) {
+      try {
+        await fetch(webhook, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(parsed.data),
+        });
+      } catch (e) {
+        console.warn("Webhook de booking falló, sigue el mailto de respaldo", e);
       }
-
-      setStatus("success");
-
-      const subject = `Booking: ${form.event} - ${form.city} - ${form.date}`;
-      const body = `Hola Tommy,\n\nNombre: ${form.name}\nEvento: ${form.event}\nFecha: ${form.date}\nCiudad: ${form.city}\nEmail: ${form.email}\n\nMensaje:\n${form.message}\n\n---\nEnviado desde intheloop.agency`;
-      const mailto = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-      setTimeout(() => {
-        window.open(mailto, "_blank");
-      }, 500);
-    } catch (err: any) {
-      setStatus("error");
-      setErrorMsg(err.message || "Error al enviar. Probá mail directo.");
-
-      const subject = `Booking: ${form.event} - ${form.city}`;
-      const body = `Nombre: ${form.name}\nEvento: ${form.event}\nFecha: ${form.date}\nCiudad: ${form.city}\nMensaje: ${form.message}`;
-      window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
+
+    setStatus("success");
+
+    const subject = `Booking: ${form.event} - ${form.city} - ${form.date}`;
+    const body = `Hola Tommy,\n\nNombre: ${form.name}\nEvento: ${form.event}\nFecha: ${form.date}\nCiudad: ${form.city}\nEmail: ${form.email}\n\nMensaje:\n${form.message}\n\n---\nEnviado desde intheloop.agency`;
+    const mailto = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    setTimeout(() => {
+      window.open(mailto, "_blank");
+    }, 500);
   };
 
   if (status === "success") {

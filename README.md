@@ -15,9 +15,9 @@ pnpm install
 # 2. Dev (http://localhost:3000)
 pnpm dev
 
-# 3. Build + start
+# 3. Build estático (genera out/) + preview local
 pnpm build
-pnpm start
+pnpm preview   # sirve out/ en http://localhost:3000
 
 # 4. Lint + typecheck
 pnpm lint
@@ -109,9 +109,11 @@ Ver guía completa: `docs/CONTENT-GUIDE.md`
 Ver `.env.example`:
 
 ```env
-NEXT_PUBLIC_MEDIA_BASE_URL= # bucket CDN para audio/video en prod (vacío = local)
-BOOKING_WEBHOOK_URL=        # webhook n8n para formulario booking
-NEWSLETTER_ENDPOINT=        # endpoint MailerLite / newsletter
+NEXT_PUBLIC_MEDIA_BASE_URL=       # bucket CDN para audio/video en prod (vacío = local)
+NEXT_PUBLIC_BASE_PATH=            # prefijo de ruta si va en subdirectorio (ej. "/intheloop" en GitHub Pages)
+NEXT_PUBLIC_SITE_URL=             # URL canónica para sitemap/OG (default https://www.intheloop.agency)
+NEXT_PUBLIC_BOOKING_WEBHOOK_URL=  # webhook n8n para booking (fetch directo desde el browser)
+NEXT_PUBLIC_NEWSLETTER_ENDPOINT=  # endpoint MailerLite / newsletter
 ```
 
 Nunca commitear secretos. `.env` está en `.gitignore`.
@@ -120,23 +122,43 @@ Nunca commitear secretos. `.env` está en `.gitignore`.
 
 ## Deploy
 
-### Vercel (recomendado)
+El sitio se compila como **export estático** (`next.config.ts` → `output: "export"`, carpeta `out/`), así que sirve cualquier hosting estático.
 
-1. Conectar repo en Vercel, framework Next.js.
-2. Setear env vars.
+### GitHub Pages
+
+Deploy automático con el workflow `.github/workflows/deploy.yml`:
+
+1. En el repo: **Settings → Pages → Source: GitHub Actions**.
+2. Pushear a `main` (o correr el workflow manualmente desde la pestaña Actions).
+3. El sitio queda en `https://<usuario>.github.io/<repo>/`.
+
+El workflow ya configura solo `NEXT_PUBLIC_BASE_PATH` (subdirectorio `/<repo>`) y `NEXT_PUBLIC_SITE_URL`. No requiere API routes: booking usa webhook directo + fallback mailto, y el press kit txt se genera en el browser.
+
+Build local equivalente al deploy:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/intheloop NEXT_PUBLIC_SITE_URL=https://<usuario>.github.io pnpm build
+# El sitio estático queda en out/
+```
+
+> Nota: al ser hosting estático no hay API routes. Si querés dominio propio (`www.intheloop.agency`), setealo como custom domain en Pages y dejá `NEXT_PUBLIC_BASE_PATH` vacío.
+
+### Vercel / Netlify / cualquier estático
+
+1. Conectar repo, framework Next.js (build `pnpm build`, output `out/`).
+2. Setear env vars si hace falta.
 3. Deploy automático en push a main.
 
 ### Docker / Coolify (VPS)
 
 ```bash
-# Build standalone (next.config.ts output: "standalone")
+# Build estático (output/ sirve con cualquier servidor de archivos)
 pnpm build
-# Dockerfile ya listo:
 docker build -t intheloop .
-docker run -p 3000:3000 --env-file .env intheloop
+docker run -p 3000:3000 intheloop
 ```
 
-En Coolify: crear servicio Docker, apuntar al Dockerfile, setear env vars, puerto 3000.
+> El `Dockerfile` actual es de la época standalone; para servir `out/` alcanza con cualquier servidor de archivos estáticos (nginx, `serve`, etc.).
 
 ### Bundle analyzer
 

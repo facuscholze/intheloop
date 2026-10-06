@@ -90,14 +90,14 @@ export default function NotFound() {
 
         <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
-            href="/es"
+            href="/es/"
             className="rounded-full bg-[var(--accent-fire)] px-8 py-4 font-bold uppercase tracking-widest text-black transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
             aria-label="Volver a la página de inicio"
           >
             Volver al inicio
           </Link>
           <Link
-            href="/es#music"
+            href="/es/#music"
             className="rounded-full border border-[var(--border)] px-8 py-4 font-bold uppercase tracking-widest text-[var(--fg)] transition-colors hover:bg-[var(--fg)] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
             aria-label="Ir a la sección de música"
           >
@@ -110,7 +110,7 @@ export default function NotFound() {
         </div>
 
         <div className="mt-6">
-          <Link href="/es#booking" className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
+          <Link href="/es/#booking" className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
             ¿Necesitás ayuda? Contactanos →
           </Link>
         </div>

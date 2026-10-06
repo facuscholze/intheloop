@@ -32,12 +32,61 @@ export function PressKit({ className = "" }: PressKitProps) {
     contact: "events@intheloop.agency",
   };
 
+  // Sitio estático (GitHub Pages): sin API routes, el press kit txt se
+  // genera en el cliente a partir de los datos de arriba.
+  const downloadPressKitTxt = () => {
+    const d = pressKitData;
+    const text = `
+TOMMY PETERSEN - PRESS KIT
+IN THE LOOP AGENCY
+
+BIO (ES):
+${d.bio.es}
+
+BIO (EN):
+${d.bio.en}
+
+STATS:
+- Shows: ${d.stats.shows}+
+- Countries: ${d.stats.countries}
+- Years: ${d.stats.years}
+
+GENRES:
+${d.genres.join(", ")}
+
+EQUIPMENT:
+${d.equipment.join(", ")}
+
+CONTACT:
+- Email: ${d.contact}
+
+SOCIALS:
+- Instagram: ${d.socials.instagram}
+- SoundCloud: ${d.socials.soundcloud}
+- YouTube: ${d.socials.youtube}
+
+LINKS:
+- Website: https://www.intheloop.agency
+
+Generated: ${new Date().toISOString()}
+`;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tommy-petersen-press-kit.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const handleDownload = async (type: "pdf" | "images" | "all") => {
     setIsGenerating(true);
 
     try {
       if (type === "pdf") {
-        // Try real PDF first, fallback to API text
+        // Try real PDF first, fallback to generated txt
         const realPdf = getMediaUrl("press/tommy-petersen-press-kit.pdf");
         if (realPdf) {
           // Check if file exists by fetching head
@@ -50,26 +99,26 @@ export function PressKit({ className = "" }: PressKitProps) {
             }
           } catch {}
         }
-        // Fallback to API
-        window.open("/api/press-kit", "_blank");
+        // Fallback: txt generado en el cliente
+        downloadPressKitTxt();
       } else if (type === "images") {
         const imagesUrl = getMediaUrl("press/images.zip");
         if (imagesUrl) {
           window.open(imagesUrl, "_blank");
         } else {
-          window.open("/api/press-kit", "_blank");
+          downloadPressKitTxt();
         }
       } else {
         const allUrl = getMediaUrl("press/press-kit-complete.zip");
         if (allUrl) {
           window.open(allUrl, "_blank");
         } else {
-          window.open("/api/press-kit", "_blank");
+          downloadPressKitTxt();
         }
       }
     } catch (e) {
       console.warn("Download failed", e);
-      alert("Press kit aún no subido. Subí archivos a media-src/press/ + pnpm optimize:images. Por ahora contactá a events@intheloop.agency o descargá el txt desde /api/press-kit");
+      alert("Press kit aún no subido. Subí archivos a media-src/press/ + pnpm optimize:images. Por ahora contactá a events@intheloop.agency o descargá el txt generado.");
     } finally {
       setIsGenerating(false);
     }

@@ -19,6 +19,8 @@ export default function HomePage() {
   const shows = loadShows();
   const tracks = loadTracks();
   const videos = loadVideos();
+  // Prefijo de ruta para hosting en subdirectorio (GitHub Pages)
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   return (
     <>
@@ -273,17 +275,17 @@ export default function HomePage() {
                   Perf: bundle 30.7kB /[locale] 166kB First Load, dynamic Three/Matter/Tone/HLS, IntersectionObserver pausa RAF, next/image avif/webp, font preconnect, LCP &lt;2.5s texto SSR sin JS, grain 6% opacity, 60fps Medium tier.
                 </div>
                 <div className="mt-1">Responsive: 360/768/1024/1440, grid md 2 cols lg, touch targets 44px, scrollbar-hide, safe areas, header 64px player 80px.</div>
-                <div className="mt-1">Deploy: Vercel auto + Dockerfile standalone Coolify, env NEXT_PUBLIC_MEDIA_BASE_URL + BOOKING_WEBHOOK_URL + NEWSLETTER_ENDPOINT, CI lint+typecheck+build, sitemap dynamic + robots + OG edge 1200x630 + icon 32 + JSON-LD.</div>
+                <div className="mt-1">Deploy: export estático (out/) — GitHub Pages via workflow deploy.yml + Vercel/CDN, env NEXT_PUBLIC_MEDIA_BASE_URL + NEXT_PUBLIC_BASE_PATH, CI lint+typecheck+build, sitemap dynamic + robots + OG 1200x630 + icon 32 + JSON-LD.</div>
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
+                <a href={`${basePath}/sitemap.xml`} target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
                   sitemap.xml
                 </a>
-                <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
+                <a href={`${basePath}/robots.txt`} target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
                   robots.txt
                 </a>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                <a href="/es/opengraph-image" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
+                <a href={`${basePath}/opengraph-image.png`} target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">
                   OG Image
                 </a>
                 <a href="https://github.com/facuscholze/intheloop" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 underline hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]">

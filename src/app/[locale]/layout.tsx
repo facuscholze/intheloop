@@ -18,8 +18,14 @@ import { SkipLink } from "@/components/ui/SkipLink";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import "../globals.css";
 
+// Origen canónico (sin basePath — Next lo agrega solo a metadata routes).
+// Producción por defecto; GitHub Pages lo pisa via env NEXT_PUBLIC_SITE_URL.
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.intheloop.agency").replace(/\/$/, "");
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const fullUrl = `${siteUrl}${basePath}`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.intheloop.agency"),
+  metadataBase: new URL(siteUrl),
   title: "Tommy Petersen — Tribal House DJ | In The Loop Agency",
   description:
     "Tommy Petersen — DJ y productor de Argentina. Tribal House, House y Latin grooves con texturas melódicas. Bookings: events@intheloop.agency. Every dancefloor has its own story.",
@@ -33,7 +39,7 @@ export const metadata: Metadata = {
     locale: "es_AR",
     alternateLocale: ["en_US"],
     siteName: "In The Loop Agency",
-    url: "https://www.intheloop.agency",
+    url: fullUrl,
   },
   twitter: {
     card: "summary_large_image",
@@ -42,10 +48,10 @@ export const metadata: Metadata = {
     creator: "@tommypetersen",
   },
   alternates: {
-    canonical: "https://www.intheloop.agency",
+    canonical: fullUrl,
     languages: {
-      es: "https://www.intheloop.agency/es",
-      en: "https://www.intheloop.agency/en",
+      es: `${fullUrl}/es/`,
+      en: `${fullUrl}/en/`,
     },
   },
   robots: { index: true, follow: true },
