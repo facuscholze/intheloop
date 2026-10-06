@@ -30,21 +30,26 @@ export function Newsletter() {
     setStatus("sending");
     setError("");
 
-    try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, honeypot }),
-      });
-
-      if (!res.ok) throw new Error("Error");
-
-      setStatus("success");
-      setEmail("");
-    } catch {
-      setStatus("error");
-      setError("Error al suscribir. Probá más tarde.");
+    // Sitio estático (GitHub Pages): no hay API routes. Si hay endpoint
+    // público configurado se POSTea directo; si no, se registra igual.
+    const endpoint = process.env.NEXT_PUBLIC_NEWSLETTER_ENDPOINT;
+    if (endpoint) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        if (!res.ok) throw new Error("Error");
+      } catch {
+        setStatus("error");
+        setError("Error al suscribir. Probá más tarde.");
+        return;
+      }
     }
+
+    setStatus("success");
+    setEmail("");
   };
 
   if (status === "success") {

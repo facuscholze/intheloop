@@ -1,17 +1,24 @@
 import type { MetadataRoute } from "next";
 import { loadTracks, loadVideos, loadShows } from "@/lib/content";
 
+// Requerido por output: "export"
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.intheloop.agency";
+  // Origen canónico (sin basePath; metadataBase lo necesita así).
+  // El deploy de GitHub Pages setea NEXT_PUBLIC_SITE_URL=https://<usuario>.github.io
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.intheloop.agency").replace(/\/$/, "");
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  const baseUrl = `${origin}${basePath}`;
   const now = new Date();
 
   const staticRoutes = [
-    { url: `${baseUrl}/es`, lastModified: now },
-    { url: `${baseUrl}/en`, lastModified: now },
-    { url: `${baseUrl}/es#music`, lastModified: now },
-    { url: `${baseUrl}/es#videos`, lastModified: now },
-    { url: `${baseUrl}/es#shows`, lastModified: now },
-    { url: `${baseUrl}/es#booking`, lastModified: now },
+    { url: `${baseUrl}/es/`, lastModified: now },
+    { url: `${baseUrl}/en/`, lastModified: now },
+    { url: `${baseUrl}/es/#music`, lastModified: now },
+    { url: `${baseUrl}/es/#videos`, lastModified: now },
+    { url: `${baseUrl}/es/#shows`, lastModified: now },
+    { url: `${baseUrl}/es/#booking`, lastModified: now },
   ];
 
   const tracks = loadTracks();
@@ -19,17 +26,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const shows = loadShows();
 
   const trackRoutes = tracks.map((t) => ({
-    url: `${baseUrl}/es#${t.id}`,
+    url: `${baseUrl}/es/#${t.id}`,
     lastModified: t.date ? new Date(t.date) : now,
   }));
 
   const videoRoutes = videos.map((v) => ({
-    url: `${baseUrl}/es#${v.id}`,
+    url: `${baseUrl}/es/#${v.id}`,
     lastModified: v.date ? new Date(v.date) : now,
   }));
 
   const showRoutes = shows.map((s) => ({
-    url: `${baseUrl}/es#${s.id}`,
+    url: `${baseUrl}/es/#${s.id}`,
     lastModified: s.date ? new Date(s.date) : now,
   }));
 
