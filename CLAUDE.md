@@ -155,15 +155,28 @@ next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `s
 ## Estado fases
 
 - Fase 0 ✅ scaffold, tooling, CI, Dockerfile, Zod, i18n, ENTER placeholder, Hero placeholder, quality, audio-engine, stores, cursor, grain, magnetic button
-- Fase 1 TODO: shader fluido Three.js, SplitText real, Lenis polish, marquee, menu fullscreen curtain
-- Fase 2 TODO: player global completo, waveform peaks, Media Session, audio reactive vars, Modo Club
-- Fase 3 TODO: VideoGrid Flip, letterbox, ambilight, HLS, PiP/Fullscreen
-- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath, Gallery carousel, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404, screensaver
-- Fase 5 TODO: booking form Zod + webhook, newsletter, sitemap, robots, OG dinámico, JSON-LD, scripts CLI completos
-- Fase 6 TODO: a11y, perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, docs finales
+- Fase 1 ✅ sistema visual completo:
+  - HeroShader canvas 2D fluido (metaballs + noise) audio-reactive (bass/mid/high/beat), mouse, tier-aware (Low=null, Medium=0.7 res, High=full + grain)
+  - HeroShaderR3FInner con GLSL simplex noise + fluid layers + beat pulse + postprocessing ready (dynamic import High only)
+  - Hero cinético: SplitText GSAP club ease stagger 0.03s, image organic clip-path polygon(10% 0,100% 0,90% 100%,0 100%), duotone gradient + RGB-split layers (bass translate), badges flotantes, tribal SVG pattern, kinetic typo var(--bass-wght)
+  - CursorBlob con estela 5 trails, audio reactive scale+glow, data-cursor detection (play/view/drag/close), hidden en Low/touch
+  - Marquee infinito (requestAnimationFrame, BPM + scroll velocity + beat pulse), MarqueeGiant con stroke text
+  - Grain con high frequency opacity + canvas grain High tier
+  - Header sticky con backdrop-blur, quality toggle Max/Normal/Min (persist), mute global, magnetic BOOK CTA, menu hamburger
+  - Menu fullscreen curtain clip-path inset animation GSAP, links gigante con hover fire, data-cursor view
+  - Lenis + ScrollTrigger integration, useLenis hook, useAudioReactive hook
+  - i18n routing fix: localePrefix always, root redirect / -> /es, [locale]/layout with html, build SSG /es /en
+  - Build verde 12.3 kB /[locale] + 103 kB shared, lint ok
+- Fase 2 TODO: player global completo (vinilo girando + scratch Draggable/Inertia, waveform peaks, Media Session, queue, favs), audio reactive vars, Modo Club toggle oscurece + solo luces
+- Fase 3 TODO: VideoGrid Flip, letterbox, ambilight, HLS, PiP/Fullscreen, ducking
+- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath DrawSVG, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
+- Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG 1200x630 dinámico, JSON-LD MusicGroup, hreflang, scripts CLI completos (ffmpeg/sharp)
+- Fase 6 TODO: a11y (reduced-motion, focus, aria-live), perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, docs finales
 
 ## Notas sandbox
 
-- fonts.googleapis bloqueado en build (ECONNRESET) -> fallback CSS link runtime en layout.tsx, TODO restaurar next/font/google en prod Vercel.
-- gsap/ClubPlugins no instalado (licencia) -> loadClubPlugins retorna null, warning ignorado.
-- pnpm 9.12 en packageManager, pero corepack usa 12.9.1 en sandbox -> funciona, no bloquear.
+- fonts.googleapis bloqueado en build (ECONNRESET) -> fallback CSS link runtime en [locale]/layout.tsx, TODO restaurar next/font/google en prod Vercel (allí sí hay red).
+- gsap/ClubPlugins no instalado (licencia) -> loadClubPlugins retorna null.
+- pnpm 9.12 en packageManager, corepack 12.9.1 en sandbox -> funciona.
+- i18n: cambiado de as-needed a always para evitar redirect loop /es -> /, root / redirect a /es, [locale] SSG.
+- motion package: evitar useMotionValue/useAnimationFrame (import error), reescrito Marquee con RAF manual.

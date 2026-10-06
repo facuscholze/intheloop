@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/stores/uiStore";
 import { useQualityStore } from "@/stores/qualityStore";
 import { audioEngine } from "@/lib/audio-engine";
+import { gsap } from "@/lib/motion";
 
 export function EnterScreen() {
   const hasEntered = useUIStore((s) => s.hasEntered);
@@ -13,18 +14,31 @@ export function EnterScreen() {
   const tier = useQualityStore((s) => s.tier);
   const setTier = useQualityStore((s) => s.setTier);
 
-  const [eqBars, setEqBars] = useState<number[]>(Array.from({ length: 24 }, () => Math.random()));
+  const [eqBars, setEqBars] = useState<number[]>(Array.from({ length: 32 }, () => Math.random()));
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (hasEntered) return;
     const interval = setInterval(() => {
       setEqBars((prev) => prev.map(() => 0.2 + Math.random() * 0.8));
-    }, 120);
+    }, 100);
     return () => clearInterval(interval);
   }, [hasEntered]);
 
-  // grain canvas animation (low cost)
+  useEffect(() => {
+    if (hasEntered) return;
+    if (!titleRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        titleRef.current!.querySelectorAll(".enter-char"),
+        { y: 80, opacity: 0, rotateX: -45 },
+        { y: 0, opacity: 1, rotateX: 0, duration: 1, stagger: 0.04, ease: "club" }
+      );
+    });
+    return () => ctx.revert();
+  }, [hasEntered]);
+
   useEffect(() => {
     if (hasEntered || tier === "low") return;
     const canvas = canvasRef.current;
@@ -32,13 +46,16 @@ export function EnterScreen() {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
     let raf = 0;
+    let t = 0;
     const draw = () => {
+      t += 0.01;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = `rgba(255,90,31,0.04)`;
-      for (let i = 0; i < 40; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const r = Math.random() * 2;
+      // Floating particles
+      ctx.fillStyle = `rgba(255,90,31,0.08)`;
+      for (let i = 0; i < 60; i++) {
+        const x = (Math.sin(t + i) * 0.5 + 0.5) * canvas.width;
+        const y = (Math.cos(t * 0.7 + i * 1.3) * 0.5 + 0.5) * canvas.height;
+        const r = Math.sin(t + i) * 1.5 + 2;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
@@ -69,8 +86,18 @@ export function EnterScreen() {
     } catch (e) {
       console.warn("AudioContext init failed", e);
     }
-    setHasEntered(true);
-    // Init quality detection after enter
+    // Animate out
+    if (titleRef.current) {
+      gsap.to(titleRef.current, {
+        y: -100,
+        opacity: 0,
+        duration: 0.6,
+        ease: "club",
+        onComplete: () => setHasEntered(true),
+      });
+    } else {
+      setHasEntered(true);
+    }
     useQualityStore.getState().init();
   };
 
@@ -78,16 +105,30 @@ export function EnterScreen() {
     <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[var(--bg)] text-[var(--fg)]">
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
 
-      {/* Glow halos */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[80vh] w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.15),_transparent_60%)] blur-[60px]" />
-      <div className="pointer-events-none absolute left-[20%] top-[20%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.12),_transparent_60%)] blur-[50px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.18),_transparent_60%)] blur-[80px]" />
+      <div className="pointer-events-none absolute left-[15%] top-[15%] h-[50vh] w-[50vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.14),_transparent_60%)] blur-[60px]" />
+      <div className="pointer-events-none absolute right-[10%] bottom-[10%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(200,255,0,0.08),_transparent_60%)] blur-[50px]" />
 
-      <div className="relative z-10 flex w-full max-w-4xl flex-col items-center px-6 text-center">
-        {/* Logo / Title */}
-        <h1 className="font-display text-[clamp(48px,12vw,140px)] font-extrabold leading-[0.85] tracking-[-0.04em]">
-          <span className="block">TOMMY</span>
-          <span className="block bg-gradient-to-r from-[var(--accent-fire)] to-[var(--accent-magenta)] bg-clip-text text-transparent">
-            PETERSEN
+      <div ref={titleRef} className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 text-center">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent-lime)]" />
+          IN THE LOOP AGENCY • ENTER EXPERIENCE
+        </div>
+
+        <h1 className="font-display text-[clamp(48px,14vw,160px)] font-extrabold leading-[0.85] tracking-[-0.04em]">
+          <span className="block overflow-hidden">
+            {"TOMMY".split("").map((c, i) => (
+              <span key={i} className="enter-char inline-block">
+                {c}
+              </span>
+            ))}
+          </span>
+          <span className="block overflow-hidden bg-gradient-to-r from-[var(--accent-fire)] via-[var(--accent-magenta)] to-[var(--accent-gold)] bg-clip-text text-transparent">
+            {"PETERSEN".split("").map((c, i) => (
+              <span key={i} className="enter-char inline-block">
+                {c}
+              </span>
+            ))}
           </span>
         </h1>
 
@@ -95,13 +136,17 @@ export function EnterScreen() {
           TRIBAL HOUSE / HOUSE / LATIN GROOVES — ARGENTINA
         </p>
 
-        {/* EQ */}
-        <div className="mt-12 flex h-20 items-end gap-[3px]">
+        <div className="mt-12 flex h-24 items-end gap-[3px]">
           {eqBars.map((h, i) => (
             <div
               key={i}
-              className="w-[4px] bg-gradient-to-t from-[var(--accent-fire)] to-[var(--accent-magenta)] transition-all duration-100"
-              style={{ height: `${h * 100}%`, opacity: 0.6 + h * 0.4 }}
+              className="w-[3px] bg-gradient-to-t from-[var(--accent-fire)] to-[var(--accent-magenta)] transition-all duration-100 md:w-[4px]"
+              style={{
+                height: `${h * 100}%`,
+                opacity: 0.5 + h * 0.5,
+                transform: `scaleY(${0.8 + h * 0.4})`,
+                filter: `hue-rotate(${h * 20}deg)`,
+              }}
             />
           ))}
         </div>
@@ -109,25 +154,27 @@ export function EnterScreen() {
         <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row">
           <button
             onClick={() => handleEnter(true)}
+            data-cursor="play"
             className="group relative overflow-hidden rounded-full bg-[var(--accent-fire)] px-10 py-4 font-bold uppercase tracking-widest text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <span className="relative z-10">ENTRAR CON SONIDO</span>
-            <div className="absolute inset-0 -translate-x-full bg-[var(--accent-gold)] transition-transform duration-500 group-hover:translate-x-0" />
+            <span className="relative z-10 flex items-center gap-2">
+              <span>▶</span> ENTRAR CON SONIDO
+            </span>
+            <div className="absolute inset-0 -translate-x-full bg-[var(--accent-gold)] transition-transform duration-700 group-hover:translate-x-0" />
           </button>
           <button
             onClick={() => handleEnter(false)}
-            className="rounded-full border border-[var(--border-strong)] px-10 py-4 font-bold uppercase tracking-widest text-[var(--fg)] transition-colors hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black"
+            className="rounded-full border border-[var(--border-strong)] px-10 py-4 font-bold uppercase tracking-widest text-[var(--fg)] transition-all hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black"
           >
             ENTRAR SIN SONIDO
           </button>
         </div>
 
-        <p className="mt-6 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">
-          Toca para desbloquear el audio • El sitio late con la música
+        <p className="mt-6 max-w-md font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">
+          Toca para desbloquear el audio • El sitio late con la música • WebGL + audio reactivo
         </p>
 
-        {/* Reduced motion toggle */}
-        <label className="mt-10 flex cursor-pointer items-center gap-3 text-xs uppercase tracking-widest text-[var(--fg-muted)]">
+        <label className="mt-10 flex cursor-pointer items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-4 py-2 text-xs uppercase tracking-widest text-[var(--fg-muted)] transition-colors hover:border-[var(--accent-lime)]">
           <input
             type="checkbox"
             checked={reducedMotion}
@@ -140,14 +187,10 @@ export function EnterScreen() {
           Reducir efectos intensos (sin flashes)
         </label>
 
-        {/* Quality hint */}
-        <div className="mt-4 font-mono text-[10px] text-[var(--fg-dim)]">
-          Efectos: {tier.toUpperCase()} • Optimizado para tu dispositivo
-        </div>
+        <div className="mt-4 font-mono text-[10px] text-[var(--fg-dim)]">Efectos: {tier.toUpperCase()} • Optimizado para tu dispositivo</div>
       </div>
 
-      {/* Bottom marque subtle */}
-      <div className="absolute bottom-0 w-full overflow-hidden border-t border-[var(--border)] py-2">
+      <div className="absolute bottom-0 w-full overflow-hidden border-t border-[var(--border)] bg-[var(--bg-2)]/50 py-2 backdrop-blur">
         <div className="animate-marquee whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
           IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY — TRIBAL HOUSE — SUNSET SESSIONS — BEACH PARTY — UNDERGROUND CLUB —{" "}
           IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY — TRIBAL HOUSE — SUNSET SESSIONS — BEACH PARTY — UNDERGROUND CLUB —
