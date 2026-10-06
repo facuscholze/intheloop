@@ -3,20 +3,19 @@
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "@/lib/motion";
 
+const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"] as const;
+
 export function KonamiCode() {
   const [isRaveActive, setIsRaveActive] = useState(false);
   const sequenceRef = useRef<string[]>([]);
-  const konami = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       sequenceRef.current.push(e.key);
-      if (sequenceRef.current.length > konami.length) sequenceRef.current.shift();
+      if (sequenceRef.current.length > KONAMI.length) sequenceRef.current.shift();
 
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      if (sequenceRef.current.join(",") === konami.join(",")) {
+      if (sequenceRef.current.join(",") === (KONAMI as readonly string[]).join(",")) {
         setIsRaveActive(true);
-        // Rave mode for 10 seconds
         document.documentElement.classList.add("rave-mode");
         gsap.to("body", {
           backgroundColor: "#FF5A1F",
@@ -30,7 +29,6 @@ export function KonamiCode() {
           },
         });
 
-        // Confetti
         for (let i = 0; i < 50; i++) {
           const confetti = document.createElement("div");
           confetti.style.position = "fixed";
@@ -87,7 +85,7 @@ export function Screensaver() {
     const resetTimer = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setIsActive(false);
-      timeoutRef.current = setTimeout(() => setIsActive(true), 30000); // 30s inactivity
+      timeoutRef.current = setTimeout(() => setIsActive(true), 30000);
     };
 
     const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
@@ -117,7 +115,6 @@ export function Screensaver() {
       ctx.fillStyle = "rgba(7,7,10,0.1)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Visualizer bars
       for (let i = 0; i < 64; i++) {
         const x = (i / 64) * canvas.width;
         const h = Math.sin(i * 0.3 + t * 2) * 100 + Math.cos(i * 0.1 + t) * 50 + 100;
@@ -147,7 +144,7 @@ export function Screensaver() {
 }
 
 export function Counters() {
-  const shows = 20; // real from content
+  const shows = 20;
   const countries = 5;
   const years = 3;
 

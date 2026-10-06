@@ -61,35 +61,40 @@ docs/                 # BRIEF, PLAN, CHECKLIST
 
 Todo en `content/` validado con Zod (`src/lib/content.ts`). Para agregar:
 
-### Canción / set
+### Canción / set — 2 minutos
 
 ```bash
 pnpm add:track
-# Por ahora placeholder: copiá content/tracks/_TEMPLATE.json -> content/tracks/mi-tema.json
-# Completá: id, title, bpm, key, genres, audioSrc, cover, links
-# Audio original va a media-src/audio/tracks/mi-tema.wav
-# Cover original a media-src/covers/mi-tema.jpg
-# Luego pnpm optimize:images + pnpm gen:waveform (Fase 5)
+# Te pregunta: título, ID, BPM, key, géneros, color, links SoundCloud/Spotify/Beatport
+# Busca audio en media-src/audio/tracks/{id}.wav|mp3 y cover en media-src/covers/{id}.jpg
+# Optimiza: copia audio a public/media/audio, cover a WebP 800x800 + thumb 200 + waveform peaks 120
+# Escribe content/tracks/{id}.json validado Zod
 ```
 
 **Importante derechos:** solo producción propia o con permiso. Sets con tracks de terceros mejor como embed SoundCloud/YouTube (el audio reactivo real solo funciona con archivos propios por CORS).
 
-### Video
+### Video — 2 minutos
 
 ```bash
 pnpm add:video
-# Copiá content/videos/_TEMPLATE.json
-# src puede ser /media/video/mi-video.mp4 o youtubeId
-# Poster y previewSrc en media-src/video/...
+# Pide: título, ID, venue, fecha, YouTube ID, ruta video local
+# Copia video a public/media/video/{id}.mp4
+# Genera poster ffmpeg -ss 1 + preview 5s loop + optimiza WebP 1280x720
+# Escribe content/videos/{id}.json
+# Manual: src puede ser video/mi-video.mp4 o youtubeId, poster en media-src/images/posters/
 ```
 
-### Show
+### Show — 2 minutos
 
 ```bash
 pnpm add:show
-# O editá content/shows.json directo (array, sort por fecha desc)
-# Campos: id, venue, city, country, date (YYYY-MM-DD), instagram, galleryUrl, photo, featured, needsReview
+# Pide: venue, ciudad, país, fecha, IG, gallery URL, featured, ID
+# Busca foto en media-src/images/shows/{id}.jpg -> optimiza WebP 800x600
+# Append a content/shows.json sort fecha desc
+# Manual: editá content/shows.json array directo
 ```
+
+Ver guía completa: `docs/CONTENT-GUIDE.md`
 
 ### Media
 
@@ -170,13 +175,13 @@ Objetivo: 60fps móvil medio en Medium, LCP <2.5s, contenido principal visible s
 
 ## Roadmap fases
 
-- **Fase 0 ✅** scaffold, tooling, CI, Dockerfile, Zod content, i18n
-- **Fase 1** sistema visual, layout, hero, Lenis, cursor, ENTER
-- **Fase 2** AudioEngine + player global + reactive + Modo Club
-- **Fase 3** videos Modo Cine (Flip, letterbox, ambilight, HLS, PiP)
-- **Fase 4** shows/mapa/galerías, pads Tone.js, física Matter.js, easter eggs
-- **Fase 5** booking, newsletter, SEO, scripts CLI, CMS opcional
-- **Fase 6** a11y, perf, tests responsive, bundle
+- **Fase 0 ✅** scaffold, tooling, CI, Dockerfile, Zod content, i18n ES/EN always
+- **Fase 1 ✅** sistema visual completo: HeroShader canvas2D+R3F, SplitText, CursorBlob audio-reactive, Marquee BPM, Grain, Header+Menu curtain, Lenis+ScrollTrigger
+- **Fase 2 ✅** AudioEngine + player global persistente + Modo Club: Vinyl jog scratch, Waveform seek, Media Session, crossfade, favs, shuffle, 3 demos WAV tribales, ClubModeToggle+Effect, ScreenShake beat
+- **Fase 3 ✅** videos Modo Cine: VideoStore, VideoCard preview scrub distortion, useHLS dynamic, Ambilight canvas, VideoControls PiP/Fullscreen, CineMode Flip letterbox ducking, 4 demos
+- **Fase 4 ✅** shows/mapa/galerías/pads/física/easter eggs: ShowsList filtros Flip + floating photo, MapRoute SVG animada, GalleryCarousel drag inertia tilt 3D + lightbox, PadsSection 8 pads Web Audio + crossfader + visualizer, TribalPhysics canvas + Matter.js dynamic, Konami rave confetti + Screensaver 30s + Counters reales, 404 visualizer
+- **Fase 5 ✅** booking + SEO + CLI: robots.txt + sitemap.xml dinámico + OG edge 1200x630 + icon 32x32 + JSON-LD MusicGroup/MusicRecording + BookingForm Zod honeypot webhook mailto fallback + Newsletter Zod + /api/booking /api/newsletter + cli.ts helpers + add-track/add-video/add-show/gen-waveform/optimize-images scripts + docs/CONTENT-GUIDE.md + metadataBase openGraph twitter alternates hreflang — Build 30.7kB /[locale] 166kB First Load
+- **Fase 6** a11y focus visible contrast keyboard, Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, press kit PDF, Vercel+Docker verify
 
 ---
 

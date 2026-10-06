@@ -8,6 +8,9 @@ import { GalleryCarousel } from "@/components/gallery/Gallery";
 import { PadsSection } from "@/components/pads/PadsSection";
 import { TribalPhysics } from "@/components/physics/TribalPhysics";
 import { Counters } from "@/components/effects/EasterEggs";
+import { BookingForm } from "@/components/booking/BookingForm";
+import { Newsletter } from "@/components/booking/Newsletter";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
 
 export default function HomePage() {
@@ -17,7 +20,9 @@ export default function HomePage() {
   const videos = loadVideos();
 
   return (
-    <main className="pt-[var(--header-h)]">
+    <>
+      <JsonLd />
+      <main className="pt-[var(--header-h)]">
       <Hero />
 
       <Marquee text="TRIBAL HOUSE • HOUSE • LATIN GROOVES • ARGENTINA • IN THE LOOP AGENCY • SUNSET SESSIONS • BEACH PARTY • UNDERGROUND CLUB • AUDIO REACTIVO • MODO CLUB • KONAMI CODE RAVE •" />
@@ -174,55 +179,62 @@ export default function HomePage() {
       {/* Booking */}
       <section id="booking" className="border-t border-[var(--border)] bg-[var(--bg-2)] px-6 py-24 md:px-10 pb-[calc(6rem+var(--player-h))]">
         <div className="mx-auto max-w-[var(--content-max)]">
-          <h2 className="font-display text-[clamp(32px,8vw,96px)] font-bold leading-none tracking-tight">
-            BOOK<span className="text-[var(--accent-fire)]">.</span>
-          </h2>
-          <div className="mt-12 grid gap-12 md:grid-cols-2">
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <h2 className="font-display text-[clamp(32px,8vw,96px)] font-bold leading-none tracking-tight">
+              BOOK<span className="text-[var(--accent-fire)]">.</span>
+            </h2>
+            <div className="font-mono text-xs uppercase text-[var(--fg-muted)]">Formulario Zod + webhook + mailto + honeypot • Respuesta 24h</div>
+          </div>
+
+          <div className="grid gap-12 md:grid-cols-2">
             <div>
               <p className="font-sans text-xl leading-relaxed text-[var(--fg-muted)]">
-                Let&apos;s create something unforgettable. Para bookings, eventos privados y festivales. Respuesta en 24h.
+                Let&apos;s create something unforgettable. Para bookings, eventos privados y festivales. Respuesta en 24h. Siempre hay vía de contacto rápida y
+                legible aunque los efectos estén al máximo.
               </p>
               <div className="mt-8 flex flex-col gap-3 font-mono text-sm">
                 <a href={`mailto:${site.contact.email}`} className="group flex items-center gap-2 hover:text-[var(--accent-fire)]" data-cursor="view">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-2)] group-hover:bg-[var(--accent-fire)] group-hover:text-black">✦</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg)] group-hover:bg-[var(--accent-fire)] group-hover:text-black">✦</span>
                   {site.contact.email}
                 </a>
                 <a href={site.contact.whatsapp} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-[var(--accent-fire)]" data-cursor="view">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-2)] group-hover:bg-[var(--accent-lime)] group-hover:text-black">↗</span>
-                  WhatsApp
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg)] group-hover:bg-[var(--accent-lime)] group-hover:text-black">↗</span>
+                  WhatsApp directo
                 </a>
                 {site.contact.instagram.slice(0, 2).map((ig) => (
                   <a key={ig} href={ig} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-[var(--accent-fire)]" data-cursor="view">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-2)] group-hover:bg-[var(--accent-magenta)] group-hover:text-black">@</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg)] group-hover:bg-[var(--accent-magenta)] group-hover:text-black">@</span>
                     {ig.replace("https://www.instagram.com/", "").replace("/", "")}
                   </a>
                 ))}
               </div>
 
-              <div className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Easter eggs</div>
-                <div className="mt-2 space-y-1 font-mono text-xs text-[var(--fg-dim)]">
-                  <div>↑↑↓↓←→←→BA = Rave total + confetti (Konami code)</div>
-                  <div>30s sin mover mouse = Screensaver visualizador</div>
-                  <div>404 interactiva con visualizador (Fase 4)</div>
-                  <div>Cursor custom con estela + audio reactive</div>
+              <div className="mt-12 grid gap-6">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
+                  <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Easter eggs</div>
+                  <div className="mt-2 space-y-1 font-mono text-xs text-[var(--fg-dim)]">
+                    <div>↑↑↓↓←→←→BA = Rave total + confetti (Konami)</div>
+                    <div>30s inactividad = Screensaver visualizador</div>
+                    <div>404 interactiva con visualizador + glitch</div>
+                    <div>Cursor custom con estela + audio reactive</div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
+                  <Newsletter />
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--bg)] p-6">
+                  <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Press kit / Rider</div>
+                  <div className="mt-2 text-sm text-[var(--fg-dim)]">
+                    Placeholder deshabilitado — no inventar archivos. Cliente debe subir PDF a <code>media-src/press/</code>.
+                  </div>
+                  <div className="mt-3 font-mono text-[10px] uppercase text-[var(--fg-dim)]">Si existe, se muestra link con descarga + preview</div>
                 </div>
               </div>
             </div>
-            <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg)] p-8">
-              <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Formulario booking — Fase 5</div>
-              <div className="mt-4 text-sm leading-relaxed text-[var(--fg-dim)]">
-                Form Zod + mailto + webhook <code className="rounded bg-[var(--bg-2)] px-1">BOOKING_WEBHOOK_URL</code>. Honeypot anti-spam.
-              </div>
-              <a
-                href={`mailto:${site.contact.email}?subject=Booking%20Tommy%20Petersen`}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-fire)] px-6 py-4 text-sm font-bold uppercase tracking-widest text-black transition-transform hover:scale-[1.02]"
-                data-cursor="view"
-              >
-                Enviar mail directo
-              </a>
-              <div className="mt-4 text-center font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">Respuesta garantizada en 24h • No spam</div>
-            </div>
+
+            <BookingForm contactEmail={site.contact.email} />
           </div>
         </div>
       </section>
@@ -232,7 +244,21 @@ export default function HomePage() {
           <div>
             <div>© {new Date().getFullYear()} TOMMY PETERSEN / IN THE LOOP AGENCY • ARGENTINA</div>
             <div className="mt-2 text-[var(--fg-muted)]">TRIBAL HOUSE / HOUSE / LATIN GROOVES • Every dancefloor has its own story.</div>
-            <div className="mt-2 text-[9px]">Fase 4: Shows foto flotante + mapa SVG + galería inercia + pads Tone.js + física Matter.js + Konami + screensaver</div>
+            <div className="mt-2 text-[9px]">
+              Fase 5: Booking Zod + webhook + newsletter + sitemap + robots + OG 1200x630 + JSON-LD + CLI 2min • Deploy Vercel + Docker/Coolify
+            </div>
+            <div className="mt-2 flex gap-3">
+              <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--fg)]">
+                sitemap.xml
+              </a>
+              <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--fg)]">
+                robots.txt
+              </a>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/es/opengraph-image" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--fg)]">
+                OG Image
+              </a>
+            </div>
           </div>
           <div className="flex flex-wrap gap-6">
             <a href={site.contact.soundcloud} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--fg)]">
@@ -248,5 +274,6 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+    </>
   );
 }

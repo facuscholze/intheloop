@@ -194,8 +194,26 @@ next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `s
   - 404 interactiva: canvas visualizer 80 bars + glitch 404 random hue, GSAP notfound-char SplitText club stagger 0.1s
   - Layout: Konami+Screensaver globales, Page: Shows, MapRoute, Counters, Gallery, Pads, Physics, Marquee Konami hint
   - Build verde 15.8kB /[locale] + 103kB shared
-- Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG dinámico, JSON-LD, scripts CLI completos
-- Fase 6 TODO: a11y, perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer
+- Fase 5 ✅ Booking/SEO/CLI:
+  - robots.ts: MetadataRoute.Robots allow /, disallow /api/ /_next/, sitemap https://www.intheloop.agency/sitemap.xml
+  - sitemap.ts: static routes /es /en + /es#music/videos/shows/booking + tracks/videos/shows from loadTracks/loadVideos/loadShows (lastModified)
+  - opengraph-image.tsx: edge runtime ImageResponse 1200x630, radial glows fire/magenta, TOMMY PETERSEN gradient text Syne bold, tagline + URL footer
+  - icon.tsx: edge 32x32 T fire borderRadius 6
+  - JsonLd.tsx: MusicGroup JSON-LD (artist, agency, genres Tribal House/House/Latin, sameAs IG/YT/SC/WA, contactPoint events@intheloop.agency booking) + 5 MusicRecording from tracks
+  - BookingForm: Zod name min2/event min2/date min4/city min2/message min10/email optional/honeypot hidden left -5000px, status idle/sending/success/error, fetch /api/booking POST + webhook BOOKING_WEBHOOK_URL env, error fallback mailto subject Booking: {event} - {city} - {date} body multiline, success UI lime border + thanks + open mailto delayed 500ms, bass reactive boxShadow --bass, aria-invalid, disabled sending
+  - Newsletter: Zod email honeypot, POST /api/newsletter NEWSLETTER_ENDPOINT env (MailerLite/docs), success UI
+  - /api/booking: Zod same + email optional, honeypot bot ok, webhook fetch catch warn, always ok
+  - /api/newsletter: Zod email honeypot, endpoint fetch, note no endpoint
+  - cli.ts: prompt readline, promptNumber, slugify NFD remove diacritics, logStep/Success/Warn chalk-like emojis
+  - add-track.ts: prompts title/id/artist/type/bpm/key/genres/date/colorAccent/links, search media-src/audio/tracks/{id}.wav|mp3, copy public/media/audio, waveform peaks 120 PCM16 max per block reading WAV header 44 bytes, random fallback, sharp cover 800x800 WebP + 200 thumb, Zod validation, write content/tracks/{id}.json
+  - add-video.ts: prompts title/id/venue/date/youtubeId/srcInput, copy public/media/video, ffmpeg poster -ss 00:00:01 vframes 1 + preview -ss 2 -t 5 scale 640, sharp poster 1280x720 WebP, Zod VideoSchema, write content/videos/{id}.json
+  - add-show.ts: prompts venue/city/country/date/instagram/galleryUrl/featured/id, search media-src/images/shows, sharp 800x600 WebP public/media/images/shows, Zod ShowSchema, append shows.json sorted recent first
+  - gen-waveform.ts: bulk regenerates peaks missing, reads public/media/{audioSrc} WAV or random
+  - optimize-images.ts: optimizeDir sharp WebP 80% + thumb 400x400, dirs hero/shows/about/covers/press/brand/galleries
+  - page.tsx: imports JsonLd + BookingForm + Newsletter, booking section grid md 2 cols left contact+eggs+Newsletter+press kit disabled placeholder message upload PDF media-src/press/, right BookingForm contactEmail events@intheloop.agency, footer links sitemap.xml robots.txt OG image target blank + eslint-disable for OG page, Fase 5 note
+  - layout.tsx metadata: metadataBase https://www.intheloop.agency, openGraph profile es_AR/en_US, twitter summary_large_image, alternates canonical + languages es/en, keywords, authors, robots index follow
+  - Build 30.7kB /[locale] 166kB First Load, OG/icon edge, sitemap 20+ entries, lint fixed
+- Fase 6 TODO: a11y focus visible, contrast, keyboard nav, Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer, press kit PDF upload, vercel+docker deploy verify
 
 ## Notas sandbox
 

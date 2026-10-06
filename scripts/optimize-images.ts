@@ -1,2 +1,73 @@
 #!/usr/bin/env tsx
-console.log("🖼️ optimize:images — placeholder. Usará sharp para convertir a WebP/AVIF y generar thumbs");
+/**
+ * pnpm optimize:images
+ * Optimiza imágenes de media-src/ a public/media/ con sharp
+ * Convierte a WebP/AVIF y genera thumbs
+ */
+
+import fs from "node:fs";
+import path from "node:path";
+
+async function optimizeDir(srcDir: string, destDir: string, options: { width?: number; height?: number } = {}) {
+  if (!fs.existsSync(srcDir)) {
+    console.log(`⏭️  ${srcDir} no existe`);
+    return;
+  }
+
+  fs.mkdirSync(destDir, { recursive: true });
+  const files = fs.readdirSync(srcDir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f) && !f.startsWith("."));
+
+  if (files.length === 0) {
+    console.log(`⏭️  ${srcDir} vacío`);
+    return;
+  }
+
+  const sharp = (await import("sharp")).default;
+
+  for (const file of files) {
+    const srcPath = path.join(srcDir, file);
+    const name = path.parse(file).name;
+    const destWebP = path.join(destDir, `${name}.webp`);
+    const destThumb = path.join(destDir, `${name}-thumb.webp`);
+
+    try {
+      await sharp(srcPath)
+        .resize(options.width || 1280, options.height || undefined, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(destWebP);
+
+      await sharp(srcPath).resize(400, 400, { fit: "cover" }).webp({ quality: 70 }).toFile(destThumb);
+
+      console.log(`✅ ${srcPath} -> ${destWebP} + thumb`);
+    } catch (e) {
+      console.warn(`⚠️  Falló ${srcPath}: ${e}`);
+    }
+  }
+}
+
+async function main() {
+  console.log("🖼️  Optimizando imágenes con sharp...\n");
+
+  await optimizeDir("media-src/images/hero", "public/media/images/hero", { width: 1920 });
+  await optimizeDir("media-src/images/shows", "public/media/images/shows", { width: 800 });
+  await optimizeDir("media-src/images/about", "public/media/images/about", { width: 1200 });
+  await optimizeDir("media-src/covers", "public/media/images/covers", { width: 800 });
+  await optimizeDir("media-src/images/press", "public/media/images/press", { width: 1600 });
+  await optimizeDir("media-src/brand", "public/media/images/brand");
+
+  // Galleries
+  const galleriesDir = "media-src/images/galleries";
+  if (fs.existsSync(galleriesDir)) {
+    const cities = fs.readdirSync(galleriesDir).filter((f) => fs.statSync(path.join(galleriesDir, f)).isDirectory());
+    for (const city of cities) {
+      await optimizeDir(path.join(galleriesDir, city), path.join("public/media/images/galleries", city), { width: 1200 });
+    }
+  }
+
+  console.log("\n✅ Imágenes optimizadas a public/media/");
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

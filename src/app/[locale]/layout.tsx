@@ -17,9 +17,36 @@ import { KonamiCode, Screensaver } from "@/components/effects/EasterEggs";
 import "../globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.intheloop.agency"),
   title: "Tommy Petersen — Tribal House DJ | In The Loop Agency",
   description:
-    "Tommy Petersen — DJ y productor de Argentina. Tribal House, House y Latin grooves. Bookings: events@intheloop.agency.",
+    "Tommy Petersen — DJ y productor de Argentina. Tribal House, House y Latin grooves con texturas melódicas. Bookings: events@intheloop.agency. Every dancefloor has its own story.",
+  keywords: ["Tommy Petersen", "DJ", "Tribal House", "House", "Argentina", "In The Loop Agency", "booking", "Latin grooves"],
+  authors: [{ name: "Tommy Petersen" }],
+  creator: "Tommy Petersen",
+  openGraph: {
+    title: "Tommy Petersen — Tribal House DJ",
+    description: "Every dancefloor has its own story. I'm here to tell mine. Let's create something unforgettable.",
+    type: "profile",
+    locale: "es_AR",
+    alternateLocale: ["en_US"],
+    siteName: "In The Loop Agency",
+    url: "https://www.intheloop.agency",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tommy Petersen — Tribal House DJ",
+    description: "Every dancefloor has its own story. Tribal House / House / Latin grooves from Argentina.",
+    creator: "@tommypetersen",
+  },
+  alternates: {
+    canonical: "https://www.intheloop.agency",
+    languages: {
+      es: "https://www.intheloop.agency/es",
+      en: "https://www.intheloop.agency/en",
+    },
+  },
+  robots: { index: true, follow: true },
 };
 
 export function generateStaticParams() {
@@ -45,8 +72,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="dark" suppressHydrationWarning>
       <head>
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap"
           rel="stylesheet"

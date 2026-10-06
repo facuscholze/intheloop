@@ -7,7 +7,8 @@ const BookingSchema = z.object({
   date: z.string().min(4),
   city: z.string().min(2),
   message: z.string().min(10),
-  honeypot: z.string().optional(), // anti-spam
+  email: z.string().email().optional().or(z.literal("")),
+  honeypot: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
