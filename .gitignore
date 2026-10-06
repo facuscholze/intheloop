@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.local
+.DS_Store
+# Originales pesados: NO se suben a git
+media-src/**/*
+!media-src/**/.gitkeep
+!media-src/README.md

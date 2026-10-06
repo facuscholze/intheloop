@@ -1,0 +1,24 @@
+{
+  "artist": "Tommy Petersen",
+  "agency": "In The Loop Agency",
+  "tagline": {
+    "en": "Every dancefloor has its own story. I'm here to tell mine.",
+    "es": null
+  },
+  "contact": {
+    "email": "events@intheloop.agency",
+    "whatsapp": "https://wa.link/p31ap5",
+    "instagram": [
+      "https://www.instagram.com/tommypetersen/",
+      "https://www.instagram.com/tommypetersendj/",
+      "https://www.instagram.com/intheloop.agency/"
+    ],
+    "youtube": "https://www.youtube.com/@InTheLoopAgency",
+    "soundcloud": "https://soundcloud.com/tommypetersendj"
+  },
+  "genres": [
+    "Tribal House",
+    "House",
+    "Latin grooves"
+  ]
+}

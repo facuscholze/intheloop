@@ -1,0 +1,11 @@
+{
+  "id": "nombre-del-video",
+  "title": "Título del video",
+  "src": "video/nombre-del-video.mp4",
+  "youtubeId": null,
+  "poster": "images/posters/nombre-del-video.jpg",
+  "previewSrc": "video/previews/nombre-del-video.mp4",
+  "date": "2026-01-01",
+  "venue": "Nombre del venue",
+  "colorAccent": "#ff2e93"
+}
