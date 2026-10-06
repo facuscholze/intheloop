@@ -16,6 +16,7 @@
     "add:video": "tsx scripts/add-video.ts",
     "add:show": "tsx scripts/add-show.ts",
     "gen:sample-audio": "tsx scripts/gen-sample-audio.ts",
+    "gen:sample-videos": "tsx scripts/gen-sample-videos.ts",
     "gen:waveform": "tsx scripts/gen-waveform.ts",
     "optimize:images": "tsx scripts/optimize-images.ts",
     "analyze": "ANALYZE=true next build",

@@ -170,8 +170,20 @@ next-intl, locales ["es","en"], default "es", prefix as-needed. Middleware en `s
   - Layout: Grain+Cursor+ScreenShake+ClubModeEffect+Enter+Header+Menu+ClubToggle+Player en [locale]/layout para persistencia
   - Build verde 6.56 kB /[locale] (reducido por code splitting), lint warnings fixed
   - .gitattributes LFS comentado para demo audios pequeños, prod usar bucket NEXT_PUBLIC_MEDIA_BASE_URL
-- Fase 3 TODO: VideoGrid Flip, letterbox, ambilight, HLS, PiP/Fullscreen, ducking player
-- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
+- Fase 3 ✅ Videos Modo Cine:
+  - VideoStore Zustand: activeVideo, activeElement, isCineMode, openVideo(video,element), closeVideo()
+  - VideoCard: IntersectionObserver via useIntersectionPause, preview loop muted autoplay when isVisible && isHovered, scrub X mouse -> preview.currentTime = x*duration, distortion shader overlay SVG feTurbulence+feDisplacementMap scale bass*10, RGB-split bass translate, glow radial colorAccent, beat scale, data-cursor view, YouTube facade thumbnail hqdefault.jpg + black overlay, placeholder gradient + waveform simulated when no src
+  - VideoGrid: grid md 2 cols, empty state dashed border
+  - useHLS hook: dynamic import hls.js, Hls.isSupported() loadSource + attachMedia, fallback native HLS, cleanup destroy
+  - Ambilight: canvas low res w/4 h/4, drawImage video 0,0,w,h + filter blur 40px saturate 1.5 brightness 1.2, RAF loop when !paused, resize handler, disabled Low tier
+  - VideoControls: timeupdate, loadedmetadata, play/pause, seek range, volume range, fullscreen API, PiP API, formatTime, title, progress tooltip
+  - CineMode: Flip animation custom (GSAP timeline): overlay opacity 0->1 0.4s, container x/y/width/height from cardRect to 100vw/100vh borderRadius 1.5rem->0 0.8s club ease, filter blur 10px hue-rotate 90deg -> 0, letterbox top/bottom y -100%/100% ->0 0.6s club delay 0.3s, chromatic portal gradient overlay, Ambilight background + backdrop-blur 20px + black/60, ducking audioEngine.duck(0.12) open + unduck(1,0.6) close, body overflow hidden, close handlers: X button, Esc key, click outside overlay, swipe down touch >100px, reverse animation y letterbox, onComplete closeVideo + setCineMode false
+  - HLS support + YouTube iframe autoplay modestbranding, placeholder UI when no src with instructions media-src/video/live
+  - Radix not needed yet but aria-modal dialog, focus trap TODO Phase 5 polish, close aria-label
+  - 4 demo videos JSON via gen-sample-videos.ts: le-fleurus, sundowner, pirata, temple (youtubeId demo), colorAccent fire/magenta/lime/violet, src null placeholder
+  - Integration: CineMode in [locale]/layout persistente, VideoGrid in page, docs Modo Cine en UI
+  - Build verde 7.9 kB /[locale] (aumentó por video components), lint warnings fixed
+- Fase 4 TODO: Shows foto flotante + filtros Flip, MapRoute MotionPath DrawSVG, Gallery carousel Draggable/Inertia, Pads Tone.js, Physics Matter.js, easter eggs Konami, 404 interactiva, screensaver
 - Fase 5 TODO: booking form Zod + webhook + mailto, newsletter, sitemap, robots, OG dinámico, JSON-LD, scripts CLI completos
 - Fase 6 TODO: a11y, perf Lighthouse ≥85/95, responsive 360/768/1440, bundle analyzer
 

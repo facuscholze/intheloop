@@ -1,6 +1,7 @@
 import { Hero } from "@/components/hero/Hero";
 import { Marquee, MarqueeGiant } from "@/components/effects/Marquee";
 import { MusicSection } from "@/components/music/MusicSection";
+import { VideoGrid } from "@/components/video/VideoGrid";
 import { loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
 
 export default function HomePage() {
@@ -77,55 +78,32 @@ export default function HomePage() {
 
       <MarqueeGiant text="IN THE LOOP — EVERY DANCEFLOOR HAS ITS OWN STORY —" />
 
-      {/* Videos - Fase 3 preview */}
+      {/* Videos - Fase 3 */}
       <section id="videos" className="border-t border-[var(--border)] bg-[var(--bg)] px-6 py-24 md:px-10">
         <div className="mx-auto max-w-[var(--content-max)]">
-          <h2 className="font-display text-[clamp(32px,8vw,96px)] font-bold leading-none tracking-tight">
-            VISUALS<span className="text-[var(--accent-magenta)]">.</span>
-          </h2>
-          <p className="mt-4 max-w-xl font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
-            Modo cine con Flip animation, letterbox, ambilight y HLS — Fase 3. El player hace ducking al abrir video.
-          </p>
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
-            {videos.length === 0 ? (
-              <div className="col-span-2 grid gap-4 md:grid-cols-2">
-                {[
-                  { title: "Live @ Le Fleurus Paris", venue: "Le Fleurus", date: "2025-09-12" },
-                  { title: "Sundowner Session", venue: "Sundowner", date: "2026-01-31" },
-                  { title: "Pirata Berlin", venue: "Pirata", date: "2025-08-08" },
-                  { title: "Temple CABA", venue: "Temple", date: "2026-06-27" },
-                ].map((v) => (
-                  <div
-                    key={v.title}
-                    className="group relative aspect-video overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--bg-2)] p-6 transition-all hover:border-[var(--accent-magenta)]"
-                    data-cursor="view"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-magenta)]/20 to-[var(--bg-2)]" />
-                    <div className="relative flex h-full flex-col justify-between">
-                      <div className="flex items-start justify-between">
-                        <div className="rounded-full bg-[var(--bg)] px-3 py-1 font-mono text-[10px] uppercase">▶ Preview</div>
-                        <div className="h-8 w-8 rounded-full bg-[var(--accent-magenta)]/20" />
-                      </div>
-                      <div>
-                        <div className="font-display text-xl font-bold">{v.title}</div>
-                        <div className="font-mono text-xs uppercase text-[var(--fg-muted)]">
-                          {v.venue} • {v.date}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              videos.map((v) => (
-                <div key={v.id} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-6" data-cursor="view">
-                  <div className="font-display text-lg">{v.title}</div>
-                  <div className="font-mono text-xs text-[var(--fg-muted)]">
-                    {v.venue} • {v.date}
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="font-display text-[clamp(32px,8vw,96px)] font-bold leading-none tracking-tight">
+                VISUALS<span className="text-[var(--accent-magenta)]">.</span>
+              </h2>
+              <p className="mt-2 max-w-xl font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
+                Modo cine: Flip al centro, letterbox, ambilight, HLS, PiP, Fullscreen, ducking player
+              </p>
+            </div>
+            <div className="font-mono text-xs uppercase text-[var(--fg-muted)]">{videos.length} videos • click para modo cine</div>
+          </div>
+
+          <VideoGrid videos={videos} />
+
+          <div className="mt-8 rounded-[1.5rem] border border-[var(--border)] bg-[var(--bg-2)] p-6">
+            <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Cómo funciona Modo Cine</div>
+            <div className="mt-2 text-sm leading-relaxed text-[var(--fg-dim)]">
+              Cada card tiene preview loop mudo (IntersectionObserver) + scrub X del mouse. Al click, GSAP anima con Flip (o custom x/y/width/height) desde su
+              posición exacta al centro fullscreen, mientras fondo se oscurece con blur, aparecen barras letterbox, hay distorsión chromatic aberration tipo
+              portal, y el player global hace ducking (<code className="rounded bg-[var(--bg)] px-1">audioEngine.duck(0.12)</code>). Cierre con X, Esc, click afuera o swipe down
+              invierte animación. Ambilight canvas proyecta colores del video al fondo. Controles custom con PiP y Fullscreen API. Soporta MP4/WebM/HLS (hls.js) y
+              YouTube facade.
+            </div>
           </div>
         </div>
       </section>

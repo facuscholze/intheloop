@@ -12,6 +12,7 @@ import { Menu } from "@/components/ui/Menu";
 import { Player } from "@/components/player/Player";
 import { ClubModeToggle, ClubModeEffect } from "@/components/effects/ClubMode";
 import { ScreenShake } from "@/components/effects/ScreenShake";
+import { CineMode } from "@/components/video/CineMode";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -70,6 +71,7 @@ export default async function LocaleLayout({
             <ClubModeToggle />
             {children}
             <Player />
+            <CineMode />
           </Providers>
         </NextIntlClientProvider>
       </body>
