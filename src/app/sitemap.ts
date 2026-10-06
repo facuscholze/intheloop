@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { loadTracks, loadVideos, loadShows } from "@/lib/content";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.intheloop.agency";
   const now = new Date();
