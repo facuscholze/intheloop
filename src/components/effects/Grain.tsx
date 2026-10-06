@@ -2,11 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useQualityStore } from "@/stores/qualityStore";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine } from "@/lib/audio-engine";
 
 export function Grain() {
   const tier = useQualityStore((s) => s.tier);
-  const { high } = useAudioReactive();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -14,17 +13,30 @@ export function Grain() {
     const el = ref.current;
     if (!el) return;
 
-    // Animate grain opacity based on high frequencies
+    // High-frequency value lives in a ref; ONE rAF loop for the component's
+    // lifetime. The old version had `high` in the deps and restarted this
+    // loop on every audio frame (60 cleanup+setup cycles per second).
+    let high = 0;
+    let last = -1;
+    const unsub = audioEngine?.subscribe((a) => {
+      high = a.high;
+    });
+
     const animate = () => {
-      if (el) {
-        const base = tier === "high" ? 0.06 : 0.04;
-        el.style.opacity = `${base + high * 0.08}`;
+      const target = (tier === "high" ? 0.06 : 0.04) + high * 0.08;
+      const q = Math.round(target * 200);
+      if (q !== last) {
+        last = q;
+        el.style.opacity = `${q / 200}`;
       }
-      requestAnimationFrame(animate);
+      raf = requestAnimationFrame(animate);
     };
-    const raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [tier, high]);
+    let raf = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(raf);
+      unsub?.();
+    };
+  }, [tier]);
 
   if (tier === "low") {
     // CSS only grain for low tier

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/stores/uiStore";
 import { useQualityStore } from "@/stores/qualityStore";
+import { usePlayerStore } from "@/stores/playerStore";
 import { audioEngine } from "@/lib/audio-engine";
 import { gsap } from "@/lib/motion";
 
@@ -89,15 +90,29 @@ export function EnterScreen() {
 
   if (hasEntered) return null;
 
-  const handleEnter = async (withSound: boolean) => {
+  const handleEnter = async () => {
+    // Unlock audio directly (user gesture) — no "con/sin sonido" prompt.
     try {
-      if (withSound && audioEngine) {
+      if (audioEngine) {
         audioEngine.init();
         await audioEngine.resume();
       }
     } catch (e) {
       console.warn("AudioContext init failed", e);
     }
+
+    // Enter WITH sound: start the first track of the queue (respects mute).
+    try {
+      const player = usePlayerStore.getState();
+      if (!player.currentTrack && player.queue.length > 0) {
+        player.playTrack(player.queue[0]);
+      } else if (player.currentTrack && !player.isPlaying) {
+        player.play();
+      }
+    } catch (e) {
+      console.warn("Autoplay failed", e);
+    }
+
     if (titleRef.current && !reducedMotion) {
       gsap.to(titleRef.current, {
         y: -100,
@@ -121,17 +136,35 @@ export function EnterScreen() {
     >
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.18),_transparent_60%)] blur-[80px]" aria-hidden="true" />
-      <div className="pointer-events-none absolute left-[15%] top-[15%] h-[50vh] w-[50vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.14),_transparent_60%)] blur-[60px]" aria-hidden="true" />
-      <div className="pointer-events-none absolute right-[10%] bottom-[10%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(200,255,0,0.08),_transparent_60%)] blur-[50px]" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute top-1/2 left-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.18),_transparent_60%)] blur-[80px]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute top-[15%] left-[15%] h-[50vh] w-[50vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.14),_transparent_60%)] blur-[60px]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute right-[10%] bottom-[10%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(200,255,0,0.08),_transparent_60%)] blur-[50px]"
+        aria-hidden="true"
+      />
 
-      <div ref={titleRef} className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]" aria-hidden="true">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent-lime)]" aria-hidden="true" />
+      <div
+        ref={titleRef}
+        className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 text-center"
+      >
+        <div
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-3 py-1 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+          aria-hidden="true"
+        >
+          <span
+            className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent-lime)]"
+            aria-hidden="true"
+          />
           IN THE LOOP AGENCY • ENTER EXPERIENCE
         </div>
 
-        <h1 className="font-display text-[clamp(48px,14vw,160px)] font-extrabold leading-[0.85] tracking-[-0.04em]">
+        <h1 className="font-display text-[clamp(48px,14vw,160px)] leading-[0.85] font-extrabold tracking-[-0.04em]">
           <span className="block overflow-hidden">
             {"TOMMY".split("").map((c, i) => (
               <span key={i} className="enter-char inline-block" aria-hidden="true">
@@ -150,7 +183,9 @@ export function EnterScreen() {
           </span>
         </h1>
 
-        <p className="mt-4 font-mono text-xs uppercase tracking-[0.3em] text-[var(--fg-muted)]">TRIBAL HOUSE / HOUSE / LATIN GROOVES — ARGENTINA</p>
+        <p className="mt-4 font-mono text-xs tracking-[0.3em] text-[var(--fg-muted)] uppercase">
+          TRIBAL HOUSE / HOUSE / LATIN GROOVES — ARGENTINA
+        </p>
 
         <div className="mt-12 flex h-24 items-end gap-[3px]" aria-hidden="true" role="presentation">
           {eqBars.map((h, i) => (
@@ -170,28 +205,27 @@ export function EnterScreen() {
         <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row">
           <button
             ref={enterButtonRef}
-            onClick={() => handleEnter(true)}
+            onClick={handleEnter}
             data-cursor="play"
-            className="group relative overflow-hidden rounded-full bg-[var(--accent-fire)] px-10 py-4 font-bold uppercase tracking-widest text-black transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)]"
-            aria-label="Entrar con sonido - desbloquea audio reactivo"
+            className="group relative overflow-hidden rounded-full bg-[var(--accent-fire)] px-12 py-4 font-bold tracking-widest text-black uppercase transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)] active:scale-[0.98]"
+            aria-label="Entrar con sonido - el sitio arranca con música, podés silenciarlo cuando quieras"
           >
             <span className="relative z-10 flex items-center gap-2">
-              <span aria-hidden="true">▶</span> ENTRAR CON SONIDO
+              <span aria-hidden="true">▶</span> ENTRAR
             </span>
-            <div className="absolute inset-0 -translate-x-full bg-[var(--accent-gold)] transition-transform duration-700 group-hover:translate-x-0" aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => handleEnter(false)}
-            className="rounded-full border border-[var(--border-strong)] px-10 py-4 font-bold uppercase tracking-widest text-[var(--fg)] transition-all hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)]"
-            aria-label="Entrar sin sonido - experiencia visual sin audio"
-          >
-            ENTRAR SIN SONIDO
+            <div
+              className="absolute inset-0 -translate-x-full bg-[var(--accent-gold)] transition-transform duration-700 group-hover:translate-x-0"
+              aria-hidden="true"
+            />
           </button>
         </div>
 
-        <p className="mt-6 max-w-md font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">Toca para desbloquear el audio • El sitio late con la música • WebGL + audio reactivo</p>
+        <p className="mt-6 max-w-md font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
+          Entra con sonido • Botón de silencio siempre visible arriba • El sitio late con la música
+          • WebGL + audio reactivo
+        </p>
 
-        <label className="mt-10 flex cursor-pointer items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-4 py-2 text-xs uppercase tracking-widest text-[var(--fg-muted)] transition-colors hover:border-[var(--accent-lime)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--accent-lime)]">
+        <label className="mt-10 flex cursor-pointer items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-4 py-2 text-xs tracking-widest text-[var(--fg-muted)] uppercase transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--accent-lime)] hover:border-[var(--accent-lime)]">
           <input
             type="checkbox"
             checked={reducedMotion}
@@ -210,9 +244,14 @@ export function EnterScreen() {
         </div>
       </div>
 
-      <div className="absolute bottom-0 w-full overflow-hidden border-t border-[var(--border)] bg-[var(--bg-2)]/50 py-2 backdrop-blur" aria-hidden="true">
-        <div className="animate-marquee whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-dim)]">
-          IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY — TRIBAL HOUSE — SUNSET SESSIONS — BEACH PARTY — UNDERGROUND CLUB — IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY — TRIBAL HOUSE — SUNSET SESSIONS — BEACH PARTY — UNDERGROUND CLUB —
+      <div
+        className="absolute bottom-0 w-full overflow-hidden border-t border-[var(--border)] bg-[var(--bg-2)]/50 py-2 backdrop-blur"
+        aria-hidden="true"
+      >
+        <div className="animate-marquee font-mono text-[10px] tracking-[0.3em] whitespace-nowrap text-[var(--fg-dim)] uppercase">
+          IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY — TRIBAL HOUSE — SUNSET SESSIONS —
+          BEACH PARTY — UNDERGROUND CLUB — IN THE LOOP AGENCY — EVERY DANCEFLOOR HAS ITS OWN STORY —
+          TRIBAL HOUSE — SUNSET SESSIONS — BEACH PARTY — UNDERGROUND CLUB —
         </div>
       </div>
 

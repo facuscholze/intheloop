@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/motion";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
 import { useIntersectionPause } from "@/hooks/useIntersectionPause";
 
 const route = [
@@ -18,7 +17,6 @@ const route = [
 export function MapRoute() {
   const svgRef = useRef<SVGSVGElement>(null);
   const { ref: containerRef, isVisible } = useIntersectionPause<HTMLDivElement>();
-  const { bass, beat } = useAudioReactive();
 
   useEffect(() => {
     if (!isVisible || !svgRef.current) return;
@@ -51,27 +49,19 @@ export function MapRoute() {
     return () => ctx.revert();
   }, [isVisible]);
 
-  // Beat reactive pulse for dots
-  useEffect(() => {
-    if (!svgRef.current) return;
-    const dots = svgRef.current.querySelectorAll(".route-dot");
-    dots.forEach((dot) => {
-      gsap.to(dot, {
-        scale: 1 + beat * 0.5 + bass * 0.3,
-        duration: 0.2,
-        ease: "power2.out",
-        overwrite: "auto",
-      });
-    });
-  }, [beat, bass]);
-
   return (
-    <div ref={containerRef as any} className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
+    <div
+      ref={containerRef as any}
+      className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8"
+    >
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Ruta animada • 5 países confirmados</div>
-          <div className="mt-1 font-display text-2xl font-bold">
-            ARG → ESP → BRA → FRA → CZE → GER → <span className="text-[var(--fg-dim)]">JPN SOON</span>
+          <div className="font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
+            Ruta animada • 5 países confirmados
+          </div>
+          <div className="font-display mt-1 text-2xl font-bold">
+            ARG → ESP → BRA → FRA → CZE → GER →{" "}
+            <span className="text-[var(--fg-dim)]">JPN SOON</span>
           </div>
         </div>
         <div className="hidden items-center gap-2 font-mono text-[10px] uppercase md:flex">
@@ -87,7 +77,12 @@ export function MapRoute() {
           {/* Grid */}
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="rgba(255,255,255,0.03)"
+                strokeWidth="1"
+              />
             </pattern>
             <radialGradient id="glow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="var(--accent-fire)" stopOpacity="0.3" />
@@ -117,26 +112,41 @@ export function MapRoute() {
             );
           })}
 
-          {/* Dots */}
+          {/* Dots — outer g gets the GSAP entrance, inner g pulses via CSS
+              vars (the old version spawned 6 GSAP tweens per audio frame) */}
           {route.map((point) => (
-            <g key={point.id} className="route-dot" style={{ transformOrigin: `${point.x}px ${point.y}px` }}>
-              <circle cx={point.x} cy={point.y} r="20" fill={point.color} opacity="0.15" />
-              <circle cx={point.x} cy={point.y} r="8" fill={point.color} />
-              <circle cx={point.x} cy={point.y} r="3" fill="white" />
-              <text
-                x={point.x}
-                y={point.y - 20}
-                textAnchor="middle"
-                fontFamily="monospace"
-                fontSize="12"
-                fontWeight="bold"
-                fill={point.soon ? "#666" : "white"}
+            <g key={point.id} className="route-dot">
+              <g
+                style={{
+                  transformOrigin: `${point.x}px ${point.y}px`,
+                  transform: "scale(calc(1 + var(--beat) * 0.5 + var(--bass) * 0.3))",
+                }}
               >
-                {point.id} {point.soon ? "SOON" : ""}
-              </text>
-              <text x={point.x} y={point.y + 30} textAnchor="middle" fontFamily="monospace" fontSize="9" fill="#8A8890">
-                {point.name}
-              </text>
+                <circle cx={point.x} cy={point.y} r="20" fill={point.color} opacity="0.15" />
+                <circle cx={point.x} cy={point.y} r="8" fill={point.color} />
+                <circle cx={point.x} cy={point.y} r="3" fill="white" />
+                <text
+                  x={point.x}
+                  y={point.y - 20}
+                  textAnchor="middle"
+                  fontFamily="monospace"
+                  fontSize="12"
+                  fontWeight="bold"
+                  fill={point.soon ? "#666" : "white"}
+                >
+                  {point.id} {point.soon ? "SOON" : ""}
+                </text>
+                <text
+                  x={point.x}
+                  y={point.y + 30}
+                  textAnchor="middle"
+                  fontFamily="monospace"
+                  fontSize="9"
+                  fill="#8A8890"
+                >
+                  {point.name}
+                </text>
+              </g>
             </g>
           ))}
 
@@ -164,7 +174,7 @@ export function MapRoute() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">
+      <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
         <span>5 países • 20+ shows • 2023-2026 • Próximo: Japón</span>
         <span className="ml-auto hidden items-center gap-1 md:flex">
           <span className="h-1 w-1 rounded-full bg-[var(--accent-fire)]" />

@@ -6,7 +6,6 @@ import { useUIStore } from "@/stores/uiStore";
 import { Vinyl } from "./Vinyl";
 import { MiniWaveform } from "./Waveform";
 import { getMediaUrl } from "@/lib/media";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
 
 export function PlayerBar() {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -21,19 +20,29 @@ export function PlayerBar() {
   const setVolume = usePlayerStore((s) => s.setVolume);
   const isExpanded = useUIStore((s) => s.isPlayerExpanded);
   const setExpanded = useUIStore((s) => s.setPlayerExpanded);
-  const { bass } = useAudioReactive();
 
   if (!currentTrack) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-30 flex h-[var(--player-h)] items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/90 px-6 backdrop-blur-xl" role="region" aria-label="Reproductor de música">
+      <div
+        className="fixed right-0 bottom-0 left-0 z-30 flex h-[var(--player-h)] items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/90 px-6 backdrop-blur-xl"
+        role="region"
+        aria-label="Reproductor de música"
+      >
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 animate-[spin_3s_linear_infinite] rounded-full bg-gradient-to-br from-[var(--accent-fire)] to-[var(--accent-magenta)]" aria-hidden="true" />
+          <div
+            className="h-12 w-12 animate-[spin_3s_linear_infinite] rounded-full bg-gradient-to-br from-[var(--accent-fire)] to-[var(--accent-magenta)]"
+            aria-hidden="true"
+          />
           <div>
             <div className="font-display text-sm font-bold">IN THE LOOP • Player</div>
-            <div className="font-mono text-[10px] uppercase text-[var(--fg-muted)]">Seleccioná un track para empezar</div>
+            <div className="font-mono text-[10px] text-[var(--fg-muted)] uppercase">
+              Seleccioná un track para empezar
+            </div>
           </div>
         </div>
-        <div className="font-mono text-[10px] uppercase text-[var(--fg-dim)]" aria-live="polite">{queue.length} tracks en cola</div>
+        <div className="font-mono text-[10px] text-[var(--fg-dim)] uppercase" aria-live="polite">
+          {queue.length} tracks en cola
+        </div>
       </div>
     );
   }
@@ -42,10 +51,10 @@ export function PlayerBar() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-30 flex h-[var(--player-h)] items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur-xl md:px-6"
+      className="fixed right-0 bottom-0 left-0 z-30 flex h-[var(--player-h)] items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur-xl md:px-6"
       style={{
-        boxShadow: `0 0 ${10 + bass * 30}px rgba(255,90,31,${0.1 + bass * 0.2})`,
-        borderTopColor: `rgba(255,90,31,${0.2 + bass * 0.3})`,
+        boxShadow: `0 0 calc(10px + var(--bass) * 30px) rgba(255,90,31, calc(0.1 + var(--bass) * 0.2))`,
+        borderTopColor: `rgba(255,90,31, calc(0.2 + var(--bass) * 0.3))`,
       }}
       role="region"
       aria-label="Reproductor de música"
@@ -55,17 +64,26 @@ export function PlayerBar() {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <div className="truncate font-display text-sm font-bold leading-tight" aria-live="polite" aria-atomic="true">
+            <div
+              className="font-display truncate text-sm leading-tight font-bold"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               {currentTrack.title}
             </div>
             {currentTrack.bpm && (
-              <span className="hidden rounded-full bg-[var(--bg-2)] px-2 py-0.5 font-mono text-[9px] uppercase text-[var(--fg-muted)] md:inline" aria-label={`${currentTrack.bpm} BPM, tonalidad ${currentTrack.key}`}>
+              <span
+                className="hidden rounded-full bg-[var(--bg-2)] px-2 py-0.5 font-mono text-[9px] text-[var(--fg-muted)] uppercase md:inline"
+                aria-label={`${currentTrack.bpm} BPM, tonalidad ${currentTrack.key}`}
+              >
                 {currentTrack.bpm} BPM • {currentTrack.key}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <div className="truncate font-mono text-[10px] uppercase text-[var(--fg-muted)]">{currentTrack.artist} • {currentTrack.genres.join(", ")}</div>
+            <div className="truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
+              {currentTrack.artist} • {currentTrack.genres.join(", ")}
+            </div>
             <div className="hidden md:block" aria-hidden="true">
               <MiniWaveform peaks={currentTrack.waveformPeaks} progress={progress} />
             </div>
@@ -84,12 +102,16 @@ export function PlayerBar() {
 
         <button
           onClick={() => (isPlaying ? pause() : play())}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-fire)] text-black transition-transform hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-10 md:w-10"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-fire)] text-black transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] active:scale-95 md:h-10 md:w-10"
           aria-label={isPlaying ? "Pausar" : "Reproducir"}
           aria-pressed={isPlaying}
           data-cursor="play"
         >
-          {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4 ml-0.5" aria-hidden="true" />}
+          {isPlaying ? (
+            <Pause className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Play className="ml-0.5 h-4 w-4" aria-hidden="true" />
+          )}
         </button>
 
         <button
@@ -101,7 +123,9 @@ export function PlayerBar() {
         </button>
 
         <div className="hidden items-center gap-2 md:flex">
-          <label htmlFor="volume-slider" className="sr-only">Volumen</label>
+          <label htmlFor="volume-slider" className="sr-only">
+            Volumen
+          </label>
           <input
             id="volume-slider"
             type="range"
@@ -121,13 +145,27 @@ export function PlayerBar() {
           aria-label={isExpanded ? "Colapsar reproductor" : "Expandir reproductor"}
           aria-expanded={isExpanded}
         >
-          {isExpanded ? <ChevronDown className="h-4 w-4" aria-hidden="true" /> : <ChevronUp className="h-4 w-4" aria-hidden="true" />}
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ChevronUp className="h-4 w-4" aria-hidden="true" />
+          )}
         </button>
       </div>
 
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 h-1 w-full bg-[var(--border)]" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Progreso de reproducción">
-        <div className="h-full bg-[var(--accent-fire)] transition-all duration-100" style={{ width: `${progress * 100}%` }} />
+      <div
+        className="absolute bottom-0 left-0 h-1 w-full bg-[var(--border)]"
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Progreso de reproducción"
+      >
+        <div
+          className="h-full bg-[var(--accent-fire)] transition-all duration-100"
+          style={{ width: `${progress * 100}%` }}
+        />
       </div>
     </div>
   );

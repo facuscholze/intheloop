@@ -21,11 +21,15 @@ export function Ambilight({ videoRef, enabled = true }: AmbilightProps) {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    const draw = () => {
-      if (video.paused || video.ended) {
-        rafRef.current = requestAnimationFrame(draw);
-        return;
-      }
+    let lastDraw = 0;
+    const FRAME_MS = 50; // 20fps is plenty for an ambilight glow
+
+    const draw = (now?: number) => {
+      rafRef.current = requestAnimationFrame(draw);
+
+      if (video.paused || video.ended) return;
+      if (now !== undefined && now - lastDraw < FRAME_MS) return;
+      lastDraw = now ?? 0;
 
       const w = canvas.width;
       const h = canvas.height;
@@ -38,8 +42,6 @@ export function Ambilight({ videoRef, enabled = true }: AmbilightProps) {
         ctx.drawImage(canvas, 0, 0, w, h);
         ctx.filter = "none";
       } catch {}
-
-      rafRef.current = requestAnimationFrame(draw);
     };
 
     const handleResize = () => {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { usePlayerStore } from "@/stores/playerStore";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine, type AudioAnalysis } from "@/lib/audio-engine";
 import { gsap } from "@/lib/motion";
 
 interface VinylProps {
@@ -14,19 +14,27 @@ interface VinylProps {
 export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const progress = usePlayerStore((s) => s.progress);
-  const { bass, beat } = useAudioReactive();
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const rotationRef = useRef(0);
   const rafRef = useRef<number>(0);
+  // Audio values read inside the loop (deps never include them — the old
+  // version cancelled + restarted this rAF on every audio frame)
+  const audioRef = useRef<AudioAnalysis>({ bass: 0, mid: 0, high: 0, level: 0, beat: 0, bpm: 124 });
 
   // Continuous rotation based on progress and playing
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    const unsub = audioEngine?.subscribe((a) => {
+      audioRef.current = a;
+    });
+    if (audioEngine) audioRef.current = { ...audioEngine.analysis };
+
     const animate = () => {
-      if (!isDragging) {
+      if (!isDraggingRef.current) {
+        const { isPlaying, progress } = usePlayerStore.getState();
+        const { bass, beat } = audioRef.current;
         if (isPlaying) {
           rotationRef.current += 0.5 + bass * 1.5; // faster with bass
         }
@@ -38,10 +46,14 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
     };
 
     animate();
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [isPlaying, progress, bass, beat, isDragging]);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      unsub?.();
+    };
+  }, []);
 
-  // Draggable scratch
+  // Draggable scratch — listeners bound ONCE (the old version re-bound them
+  // on every isDragging toggle, mid-drag)
   useEffect(() => {
     if (!interactive || !ref.current) return;
 
@@ -59,20 +71,21 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
     };
 
     const handleStart = (e: MouseEvent | TouchEvent) => {
-      setIsDragging(true);
+      isDraggingRef.current = true;
       startAngle = getAngle(e);
       startRotation = rotationRef.current;
-      gsap.to(el, { scale: 1.1, duration: 0.2, ease: "power2.out" });
+      gsap.to(el, { scale: 1.1, duration: 0.2, ease: "power2.out", overwrite: "auto" });
     };
 
     const handleMove = (e: MouseEvent | TouchEvent) => {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return;
+      if ("cancelable" in e && e.cancelable) e.preventDefault(); // don't scroll while scratching
       const currentAngle = getAngle(e);
       const delta = currentAngle - startAngle;
       rotationRef.current = startRotation + delta;
 
       // Scratch effect - manipulate audio currentTime based on drag
-      const audio = document.querySelector("audio") as HTMLAudioElement;
+      const audio = document.querySelector("audio") as HTMLAudioElement | null;
       if (audio && audio.duration) {
         const scratchDelta = delta / 360;
         const newTime = Math.max(0, Math.min(audio.duration, audio.currentTime + scratchDelta * 2));
@@ -84,31 +97,32 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
     };
 
     const handleEnd = () => {
-      setIsDragging(false);
-      if (el) gsap.to(el, { scale: 1, duration: 0.4, ease: "elastic.out(1,0.5)" });
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      gsap.to(el, { scale: 1, duration: 0.4, ease: "elastic.out(1,0.5)", overwrite: "auto" });
     };
 
-    el.addEventListener("mousedown", handleStart as any);
-    window.addEventListener("mousemove", handleMove as any);
+    el.addEventListener("mousedown", handleStart as EventListener);
+    window.addEventListener("mousemove", handleMove as EventListener);
     window.addEventListener("mouseup", handleEnd);
-    el.addEventListener("touchstart", handleStart as any, { passive: false });
-    window.addEventListener("touchmove", handleMove as any, { passive: false });
+    el.addEventListener("touchstart", handleStart as EventListener, { passive: false });
+    window.addEventListener("touchmove", handleMove as EventListener, { passive: false });
     window.addEventListener("touchend", handleEnd);
 
     return () => {
-      el.removeEventListener("mousedown", handleStart as any);
-      window.removeEventListener("mousemove", handleMove as any);
+      el.removeEventListener("mousedown", handleStart as EventListener);
+      window.removeEventListener("mousemove", handleMove as EventListener);
       window.removeEventListener("mouseup", handleEnd);
-      el.removeEventListener("touchstart", handleStart as any);
-      window.removeEventListener("touchmove", handleMove as any);
+      el.removeEventListener("touchstart", handleStart as EventListener);
+      window.removeEventListener("touchmove", handleMove as EventListener);
       window.removeEventListener("touchend", handleEnd);
     };
-  }, [interactive, isDragging]);
+  }, [interactive]);
 
   return (
     <div
       ref={ref}
-      className="relative select-none rounded-full will-change-transform"
+      className="relative rounded-full will-change-transform select-none"
       style={{ width: size, height: size }}
       data-cursor="drag"
     >
@@ -122,7 +136,7 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
 
         {/* Label */}
         <div
-          className="absolute left-1/2 top-1/2 flex h-[45%] w-[45%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-black/50"
+          className="absolute top-1/2 left-1/2 flex h-[45%] w-[45%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-black/50"
           style={{
             background: cover
               ? `url(${cover}) center/cover`
@@ -135,27 +149,27 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
         {/* Shine */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/[0.07] to-transparent" />
 
-        {/* Bass reactive glow */}
+        {/* Bass reactive glow — CSS-var driven */}
         <div
           className="absolute inset-0 rounded-full transition-opacity"
           style={{
-            background: `radial-gradient(circle, rgba(255,90,31,${bass * 0.3}) 0%, transparent 70%)`,
+            background: `radial-gradient(circle, rgba(255,90,31, calc(var(--bass) * 0.3)) 0%, transparent 70%)`,
             opacity: isPlaying ? 1 : 0,
           }}
+          aria-hidden="true"
         />
       </div>
 
-      {/* Beat pulse ring */}
-      {isPlaying && (
-        <div
-          className="pointer-events-none absolute inset-0 rounded-full border border-[var(--accent-fire)]"
-          style={{
-            transform: `scale(${1 + beat * 0.3})`,
-            opacity: beat * 0.6,
-            transition: "transform 0.1s linear, opacity 0.1s linear",
-          }}
-        />
-      )}
+      {/* Beat pulse ring — CSS-var driven (only while playing) */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-full border border-[var(--accent-fire)]"
+        style={{
+          transform: "scale(calc(1 + var(--beat) * 0.3))",
+          opacity: isPlaying ? "calc(var(--beat) * 0.6)" : 0,
+          transition: "transform 0.1s linear, opacity 0.1s linear",
+        }}
+        aria-hidden="true"
+      />
     </div>
   );
 }

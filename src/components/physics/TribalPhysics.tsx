@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQualityStore } from "@/stores/qualityStore";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { useIntersectionPause } from "@/hooks/useIntersectionPause";
+import { audioEngine, type AudioAnalysis } from "@/lib/audio-engine";
 
 interface Word {
   id: string;
@@ -16,19 +17,40 @@ interface Word {
   color: string;
 }
 
-const words = ["TRIBAL", "HOUSE", "LATIN", "GROOVES", "SUNSET", "BEACH", "UNDERGROUND", "RAVE", "IN THE LOOP"];
+const words = [
+  "TRIBAL",
+  "HOUSE",
+  "LATIN",
+  "GROOVES",
+  "SUNSET",
+  "BEACH",
+  "UNDERGROUND",
+  "RAVE",
+  "IN THE LOOP",
+];
 
 export function TribalPhysics() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wordsRef = useRef<Word[]>([]);
   const tier = useQualityStore((s) => s.tier);
-  const { bass, beat } = useAudioReactive();
   const [isMatterLoaded, setIsMatterLoaded] = useState(false);
   const rafRef = useRef<number>(0);
   const mouseRef = useRef({ x: -1000, y: -1000, isDown: false });
+  // Audio + visibility read inside the loop. The old effect had [bass, beat]
+  // as deps, so it tore down, RE-INITIALIZED every word (physics reset!) and
+  // rebuilt all listeners 60 times per second.
+  const audioRef = useRef<AudioAnalysis>({ bass: 0, mid: 0, high: 0, level: 0, beat: 0, bpm: 124 });
+  const { ref: visRef, isVisible } = useIntersectionPause<HTMLDivElement>();
+  const isVisibleRef = useRef(true);
+  isVisibleRef.current = isVisible;
 
-  // Simple physics without Matter.js for Phase 4 (Matter.js dynamic import in high tier)
+  const setRefs = (el: HTMLDivElement | null) => {
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    (visRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+  };
+
+  // Simple canvas physics (Matter.js dynamic import in high tier)
   useEffect(() => {
     if (tier === "low") return;
     const container = containerRef.current;
@@ -44,7 +66,12 @@ export function TribalPhysics() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Init words
+    const unsub = audioEngine?.subscribe((a) => {
+      audioRef.current = a;
+    });
+    if (audioEngine) audioRef.current = { ...audioEngine.analysis };
+
+    // Init words ONCE per tier
     wordsRef.current = words.map((text, i) => ({
       id: `${text}-${i}`,
       text,
@@ -60,6 +87,10 @@ export function TribalPhysics() {
     const gravity = 0.15;
 
     const animate = () => {
+      rafRef.current = requestAnimationFrame(animate);
+      // Pause work entirely while off-screen (rAF keeps ticking cheaply)
+      if (!isVisibleRef.current) return;
+      const { bass, beat } = audioRef.current;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       wordsRef.current.forEach((word) => {
@@ -110,11 +141,11 @@ export function TribalPhysics() {
           word.vy = Math.random() * 2 + 1;
         }
 
-        // Draw
+        // Draw — note: canvas font does NOT support var(); use the real stack
         ctx.save();
         ctx.translate(word.x + 50, word.y + 15);
         ctx.rotate((word.rotation * Math.PI) / 180);
-        ctx.font = `bold ${24 + bass * 10}px var(--font-display)`;
+        ctx.font = `bold ${24 + bass * 10}px Syne, system-ui, sans-serif`;
         ctx.fillStyle = word.color;
         ctx.strokeStyle = "rgba(0,0,0,0.5)";
         ctx.lineWidth = 3;
@@ -131,8 +162,6 @@ export function TribalPhysics() {
 
         ctx.restore();
       });
-
-      rafRef.current = requestAnimationFrame(animate);
     };
 
     animate();
@@ -151,35 +180,40 @@ export function TribalPhysics() {
 
     // Load Matter.js in High tier for better physics
     if (tier === "high") {
-      import("matter-js").then(() => setIsMatterLoaded(true));
+      import("matter-js").then(() => setIsMatterLoaded(true)).catch(() => {});
     }
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      unsub?.();
       window.removeEventListener("resize", resize);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [tier, bass, beat]);
+  }, [tier]);
 
   if (tier === "low") {
     return (
-      <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8 text-center font-mono text-xs uppercase text-[var(--fg-muted)]">
+      <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8 text-center font-mono text-xs text-[var(--fg-muted)] uppercase">
         Física tribal con Matter.js disponible en Normal/Max — Fase 4
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative h-[60vh] w-full overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)]">
+    <div
+      ref={setRefs}
+      className="relative h-[60vh] w-full overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)]"
+    >
       <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing" />
 
-      <div className="pointer-events-none absolute left-6 top-6 rounded-full bg-black/60 px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-white backdrop-blur">
-        Física: {words.length} palabras • Drag para mover • Beat: {beat.toFixed(2)} • Bass: {bass.toFixed(2)} {isMatterLoaded ? "• Matter.js ON" : "• Canvas physics"}
+      <div className="pointer-events-none absolute top-6 left-6 rounded-full bg-black/60 px-4 py-2 font-mono text-[10px] tracking-widest text-white uppercase backdrop-blur">
+        Física: {words.length} palabras • Drag para mover • Audio reactive{" "}
+        {isMatterLoaded ? "• Matter.js ON" : "• Canvas physics"}
       </div>
 
-      <div className="pointer-events-none absolute bottom-6 left-6 right-6 flex justify-between font-mono text-[10px] uppercase text-[var(--fg-dim)]">
+      <div className="pointer-events-none absolute right-6 bottom-6 left-6 flex justify-between font-mono text-[10px] text-[var(--fg-dim)] uppercase">
         <span>TRIBAL / HOUSE / LATIN — palabras que caen y rebotan</span>
         <span className="hidden md:block">Click + drag • Audio reactive</span>
       </div>

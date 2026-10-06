@@ -19,15 +19,21 @@ export function useLenis(enabled = true) {
 
     lenis.on("scroll", ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    // Keep a stable reference: the cleanup previously passed a NEW arrow
+    // function to gsap.ticker.remove(), which never removed the callback —
+    // every enable/disable cycle leaked another ticker tick on a destroyed
+    // Lenis instance.
+    const tick = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
 
+    gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(tick);
+      lenis.off("scroll", ScrollTrigger.update);
       lenis.destroy();
-      gsap.ticker.remove((time) => lenis.raf(time * 1000));
     };
   }, [enabled]);
 }

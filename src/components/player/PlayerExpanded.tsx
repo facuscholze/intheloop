@@ -1,5 +1,6 @@
 "use client";
 
+import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Vinyl } from "./Vinyl";
@@ -19,6 +20,10 @@ export function PlayerExpanded() {
   const repeat = usePlayerStore((s) => s.repeat);
   const favorites = usePlayerStore((s) => s.favorites);
   const playTrack = usePlayerStore((s) => s.playTrack);
+  const play = usePlayerStore((s) => s.play);
+  const pause = usePlayerStore((s) => s.pause);
+  const next = usePlayerStore((s) => s.next);
+  const prev = usePlayerStore((s) => s.prev);
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat);
   const toggleFavorite = usePlayerStore((s) => s.toggleFavorite);
@@ -27,7 +32,8 @@ export function PlayerExpanded() {
   if (!isExpanded || !currentTrack) return null;
 
   const coverUrl = getMediaUrl(currentTrack.cover);
-  const audioEl = typeof document !== "undefined" ? (document.querySelector("audio") as HTMLAudioElement) : null;
+  const audioEl =
+    typeof document !== "undefined" ? (document.querySelector("audio") as HTMLAudioElement) : null;
 
   const handleSeek = (newProgress: number) => {
     if (audioEl && duration) {
@@ -55,7 +61,9 @@ export function PlayerExpanded() {
 
       <div className="relative flex h-full flex-col">
         <div className="flex items-center justify-between border-b border-[var(--border)] p-6">
-          <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Player • {queue.length} tracks • {favorites.length} favs</div>
+          <div className="font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
+            Player • {queue.length} tracks • {favorites.length} favs
+          </div>
           <button
             onClick={() => setExpanded(false)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)]"
@@ -70,12 +78,47 @@ export function PlayerExpanded() {
             <Vinyl size={280} cover={coverUrl} />
 
             <div className="w-full text-center">
-              <h2 className="font-display text-3xl font-bold leading-tight">{currentTrack.title}</h2>
-              <p className="mt-2 font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
-                {currentTrack.artist} • {currentTrack.bpm} BPM • {currentTrack.key} • {currentTrack.genres.join(", ")}
+              <h2 className="font-display text-3xl leading-tight font-bold">
+                {currentTrack.title}
+              </h2>
+              <p className="mt-2 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
+                {currentTrack.artist} • {currentTrack.bpm} BPM • {currentTrack.key} •{" "}
+                {currentTrack.genres.join(", ")}
               </p>
 
-              <div className="mt-6 flex items-center justify-center gap-4">
+              {/* Transport — the expanded view covers the PlayerBar, so it
+                  needs its own transport controls */}
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => prev()}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] transition-colors hover:border-[var(--fg)]"
+                  aria-label="Pista anterior"
+                >
+                  <SkipBack className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => (isPlaying ? pause() : play())}
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-fire)] text-black transition-transform hover:scale-105 active:scale-95"
+                  aria-label={isPlaying ? "Pausar" : "Reproducir"}
+                  aria-pressed={isPlaying}
+                  data-cursor="play"
+                >
+                  {isPlaying ? (
+                    <Pause className="h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <Play className="ml-0.5 h-6 w-6" aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  onClick={() => next()}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] transition-colors hover:border-[var(--fg)]"
+                  aria-label="Siguiente pista"
+                >
+                  <SkipForward className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-4">
                 <button
                   onClick={() => toggleFavorite(currentTrack.id)}
                   className={`rounded-full border px-4 py-2 font-mono text-xs uppercase ${favorites.includes(currentTrack.id) ? "border-[var(--accent-fire)] bg-[var(--accent-fire)] text-black" : "border-[var(--border)] text-[var(--fg-muted)]"}`}
@@ -98,11 +141,17 @@ export function PlayerExpanded() {
             </div>
 
             <div className="w-full">
-              <div className="mb-2 flex justify-between font-mono text-[10px] uppercase text-[var(--fg-dim)]">
+              <div className="mb-2 flex justify-between font-mono text-[10px] text-[var(--fg-dim)] uppercase">
                 <span>{formatTime((progress || 0) * (duration || 0))}</span>
                 <span>{formatTime(duration)}</span>
               </div>
-              <Waveform peaks={currentTrack.waveformPeaks} progress={progress} onSeek={handleSeek} color={currentTrack.colorAccent || "var(--accent-fire)"} height={80} />
+              <Waveform
+                peaks={currentTrack.waveformPeaks}
+                progress={progress}
+                onSeek={handleSeek}
+                color={currentTrack.colorAccent || "var(--accent-fire)"}
+                height={80}
+              />
             </div>
           </div>
 
@@ -122,24 +171,35 @@ export function PlayerExpanded() {
                       <div className="font-mono text-xs text-[var(--fg-dim)]">{idx + 1}</div>
                       <div>
                         <div className="font-display text-sm font-bold">{track.title}</div>
-                        <div className="font-mono text-[10px] uppercase text-[var(--fg-muted)]">
+                        <div className="font-mono text-[10px] text-[var(--fg-muted)] uppercase">
                           {track.bpm} BPM • {track.key}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isCurrent && isPlaying && <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent-fire)]" />}
-                      <span className="font-mono text-[10px] uppercase text-[var(--fg-dim)]">{favorites.includes(track.id) ? "♥" : ""}</span>
+                      {isCurrent && isPlaying && (
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent-fire)]" />
+                      )}
+                      <span className="font-mono text-[10px] text-[var(--fg-dim)] uppercase">
+                        {favorites.includes(track.id) ? "♥" : ""}
+                      </span>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-4 font-mono text-[10px] uppercase leading-relaxed text-[var(--fg-muted)]">
-              <div>Audio reactivo: bass {bass.toFixed(2)} • mid {mid.toFixed(2)} • high {high.toFixed(2)}</div>
-              <div className="mt-1 text-[var(--fg-dim)]">Todo el sitio late con la música. Modo Club oscurece y deja solo luces.</div>
-              <div className="mt-2 text-[9px]">Atajos: Space play/pause, Cmd+→ next, Cmd+← prev. Media Session API activo.</div>
+            <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-4 font-mono text-[10px] leading-relaxed text-[var(--fg-muted)] uppercase">
+              <div>
+                Audio reactivo: bass {bass.toFixed(2)} • mid {mid.toFixed(2)} • high{" "}
+                {high.toFixed(2)}
+              </div>
+              <div className="mt-1 text-[var(--fg-dim)]">
+                Todo el sitio late con la música. Modo Club oscurece y deja solo luces.
+              </div>
+              <div className="mt-2 text-[9px]">
+                Atajos: Space play/pause, Cmd+→ next, Cmd+← prev. Media Session API activo.
+              </div>
             </div>
           </div>
         </div>

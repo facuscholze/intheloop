@@ -1,18 +1,23 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useQualityStore } from "@/stores/qualityStore";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine, type AudioAnalysis } from "@/lib/audio-engine";
 import { useIntersectionPause } from "@/hooks/useIntersectionPause";
 
 export function HeroShader() {
   const tier = useQualityStore((s) => s.tier);
-  const { bass, mid, high, beat } = useAudioReactive();
   const { ref, isVisible } = useIntersectionPause<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const rafRef = useRef<number>(0);
   const timeRef = useRef(0);
+  const isVisibleRef = useRef(true);
+  isVisibleRef.current = isVisible;
+  // Audio values read inside the draw loop — NEVER in effect deps. The old
+  // version tore down the whole effect (and reallocated the canvas backing
+  // store!) on every single audio frame.
+  const audioRef = useRef<AudioAnalysis>({ bass: 0, mid: 0, high: 0, level: 0, beat: 0, bpm: 124 });
 
   useEffect(() => {
     // Don't render WebGL in Low tier - CSS fallback already in Hero
@@ -23,12 +28,15 @@ export function HeroShader() {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    let w = canvas.width = canvas.offsetWidth * (tier === "medium" ? 0.7 : 1);
-    let h = canvas.height = canvas.offsetHeight * (tier === "medium" ? 0.7 : 1);
+    // In high tier the R3F shader renders on top — keep the 2D layer smaller.
+    const qualityScale = tier === "high" ? 0.5 : 0.7;
+
+    let w = (canvas.width = Math.max(1, Math.round(canvas.offsetWidth * qualityScale)));
+    let h = (canvas.height = Math.max(1, Math.round(canvas.offsetHeight * qualityScale)));
 
     const handleResize = () => {
-      w = canvas.width = canvas.offsetWidth * (tier === "medium" ? 0.7 : 1);
-      h = canvas.height = canvas.offsetHeight * (tier === "medium" ? 0.7 : 1);
+      w = canvas.width = Math.max(1, Math.round(canvas.offsetWidth * qualityScale));
+      h = canvas.height = Math.max(1, Math.round(canvas.offsetHeight * qualityScale));
     };
 
     const handleMouse = (e: MouseEvent) => {
@@ -39,8 +47,12 @@ export function HeroShader() {
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouse);
 
-    // Simple fluid noise using canvas 2D for Phase 1 (Three.js shader comes in Phase 1.5 if needed)
-    // For performance, we draw metaballs + gradients that react to audio
+    const unsub = audioEngine?.subscribe((a) => {
+      audioRef.current = a;
+    });
+    if (audioEngine) audioRef.current = { ...audioEngine.analysis };
+
+    // Simple fluid noise using canvas 2D — metaballs + gradients reacting to audio
     const blobs = [
       { x: 0.3, y: 0.4, r: 0.25, color: [255, 90, 31] }, // fire
       { x: 0.7, y: 0.6, r: 0.3, color: [255, 46, 147] }, // magenta
@@ -48,10 +60,12 @@ export function HeroShader() {
     ];
 
     const draw = () => {
-      if (!isVisible) {
+      if (!isVisibleRef.current) {
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
+
+      const { bass, mid, high, beat } = audioRef.current;
 
       timeRef.current += 0.008 + bass * 0.02;
       const t = timeRef.current;
@@ -73,7 +87,8 @@ export function HeroShader() {
 
         const x = (blob.x + offsetX) * w;
         const y = (blob.y + offsetY) * h;
-        const r = blob.r * Math.min(w, h) * (1 + bass * 0.8 + beat * 0.5) * (tier === "medium" ? 0.8 : 1);
+        const r =
+          blob.r * Math.min(w, h) * (1 + bass * 0.8 + beat * 0.5) * (tier === "medium" ? 0.8 : 1);
 
         const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
         const alpha = 0.15 + bass * 0.2 + (i === 0 ? mid * 0.1 : 0);
@@ -99,7 +114,14 @@ export function HeroShader() {
       }
 
       // Vignette
-      const vignette = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.8);
+      const vignette = ctx.createRadialGradient(
+        w / 2,
+        h / 2,
+        0,
+        w / 2,
+        h / 2,
+        Math.max(w, h) * 0.8
+      );
       vignette.addColorStop(0, "rgba(0,0,0,0)");
       vignette.addColorStop(1, "rgba(7,7,10,0.8)");
       ctx.fillStyle = vignette;
@@ -114,18 +136,18 @@ export function HeroShader() {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouse);
+      unsub?.();
     };
-  }, [tier, isVisible, bass, mid, high, beat]);
+    // isVisible intentionally read via ref — re-running this effect would
+    // reallocate the canvas on every scroll into/out of view
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tier]);
 
   if (tier === "low") return null;
 
   return (
     <div ref={ref as any} className="absolute inset-0">
-      <canvas
-        ref={canvasRef}
-        className="h-full w-full"
-        style={{ width: "100%", height: "100%" }}
-      />
+      <canvas ref={canvasRef} className="h-full w-full" style={{ width: "100%", height: "100%" }} />
       {/* Overlay gradient for text legibility */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,_transparent_40%,_rgba(7,7,10,0.6)_80%)]" />
     </div>

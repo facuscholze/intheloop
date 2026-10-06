@@ -3,8 +3,20 @@
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "@/lib/motion";
 import { useUIStore } from "@/stores/uiStore";
+import { useVideoStore } from "@/stores/videoStore";
 
-const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"] as const;
+const KONAMI = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
+] as const;
 
 export function KonamiCode() {
   const [isRaveActive, setIsRaveActive] = useState(false);
@@ -51,7 +63,9 @@ export function KonamiCode() {
           confetti.style.top = "-10px";
           confetti.style.width = "10px";
           confetti.style.height = "10px";
-          confetti.style.background = ["#FF5A1F", "#FF2E93", "#C8FF00", "#FFD60A"][Math.floor(Math.random() * 4)];
+          confetti.style.background = ["#FF5A1F", "#FF2E93", "#C8FF00", "#FFD60A"][
+            Math.floor(Math.random() * 4)
+          ];
           confetti.style.zIndex = "9999";
           confetti.style.pointerEvents = "none";
           confetti.setAttribute("aria-hidden", "true");
@@ -77,8 +91,14 @@ export function KonamiCode() {
   if (!isRaveActive) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center" aria-live="polite" aria-label="Easter egg activado: modo rave">
-      <div className="animate-pulse font-display text-[clamp(48px,12vw,120px)] font-bold text-white mix-blend-difference">RAVE MODE!</div>
+    <div
+      className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center"
+      aria-live="polite"
+      aria-label="Easter egg activado: modo rave"
+    >
+      <div className="font-display animate-pulse text-[clamp(48px,12vw,120px)] font-bold text-white mix-blend-difference">
+        RAVE MODE!
+      </div>
       <style>{`
         .rave-mode {
           animation: rave 0.6s ease-in-out infinite;
@@ -106,7 +126,17 @@ export function Screensaver() {
     const resetTimer = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setIsActive(false);
-      timeoutRef.current = setTimeout(() => setIsActive(true), 30000);
+      timeoutRef.current = setTimeout(() => {
+        // Never cover the screen while the user is watching a video in cine
+        // mode, the menu is open, the player is expanded, or before entering.
+        const ui = useUIStore.getState();
+        const cine = useVideoStore.getState().isCineMode;
+        if (cine || ui.isMenuOpen || ui.isPlayerExpanded || !ui.hasEntered) {
+          resetTimer(); // try again in 30s
+          return;
+        }
+        setIsActive(true);
+      }, 30000);
     };
 
     const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
@@ -118,6 +148,20 @@ export function Screensaver() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
+  // Esc exits the screensaver (capture phase so it doesn't also close the
+  // cine mode underneath)
+  useEffect(() => {
+    if (!isActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setIsActive(false);
+      }
+    };
+    window.addEventListener("keydown", onKey, { capture: true });
+    return () => window.removeEventListener("keydown", onKey, { capture: true });
+  }, [isActive]);
 
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
@@ -164,10 +208,12 @@ export function Screensaver() {
       <canvas ref={canvasRef} className="absolute inset-0" aria-hidden="true" />
       <div className="relative z-10 text-center">
         <div className="font-display text-6xl font-bold text-white">IN THE LOOP</div>
-        <div className="mt-4 font-mono text-xs uppercase tracking-widest text-white/60">Screensaver visualizer • Mové el mouse para salir • 30s inactividad</div>
+        <div className="mt-4 font-mono text-xs tracking-widest text-white/60 uppercase">
+          Screensaver visualizer • Mové el mouse para salir • 30s inactividad
+        </div>
         <button
           onClick={() => setIsActive(false)}
-          className="mt-8 rounded-full border border-white/20 bg-white/10 px-6 py-2 font-mono text-xs uppercase tracking-widest text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          className="mt-8 rounded-full border border-white/20 bg-white/10 px-6 py-2 font-mono text-xs tracking-widest text-white uppercase hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
           autoFocus
         >
           Salir del screensaver (Esc)
@@ -183,18 +229,27 @@ export function Counters() {
   const years = 3;
 
   return (
-    <div className="grid grid-cols-3 gap-6 rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8" role="region" aria-label="Estadísticas">
+    <div
+      className="grid grid-cols-3 gap-6 rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8"
+      role="region"
+      aria-label="Estadísticas"
+    >
       {[
         { value: shows, label: "Shows", sub: "2023-2026" },
         { value: countries, label: "Países", sub: "AR, ES, BR, FR, DE" },
         { value: years, label: "Años", sub: "Desde los 14" },
       ].map((c) => (
         <div key={c.label} className="text-center">
-          <div className="font-display text-4xl font-bold text-[var(--accent-fire)] md:text-5xl" aria-label={`${c.value} ${c.label}`}>
+          <div
+            className="font-display text-4xl font-bold text-[var(--accent-fire)] md:text-5xl"
+            aria-label={`${c.value} ${c.label}`}
+          >
             {c.value}+
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg)]">{c.label}</div>
-          <div className="font-mono text-[10px] uppercase text-[var(--fg-dim)]">{c.sub}</div>
+          <div className="font-mono text-xs tracking-widest text-[var(--fg)] uppercase">
+            {c.label}
+          </div>
+          <div className="font-mono text-[10px] text-[var(--fg-dim)] uppercase">{c.sub}</div>
         </div>
       ))}
     </div>
