@@ -13,6 +13,7 @@ import { Player } from "@/components/player/Player";
 import { ClubModeToggle, ClubModeEffect } from "@/components/effects/ClubMode";
 import { ScreenShake } from "@/components/effects/ScreenShake";
 import { CineMode } from "@/components/video/CineMode";
+import { KonamiCode, Screensaver } from "@/components/effects/EasterEggs";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -65,6 +66,8 @@ export default async function LocaleLayout({
             <CursorBlob />
             <ScreenShake />
             <ClubModeEffect />
+            <KonamiCode />
+            <Screensaver />
             <EnterScreen />
             <Header />
             <Menu />
