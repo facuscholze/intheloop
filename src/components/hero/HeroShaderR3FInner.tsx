@@ -3,7 +3,7 @@
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ShaderMaterial } from "three";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine } from "@/lib/audio-engine";
 
 const vertexShader = `
   varying vec2 vUv;
@@ -91,7 +91,6 @@ const fragmentShader = `
 
 function ShaderPlane() {
   const materialRef = useRef<ShaderMaterial>(null);
-  const { bass, mid, high, beat } = useAudioReactive();
 
   const uniforms = useMemo(
     () => ({
@@ -111,6 +110,12 @@ function ShaderPlane() {
   useFrame((state) => {
     if (!materialRef.current) return;
     const mat = materialRef.current;
+    // Read the audio engine directly — no React re-renders at audio rate
+    const a = audioEngine?.analysis;
+    const bass = a?.bass ?? 0;
+    const mid = a?.mid ?? 0;
+    const high = a?.high ?? 0;
+    const beat = a?.beat ?? 0;
     mat.uniforms.uTime.value = state.clock.elapsedTime;
     mat.uniforms.uBass.value += (bass - mat.uniforms.uBass.value) * 0.1;
     mat.uniforms.uMid.value += (mid - mat.uniforms.uMid.value) * 0.1;
@@ -119,8 +124,8 @@ function ShaderPlane() {
 
     // Mouse lerp
     const mouse = state.pointer;
-    mat.uniforms.uMouse.value[0] += ((mouse.x * 0.5 + 0.5) - mat.uniforms.uMouse.value[0]) * 0.05;
-    mat.uniforms.uMouse.value[1] += ((mouse.y * 0.5 + 0.5) - mat.uniforms.uMouse.value[1]) * 0.05;
+    mat.uniforms.uMouse.value[0] += (mouse.x * 0.5 + 0.5 - mat.uniforms.uMouse.value[0]) * 0.05;
+    mat.uniforms.uMouse.value[1] += (mouse.y * 0.5 + 0.5 - mat.uniforms.uMouse.value[1]) * 0.05;
   });
 
   return (

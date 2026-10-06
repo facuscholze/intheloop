@@ -16,6 +16,10 @@ interface QualityStore {
   init: () => Promise<void>;
 }
 
+// Guard against concurrent init() calls (EnterScreen + Providers can both
+// trigger it on the same commit — previously they raced and measured FPS twice)
+let initPromise: Promise<void> | null = null;
+
 export const useQualityStore = create<QualityStore>()(
   persist(
     (set, get) => ({
@@ -32,24 +36,31 @@ export const useQualityStore = create<QualityStore>()(
       },
 
       init: async () => {
-        if (get().initialized) return;
-        const detected = await detectInitialTier();
-        // If manual override exists, keep it
-        if (get().manualOverride) {
-          set({ ...detected, tier: get().manualOverride!, initialized: true });
-        } else {
-          set({ ...detected, initialized: true });
-        }
+        if (get().initialized || initPromise) return initPromise ?? Promise.resolve();
+        initPromise = (async () => {
+          try {
+            const detected = await detectInitialTier();
+            // If manual override exists, keep it
+            if (get().manualOverride) {
+              set({ ...detected, tier: get().manualOverride!, initialized: true });
+            } else {
+              set({ ...detected, initialized: true });
+            }
 
-        // Measure FPS after init
-        const fps = await measureFPS(2500);
-        const currentTier = get().tier;
-        let adjustedTier = currentTier;
-        if (!get().manualOverride) {
-          if (fps < 30 && currentTier !== "low") adjustedTier = "low";
-          else if (fps < 45 && currentTier === "high") adjustedTier = "medium";
-        }
-        set({ fps, tier: adjustedTier });
+            // Measure FPS after init
+            const fps = await measureFPS(2500);
+            const currentTier = get().tier;
+            let adjustedTier = currentTier;
+            if (!get().manualOverride) {
+              if (fps < 30 && currentTier !== "low") adjustedTier = "low";
+              else if (fps < 45 && currentTier === "high") adjustedTier = "medium";
+            }
+            set({ fps, tier: adjustedTier });
+          } finally {
+            initPromise = null;
+          }
+        })();
+        return initPromise;
       },
     }),
     {

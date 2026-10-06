@@ -2,7 +2,6 @@
 
 import { useState, useId } from "react";
 import { z } from "zod";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
 
 const BookingSchema = z.object({
   name: z.string().min(2, "Nombre muy corto, mínimo 2 caracteres"),
@@ -29,7 +28,6 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const { bass } = useAudioReactive();
   const formId = useId();
 
   const handleChange = (field: keyof BookingForm, value: string) => {
@@ -91,14 +89,20 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
 
   if (status === "success") {
     return (
-      <div className="rounded-[2rem] border border-[var(--accent-lime)] bg-[var(--accent-lime)]/10 p-8 text-center" role="alert" aria-live="polite">
-        <div className="font-display text-2xl font-bold text-[var(--accent-lime)]">¡Mensaje enviado!</div>
-        <div className="mt-2 font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
+      <div
+        className="rounded-[2rem] border border-[var(--accent-lime)] bg-[var(--accent-lime)]/10 p-8 text-center"
+        role="alert"
+        aria-live="polite"
+      >
+        <div className="font-display text-2xl font-bold text-[var(--accent-lime)]">
+          ¡Mensaje enviado!
+        </div>
+        <div className="mt-2 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
           Gracias {form.name}. Te respondemos en 24h. Se abrió tu cliente de mail como respaldo.
         </div>
         <button
           onClick={() => setStatus("idle")}
-          className="mt-6 rounded-full bg-[var(--fg)] px-6 py-3 font-mono text-xs uppercase tracking-widest text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+          className="mt-6 rounded-full bg-[var(--fg)] px-6 py-3 font-mono text-xs tracking-widest text-black uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
           autoFocus
         >
           Enviar otro mensaje
@@ -108,19 +112,33 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg)] p-8" noValidate aria-label="Formulario de booking" aria-describedby={`${formId}-description`}>
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg)] p-8"
+      noValidate
+      aria-label="Formulario de booking"
+      aria-describedby={`${formId}-description`}
+    >
       <div className="mb-6 flex items-center justify-between">
-        <div id={`${formId}-description`} className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
+        <div
+          id={`${formId}-description`}
+          className="font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase"
+        >
           Formulario booking • Respuesta 24h • Campos con * requeridos
         </div>
         <div className="flex items-center gap-2" aria-live="polite" aria-atomic="true">
-          <span className={`h-2 w-2 rounded-full ${status === "sending" ? "animate-pulse bg-[var(--accent-fire)]" : "bg-[var(--border)]"}`} aria-hidden="true" />
-          <span className="font-mono text-[10px] uppercase text-[var(--fg-dim)]">{status === "sending" ? "Enviando..." : "Listo"}</span>
+          <span
+            className={`h-2 w-2 rounded-full ${status === "sending" ? "animate-pulse bg-[var(--accent-fire)]" : "bg-[var(--border)]"}`}
+            aria-hidden="true"
+          />
+          <span className="font-mono text-[10px] text-[var(--fg-dim)] uppercase">
+            {status === "sending" ? "Enviando..." : "Listo"}
+          </span>
         </div>
       </div>
 
       {/* Honeypot - hidden */}
-      <div className="absolute left-[-5000px] top-auto h-0 w-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute top-auto left-[-5000px] h-0 w-0 overflow-hidden" aria-hidden="true">
         <label htmlFor={`${formId}-honeypot`}>No llenar este campo (anti-spam)</label>
         <input
           id={`${formId}-honeypot`}
@@ -139,7 +157,10 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${formId}-name`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+            <label
+              htmlFor={`${formId}-name`}
+              className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+            >
               Nombre <span aria-hidden="true">*</span>
               <span className="sr-only">(requerido)</span>
             </label>
@@ -149,21 +170,28 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Tu nombre"
-              className={`mt-1 w-full rounded-full border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.name ? "border-red-500 focus:border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
+              className={`mt-1 w-full rounded-full border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm transition-colors outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.name ? "border-red-500 focus:border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
               required
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? `${formId}-name-error` : undefined}
               autoComplete="name"
             />
             {errors.name && (
-              <div id={`${formId}-name-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+              <div
+                id={`${formId}-name-error`}
+                className="mt-1 font-mono text-[10px] text-red-400"
+                role="alert"
+              >
                 {errors.name}
               </div>
             )}
           </div>
 
           <div>
-            <label htmlFor={`${formId}-email`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+            <label
+              htmlFor={`${formId}-email`}
+              className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+            >
               Email
             </label>
             <input
@@ -177,9 +205,15 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
               aria-describedby={errors.email ? `${formId}-email-error` : `${formId}-email-hint`}
               autoComplete="email"
             />
-            <div id={`${formId}-email-hint`} className="sr-only">Opcional, para responderte más rápido</div>
+            <div id={`${formId}-email-hint`} className="sr-only">
+              Opcional, para responderte más rápido
+            </div>
             {errors.email && (
-              <div id={`${formId}-email-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+              <div
+                id={`${formId}-email-error`}
+                className="mt-1 font-mono text-[10px] text-red-400"
+                role="alert"
+              >
                 {errors.email}
               </div>
             )}
@@ -187,7 +221,10 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
         </div>
 
         <div>
-          <label htmlFor={`${formId}-event`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+          <label
+            htmlFor={`${formId}-event`}
+            className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+          >
             Evento <span aria-hidden="true">*</span>
             <span className="sr-only">(requerido)</span>
           </label>
@@ -203,7 +240,11 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
             aria-describedby={errors.event ? `${formId}-event-error` : undefined}
           />
           {errors.event && (
-            <div id={`${formId}-event-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+            <div
+              id={`${formId}-event-error`}
+              className="mt-1 font-mono text-[10px] text-red-400"
+              role="alert"
+            >
               {errors.event}
             </div>
           )}
@@ -211,7 +252,10 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${formId}-date`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+            <label
+              htmlFor={`${formId}-date`}
+              className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+            >
               Fecha <span aria-hidden="true">*</span>
               <span className="sr-only">(requerido)</span>
             </label>
@@ -227,14 +271,21 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
               aria-describedby={errors.date ? `${formId}-date-error` : undefined}
             />
             {errors.date && (
-              <div id={`${formId}-date-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+              <div
+                id={`${formId}-date-error`}
+                className="mt-1 font-mono text-[10px] text-red-400"
+                role="alert"
+              >
                 {errors.date}
               </div>
             )}
           </div>
 
           <div>
-            <label htmlFor={`${formId}-city`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+            <label
+              htmlFor={`${formId}-city`}
+              className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+            >
               Ciudad <span aria-hidden="true">*</span>
               <span className="sr-only">(requerido)</span>
             </label>
@@ -251,7 +302,11 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
               autoComplete="address-level2"
             />
             {errors.city && (
-              <div id={`${formId}-city-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+              <div
+                id={`${formId}-city-error`}
+                className="mt-1 font-mono text-[10px] text-red-400"
+                role="alert"
+              >
                 {errors.city}
               </div>
             )}
@@ -259,7 +314,10 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
         </div>
 
         <div>
-          <label htmlFor={`${formId}-message`} className="font-mono text-[10px] uppercase tracking-widest text-[var(--fg-muted)]">
+          <label
+            htmlFor={`${formId}-message`}
+            className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase"
+          >
             Mensaje <span aria-hidden="true">*</span>
             <span className="sr-only">(requerido, mínimo 10 caracteres)</span>
           </label>
@@ -274,11 +332,18 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
             aria-invalid={!!errors.message}
             aria-describedby={errors.message ? `${formId}-message-error` : `${formId}-message-hint`}
           />
-          <div id={`${formId}-message-hint`} className="mt-1 font-mono text-[10px] text-[var(--fg-dim)]">
+          <div
+            id={`${formId}-message-hint`}
+            className="mt-1 font-mono text-[10px] text-[var(--fg-dim)]"
+          >
             Mínimo 10 caracteres, contá sobre el evento
           </div>
           {errors.message && (
-            <div id={`${formId}-message-error`} className="mt-1 font-mono text-[10px] text-red-400" role="alert">
+            <div
+              id={`${formId}-message-error`}
+              className="mt-1 font-mono text-[10px] text-red-400"
+              role="alert"
+            >
               {errors.message}
             </div>
           )}
@@ -286,7 +351,11 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
       </fieldset>
 
       {status === "error" && (
-        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 font-mono text-xs text-red-300" role="alert" aria-live="assertive">
+        <div
+          className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 font-mono text-xs text-red-300"
+          role="alert"
+          aria-live="assertive"
+        >
           {errorMsg} — Se abrió mailto como respaldo.
         </div>
       )}
@@ -294,15 +363,17 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-fire)] px-6 py-4 text-sm font-bold uppercase tracking-widest text-black transition-all hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] disabled:opacity-50 disabled:hover:scale-100"
-        style={{ boxShadow: `0 0 ${10 + bass * 20}px rgba(255,90,31,0.3)` }}
+        className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-fire)] px-6 py-4 text-sm font-bold tracking-widest text-black uppercase transition-all hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] disabled:opacity-50 disabled:hover:scale-100"
+        style={{ boxShadow: `0 0 calc(10px + var(--bass) * 20px) rgba(255,90,31,0.3)` }}
         data-cursor="view"
         aria-label={status === "sending" ? "Enviando formulario" : "Enviar formulario de booking"}
       >
         {status === "sending" ? "Enviando..." : "Enviar booking →"}
       </button>
 
-      <div className="mt-3 text-center font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">Respuesta en 24h • Webhook n8n + mailto fallback • No spam • Datos protegidos</div>
+      <div className="mt-3 text-center font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
+        Respuesta en 24h • Webhook n8n + mailto fallback • No spam • Datos protegidos
+      </div>
     </form>
   );
 }

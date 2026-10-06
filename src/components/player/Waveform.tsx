@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import { usePlayerStore } from "@/stores/playerStore";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine, type AudioAnalysis } from "@/lib/audio-engine";
 
 interface WaveformProps {
   peaks?: number[] | null;
@@ -12,14 +12,30 @@ interface WaveformProps {
   height?: number;
 }
 
-export function Waveform({ peaks, progress, onSeek, color = "var(--accent-fire)", height = 48 }: WaveformProps) {
+/** Stable fallback peaks (Math.random() per render made the bars flicker). */
+function makeFallbackPeaks(n: number) {
+  return Array.from({ length: n }, (_, i) => {
+    const s = Math.sin(i * 12.9898) * 43758.5453;
+    return 0.3 + (s - Math.floor(s)) * 0.6;
+  });
+}
+const FALLBACK_80 = makeFallbackPeaks(80);
+const FALLBACK_40 = makeFallbackPeaks(40);
+
+export function Waveform({
+  peaks,
+  progress,
+  onSeek,
+  color = "var(--accent-fire)",
+  height = 48,
+}: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { bass, beat } = useAudioReactive();
   const [isDragging, setIsDragging] = useState(false);
+  const audioRef = useRef<AudioAnalysis>({ bass: 0, mid: 0, high: 0, level: 0, beat: 0, bpm: 124 });
 
-  // Generate fallback peaks if none
-  const displayPeaks = peaks && peaks.length > 0 ? peaks : Array.from({ length: 80 }, () => 0.3 + Math.random() * 0.7);
+  // Stable identity across renders
+  const displayPeaks = useMemo(() => (peaks && peaks.length > 0 ? peaks : FALLBACK_80), [peaks]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,49 +43,67 @@ export function Waveform({ peaks, progress, onSeek, color = "var(--accent-fire)"
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
+    const unsub = audioEngine?.subscribe((a) => {
+      audioRef.current = a;
+    });
+    if (audioEngine) audioRef.current = { ...audioEngine.analysis };
 
-    const w = rect.width;
-    const h = rect.height;
-    const barWidth = w / displayPeaks.length;
-    const gap = 1;
+    const draw = () => {
+      const { bass, beat } = audioRef.current;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const targetW = Math.max(1, Math.round(rect.width * dpr));
+      const targetH = Math.max(1, Math.round(rect.height * dpr));
+      // Only resize when needed: assigning canvas.width resets the bitmap
+      // AND the transform state on every single redraw otherwise
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    ctx.clearRect(0, 0, w, h);
+      const w = rect.width;
+      const h = rect.height;
+      const barWidth = w / displayPeaks.length;
+      const gap = 1;
 
-    displayPeaks.forEach((peak, i) => {
-      const x = i * barWidth;
-      const barHeight = peak * h * (0.6 + bass * 0.4 + (i % 8 === 0 ? beat * 0.5 : 0));
-      const y = (h - barHeight) / 2;
+      ctx.clearRect(0, 0, w, h);
 
-      const isPlayed = i / displayPeaks.length <= progress;
+      displayPeaks.forEach((peak, i) => {
+        const x = i * barWidth;
+        const barHeight = peak * h * (0.6 + bass * 0.4 + (i % 8 === 0 ? beat * 0.5 : 0));
+        const y = (h - barHeight) / 2;
 
-      // Gradient based on position and audio
-      if (isPlayed) {
-        ctx.fillStyle = color;
-        // Glow on beat for played bars
-        if (beat > 0.7 && isPlayed) {
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 10 * beat;
+        const isPlayed = i / displayPeaks.length <= progress;
+
+        if (isPlayed) {
+          ctx.fillStyle = color;
+          if (beat > 0.7) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10 * beat;
+          } else {
+            ctx.shadowBlur = 0;
+          }
         } else {
+          ctx.fillStyle = "rgba(245,243,239,0.15)";
           ctx.shadowBlur = 0;
         }
-      } else {
-        ctx.fillStyle = "rgba(245,243,239,0.15)";
-        ctx.shadowBlur = 0;
-      }
 
-      // Rounded bars
-      ctx.beginPath();
-      ctx.roundRect(x + gap / 2, y, barWidth - gap, barHeight, 2);
-      ctx.fill();
-    });
+        ctx.beginPath();
+        ctx.roundRect(x + gap / 2, y, barWidth - gap, barHeight, 2);
+        ctx.fill();
+      });
 
-    ctx.shadowBlur = 0;
-  }, [displayPeaks, progress, bass, beat, color]);
+      ctx.shadowBlur = 0;
+    };
+
+    draw();
+    const interval = setInterval(draw, 66); // ~15fps redraw is plenty for a waveform
+    return () => {
+      clearInterval(interval);
+      unsub?.();
+    };
+  }, [displayPeaks, progress, color]);
 
   const handleSeek = (e: React.MouseEvent | React.TouchEvent) => {
     const container = containerRef.current;
@@ -120,7 +154,7 @@ export function Waveform({ peaks, progress, onSeek, color = "var(--accent-fire)"
 }
 
 export function MiniWaveform({ peaks, progress }: { peaks?: number[] | null; progress: number }) {
-  const displayPeaks = peaks && peaks.length > 0 ? peaks.slice(0, 40) : Array.from({ length: 40 }, () => 0.3 + Math.random() * 0.7);
+  const displayPeaks = peaks && peaks.length > 0 ? peaks.slice(0, 40) : FALLBACK_40;
 
   return (
     <div className="flex h-8 items-end gap-[1px]">

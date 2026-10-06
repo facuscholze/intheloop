@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "@/stores/playerStore";
+import { useUIStore } from "@/stores/uiStore";
 import { audioEngine } from "@/lib/audio-engine";
 import { getMediaUrl } from "@/lib/media";
 import { useMediaSession } from "@/hooks/useMediaSession";
@@ -11,18 +12,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const volume = usePlayerStore((s) => s.volume);
-  const progress = usePlayerStore((s) => s.progress);
+  const muted = usePlayerStore((s) => s.muted);
   const setProgress = usePlayerStore((s) => s.setProgress);
   const setDuration = usePlayerStore((s) => s.setDuration);
-  const next = usePlayerStore((s) => s.next);
-  const queue = usePlayerStore((s) => s.queue);
-
-  // Init queue from content if empty (client side)
-  useEffect(() => {
-    if (queue.length === 0) {
-      // Will be populated by page via setQueue
-    }
-  }, [queue.length]);
 
   // Handle track change
   useEffect(() => {
@@ -36,12 +28,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Only change src if different
-    if (audio.src !== src && !audio.src.endsWith(src)) {
+    const absolute = new URL(src, window.location.href).href;
+    if (audio.src !== absolute) {
       audio.src = src;
       audio.load();
-      if (audioEngine) {
-        audioEngine.connectMediaElement(audio, currentTrack.bpm || 124);
-      }
+    }
+
+    // connectMediaElement is idempotent (graph is built only once)
+    if (audioEngine) {
+      audioEngine.connectMediaElement(audio, currentTrack.bpm || 124);
     }
 
     if (isPlaying) {
@@ -57,7 +52,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (!audio) return;
 
     if (isPlaying) {
-      audio.play().catch(() => {});
+      if (audio.src) audio.play().catch(() => {});
       audioEngine?.resume();
       audioEngine?.start();
     } else {
@@ -65,13 +60,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isPlaying]);
 
-  // Volume
+  // Volume + mute (single place that decides the effective volume)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.volume = volume;
-    audioEngine?.setVolume(volume);
-  }, [volume]);
+    const effective = muted ? 0 : volume;
+    audio.volume = effective;
+    audioEngine?.setVolume(effective);
+  }, [volume, muted]);
 
   // Time update
   useEffect(() => {
@@ -89,7 +85,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleEnded = () => {
-      next();
+      const state = usePlayerStore.getState();
+      // Repeat-one: loop the same track (the store's next() must NOT handle
+      // this, otherwise the audio element stays "ended" forever).
+      if (state.repeat === "one") {
+        audio.currentTime = 0;
+        state.setProgress(0);
+        audio.play().catch(() => {});
+        return;
+      }
+      state.next();
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
@@ -101,18 +106,30 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [setProgress, setDuration, next]);
+  }, [setProgress, setDuration]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      // Ignore when typing in inputs
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      // Ignore when typing, when a control already handled the key, on key
+      // repeat, and before the user has entered the experience.
+      if (e.defaultPrevented || e.repeat) return;
+      if (!useUIStore.getState().hasEntered) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement
+      )
+        return;
+      if (t instanceof HTMLElement && t.isContentEditable) return;
 
       switch (e.code) {
         case "Space":
           e.preventDefault();
-          usePlayerStore.getState().isPlaying ? usePlayerStore.getState().pause() : usePlayerStore.getState().play();
+          usePlayerStore.getState().isPlaying
+            ? usePlayerStore.getState().pause()
+            : usePlayerStore.getState().play();
           break;
         case "ArrowRight":
           if (e.metaKey || e.ctrlKey) {

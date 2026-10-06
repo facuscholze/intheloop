@@ -23,11 +23,29 @@ export function MagneticButton({ children, className = "", onClick, href }: Prop
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
-      gsap.to(inner, { x: x * 0.35, y: y * 0.5, duration: 0.4, ease: "power3.out" });
-      gsap.to(el, { x: x * 0.15, y: y * 0.15, duration: 0.6, ease: "power3.out" });
+      gsap.to(inner, {
+        x: x * 0.35,
+        y: y * 0.5,
+        duration: 0.4,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+      gsap.to(el, {
+        x: x * 0.15,
+        y: y * 0.15,
+        duration: 0.6,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
     };
     const handleLeave = () => {
-      gsap.to([inner, el], { x: 0, y: 0, duration: 0.8, ease: "elastic.out(1,0.4)" });
+      gsap.to([inner, el], {
+        x: 0,
+        y: 0,
+        duration: 0.8,
+        ease: "elastic.out(1,0.4)",
+        overwrite: "auto",
+      });
     };
 
     el.addEventListener("mousemove", handleMove);

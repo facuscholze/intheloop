@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { gsap } from "@/lib/motion";
 import { useUIStore } from "@/stores/uiStore";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 const links = [
   { href: "#music", label: "MUSIC", sub: "Tracks / Sets" },
@@ -83,7 +84,15 @@ export function Menu() {
         gsap.fromTo(
           linksRef.current?.querySelectorAll(".menu-link") || [],
           { y: 100, opacity: 0, rotateX: -30 },
-          { y: 0, opacity: 1, rotateX: 0, duration: 0.8, stagger: 0.06, ease: "power3.out", delay: 0.2 }
+          {
+            y: 0,
+            opacity: 1,
+            rotateX: 0,
+            duration: 0.8,
+            stagger: 0.06,
+            ease: "power3.out",
+            delay: 0.2,
+          }
         );
       } else {
         gsap.to(containerRef.current, {
@@ -100,10 +109,9 @@ export function Menu() {
   }, [isOpen]);
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    if (!isOpen) return;
+    const token = lockScroll();
+    return () => unlockScroll(token);
   }, [isOpen]);
 
   return (
@@ -118,11 +126,16 @@ export function Menu() {
       aria-hidden={!isOpen}
     >
       {/* Background shader */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,_rgba(255,90,31,0.15),_transparent_60%),radial-gradient(ellipse_at_80%_80%,_rgba(255,46,147,0.12),_transparent_60%)]" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,_rgba(255,90,31,0.15),_transparent_60%),radial-gradient(ellipse_at_80%_80%,_rgba(255,46,147,0.12),_transparent_60%)]"
+        aria-hidden="true"
+      />
 
       <div className="relative flex h-full flex-col p-6 md:p-10">
         <div className="flex items-center justify-between">
-          <div className="font-display text-lg font-bold" aria-hidden="true">IN THE LOOP.</div>
+          <div className="font-display text-lg font-bold" aria-hidden="true">
+            IN THE LOOP.
+          </div>
           <button
             ref={closeButtonRef}
             onClick={() => setOpen(false)}
@@ -133,7 +146,11 @@ export function Menu() {
           </button>
         </div>
 
-        <nav ref={linksRef} className="mt-20 flex flex-1 flex-col gap-2" aria-label="Navegación principal">
+        <nav
+          ref={linksRef}
+          className="mt-20 flex flex-1 flex-col gap-2"
+          aria-label="Navegación principal"
+        >
           {links.map((link) => (
             <a
               key={link.href}
@@ -142,10 +159,13 @@ export function Menu() {
               className="menu-link group flex items-baseline gap-6 overflow-hidden rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)]"
               data-cursor="view"
             >
-              <span className="font-display text-[clamp(32px,8vw,96px)] font-bold leading-none tracking-tight transition-colors group-hover:text-[var(--accent-fire)] group-focus-visible:text-[var(--accent-fire)]">
+              <span className="font-display text-[clamp(32px,8vw,96px)] leading-none font-bold tracking-tight transition-colors group-hover:text-[var(--accent-fire)] group-focus-visible:text-[var(--accent-fire)]">
                 {link.label}
               </span>
-              <span className="hidden font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)] md:block" aria-hidden="true">
+              <span
+                className="hidden font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase md:block"
+                aria-hidden="true"
+              >
                 {link.sub}
               </span>
             </a>
@@ -153,19 +173,44 @@ export function Menu() {
         </nav>
 
         <div className="flex flex-col gap-6 border-t border-[var(--border)] pt-8 md:flex-row md:items-end md:justify-between">
-          <div className="font-mono text-xs uppercase leading-relaxed text-[var(--fg-muted)]">
+          <div className="font-mono text-xs leading-relaxed text-[var(--fg-muted)] uppercase">
             <div>TOMMY PETERSEN</div>
             <div>TRIBAL HOUSE / ARGENTINA</div>
             <div className="mt-2 text-[var(--fg-dim)]">Every dancefloor has its own story.</div>
           </div>
-          <div className="flex gap-4 font-mono text-xs uppercase" role="list" aria-label="Redes sociales">
-            <a href="https://www.instagram.com/tommypetersen/" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]" role="listitem" aria-label="Instagram de Tommy Petersen (abre en nueva pestaña)">
+          <div
+            className="flex gap-4 font-mono text-xs uppercase"
+            role="list"
+            aria-label="Redes sociales"
+          >
+            <a
+              href="https://www.instagram.com/tommypetersen/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+              role="listitem"
+              aria-label="Instagram de Tommy Petersen (abre en nueva pestaña)"
+            >
               Instagram
             </a>
-            <a href="https://soundcloud.com/tommypetersendj" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]" role="listitem" aria-label="SoundCloud de Tommy Petersen (abre en nueva pestaña)">
+            <a
+              href="https://soundcloud.com/tommypetersendj"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+              role="listitem"
+              aria-label="SoundCloud de Tommy Petersen (abre en nueva pestaña)"
+            >
               SoundCloud
             </a>
-            <a href="https://www.youtube.com/@InTheLoopAgency" target="_blank" rel="noopener noreferrer" className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]" role="listitem" aria-label="YouTube de In The Loop Agency (abre en nueva pestaña)">
+            <a
+              href="https://www.youtube.com/@InTheLoopAgency"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded px-2 py-2 hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+              role="listitem"
+              aria-label="YouTube de In The Loop Agency (abre en nueva pestaña)"
+            >
               YouTube
             </a>
           </div>

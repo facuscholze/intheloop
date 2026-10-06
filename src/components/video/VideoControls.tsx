@@ -30,17 +30,25 @@ export function VideoControls({ videoRef, onClose, title }: VideoControlsProps) 
     const handleLoadedMetadata = () => setDuration(video.duration);
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const handlePipChange = () => setIsPiP(document.pictureInPictureElement === video);
 
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("play", handlePlay);
     video.addEventListener("pause", handlePause);
+    document.addEventListener("fullscreenchange", handleFsChange);
+    video.addEventListener("enterpictureinpicture", handlePipChange);
+    video.addEventListener("leavepictureinpicture", handlePipChange);
 
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("play", handlePlay);
       video.removeEventListener("pause", handlePause);
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      video.removeEventListener("enterpictureinpicture", handlePipChange);
+      video.removeEventListener("leavepictureinpicture", handlePipChange);
     };
   }, [videoRef]);
 
@@ -103,19 +111,19 @@ export function VideoControls({ videoRef, onClose, title }: VideoControlsProps) 
   };
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 md:p-6">
+    <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 md:p-6">
       {/* Title */}
       <div className="mb-4 flex items-center justify-between">
         <div>
           <div className="font-display text-lg font-bold text-white md:text-xl">{title}</div>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-white/60">
+          <div className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
             {formatTime(currentTime)} / {formatTime(duration)} • Modo Cine • Ambilight
           </div>
         </div>
         <button
           onClick={onClose}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur hover:bg-white/20"
-          aria-label="Close"
+          aria-label="Cerrar y volver"
         >
           ✕
         </button>
@@ -150,26 +158,34 @@ export function VideoControls({ videoRef, onClose, title }: VideoControlsProps) 
 
           <div className="hidden items-center gap-2 md:flex">
             <span className="font-mono text-xs text-white/60">Vol</span>
-            <input type="range" min={0} max={1} step={0.01} value={volume} onChange={handleVolume} className="h-1 w-20 accent-white" />
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={handleVolume}
+              className="h-1 w-20 accent-white"
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={togglePiP}
-            className={`rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest ${isPiP ? "border-[var(--accent-lime)] bg-[var(--accent-lime)] text-black" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
+            className={`rounded-full border px-3 py-1.5 font-mono text-[10px] tracking-widest uppercase ${isPiP ? "border-[var(--accent-lime)] bg-[var(--accent-lime)] text-black" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
           >
             PiP
           </button>
           <button
             onClick={toggleFullscreen}
-            className={`rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest ${isFullscreen ? "border-[var(--accent-magenta)] bg-[var(--accent-magenta)] text-black" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
+            className={`rounded-full border px-3 py-1.5 font-mono text-[10px] tracking-widest uppercase ${isFullscreen ? "border-[var(--accent-magenta)] bg-[var(--accent-magenta)] text-black" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
           >
             {isFullscreen ? "Exit FS" : "Fullscreen"}
           </button>
           <button
             onClick={onClose}
-            className="rounded-full bg-white px-4 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-black hover:bg-[var(--accent-fire)]"
+            className="rounded-full bg-white px-4 py-1.5 font-mono text-[10px] font-bold tracking-widest text-black uppercase hover:bg-[var(--accent-fire)]"
           >
             Cerrar (Esc)
           </button>
