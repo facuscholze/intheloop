@@ -58,7 +58,7 @@ pnpm analyze          # ANALYZE=true build
 pnpm dev              # next dev + watcher de content/ (sync-media --watch)
 pnpm sync:media       # content/ → public/media/content/ (WebP + thumbs, incremental)
 pnpm watch:media      # solo el watcher de content/
-pnpm add:track        # CLI: crea content/songs/<id>/ (audio + cover + song.json)
+pnpm add:track        # CLI: crea content/songs/<id>/ (audio + cover + track.json)
 pnpm add:video        # CLI: crea content/videos/<id>/ (poster/preview + video.json)
 pnpm add:show         # CLI: crea content/shows/<id>/ (hero + show.json)
 pnpm migrate:content  # migra del formato viejo (shows.json / tracks/*.json) a carpetas
@@ -89,9 +89,9 @@ src/i18n/ routing, request
 src/shaders/ glsl
 src/styles/ tokens.css (CSS vars paleta + audio reactive + motion)
 content/ <tipo>/<slug>/… (una carpeta por item, Zod en src/lib/content.ts)
-  gallery/<ciudad>/ fotos sueltas + _city.json opcional
+  gallery/<ciudad>/ fotos sueltas + city.json opcional
   shows/<show>/ show.json + hero.jpg
-  songs/<tema>/ song.json + audio + cover.jpg
+  songs/<tema>/ track.json + audio + cover.jpg (o embedUrl/links sin audio)
   videos/<video>/ video.json + poster.jpg
   site.json
   */_TEMPLATE/ plantillas (carpetas con _ se ignoran)
@@ -143,12 +143,23 @@ nada que registrar. Detalle para el artista: `content/README.md` y `docs/CONTENT
   `public/media/content/<tipo>/<slug>/<nombre>.webp` (+ `-thumb.webp`), copia
   audio/video tal cual y borra huérfanos. Es incremental (mtime) y escribe con
   `.tmp` + rename. Lo corren `pnpm dev` (además con `--watch`) y `pnpm build`.
+- **Temas sin audio propio:** `Track.playable` + `embedUrl` (facade de
+  SoundCloud que carga el iframe al click) o `links.*` como botones; la cola del
+  player solo lleva temas reproducibles.
 - **Reglas de nombres compartidas:** `src/lib/content-media.ts` (`derivedMediaPath`,
   `copiedMediaPath`, `resolveMediaValue`, `slugifySegment`, `pickPrimaryFile`,
   `dedupeByDerived`). Las usan los loaders Y el script: no duplicar.
 - **FS compartido:** `src/lib/content-fs.ts` (`contentItemDirs`, `listContentFiles`,
   `readFolderJson`, `warnOnce`, `CONTENT_DIR`, `PUBLIC_MEDIA_DIR`).
-- **Peaks/duración:** `src/lib/wav.ts` (`analyzeWav`) — los WAV se analizan en build.
+- **Peaks/duración:** `src/lib/audio-analysis.ts` (`analyzeAudioFile`) — WAV con
+  `src/lib/wav.ts` en JS; MP3/M4A/etc. con ffmpeg (opcional: `FFMPEG_PATH`,
+  `node_modules/ffmpeg-static/ffmpeg` o PATH). Memoizado por archivo+mtime y
+  **solo decodifica si falta peaks o duración** (no re-analiza lo que ya está
+  en el JSON).
+- **Contenido inválido:** `contentError()` (`content-fs.ts`) avisa y omite en
+  local; con `CI` corta el build (escape: `ITL_ALLOW_INVALID_CONTENT=1`). Una
+  galería vacía es warning suave. El recorrido de `content/` es tolerante a
+  ENOENT (borrar carpetas en caliente).
 - Campo de media en el JSON: `https://` → tal cual; `/algo` → tal cual; `hero.jpg`
   → archivo de la carpeta; `audio/viejo.wav` → formato viejo relativo a public/media.
 - `getMediaUrl()` resuelve local vs CDN bucket (`NEXT_PUBLIC_MEDIA_BASE_URL`).
@@ -245,6 +256,12 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - page.tsx: imports JsonLd + BookingForm + Newsletter, booking section grid md 2 cols left contact+eggs+Newsletter+press kit disabled placeholder message upload PDF media-src/press/, right BookingForm contactEmail events@intheloop.agency, footer links sitemap.xml robots.txt OG image target blank + eslint-disable for OG page, Fase 5 note
   - layout.tsx metadata: metadataBase https://www.intheloop.agency, openGraph profile es_AR/en_US, twitter summary_large_image, alternates canonical + languages es/en, keywords, authors, robots index follow
   - Build 30.7kB /[locale] 166kB First Load, OG/icon edge, sitemap 20+ entries, lint fixed
+- Fase 8 ✅ Seguimiento: nombres canónicos `track.json`/`city.json` (con alias
+  `song.json`/`_city.json`), peaks reales de MP3/M4A con ffmpeg opcional
+  (`audio-analysis.ts`, sin decodificar de más), tarjetas con embed de SoundCloud
+  o botones de links cuando el tema no tiene audio propio (`playable`),
+  `contentError()` que falla el build en CI, tablas de formatos/límites y
+  `.gitignore` comentado para audios pesados
 - Fase 7 ✅ Contenido por carpetas: cada item con su carpeta (`content/gallery/<ciudad>/`,
   `content/shows/<show>/`, `content/songs/<tema>/`, `content/videos/<video>/`), imágenes
   al lado del JSON y auto-descubiertas; `scripts/sync-media.ts` (+ --watch) materializa

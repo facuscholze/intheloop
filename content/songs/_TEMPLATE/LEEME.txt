@@ -9,7 +9,12 @@ content/songs/mi-tema/
 El id del tema es el nombre de la carpeta.
 Si no ponés "cover", se usa la primera imagen de la carpeta.
 Si no ponés "audio", se usa el primer audio que haya en la carpeta.
-Si el audio es WAV, los peaks de la waveform y la duración se calculan solos.
+La waveform y la duración se calculan solas (WAV siempre; MP3/M4A necesitan
+ffmpeg instalado; si no está, la tarjeta usa una waveform decorativa).
+
+¿El tema vive en SoundCloud/Spotify y no tenés el archivo? Dejá la carpeta sin
+audio y poné en el JSON "embedUrl" (reproductor de SoundCloud) o "links"
+(botones "Escuchar en…"). No hace falta inventar un audio.
 Tipos válidos: track, set, mix. Formatos de audio: wav, mp3, m4a, aac, flac, ogg.
 
 Las carpetas que empiezan con "_" (como _TEMPLATE) se ignoran.

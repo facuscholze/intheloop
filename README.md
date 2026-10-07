@@ -66,7 +66,7 @@ Cada item es una carpeta con su JSON y sus archivos (validado con Zod en `src/li
 ```
 content/gallery/tandil/         01.jpg, 02.jpg…            → carrusel de GALLERY
 content/shows/temple-caba/      show.json + hero.jpg       → fila del show + foto del hover
-content/songs/beach-groove/     song.json + tema.wav + cover.jpg
+content/songs/beach-groove/     track.json + tema.wav + cover.jpg
 content/videos/live-paris/      video.json + poster.jpg
 ```
 
@@ -75,20 +75,22 @@ pnpm dev        # sitio + watcher: soltás una foto en su carpeta y aparece sola
 pnpm sync:media # optimiza las imágenes a public/media/content/ (WebP + minis)
 ```
 
-- **Galería:** una carpeta por ciudad, adentro las fotos. Opcional `_city.json`
+- **Galería:** una carpeta por ciudad, adentro las fotos. Opcional `city.json`
   para forzar nombre/bandera/orden.
 - **Show:** `show.json` + la foto `hero.jpg` (la del hover). Si no la nombrás
   `hero`, se usa la primera imagen de la carpeta.
-- **Tema:** `song.json` + audio + cover. Con WAV, los peaks y la duración se
-  calculan solos.
+- **Tema:** `track.json` + audio + cover. Los peaks y la duración se calculan
+  solos (WAV siempre; MP3/M4A si hay ffmpeg). Sin audio propio, `embedUrl` de
+  SoundCloud o los `links.*` se muestran como embed/botones en la tarjeta.
 - **Video:** `video.json` + `poster.jpg` (+ mp4 si es self-hosted).
 
 También hay CLI interactiva que crea la carpeta, copia los archivos y escribe el JSON:
 
 ```bash
-pnpm add:track   # crea content/songs/<id>/ con audio + cover + song.json
+pnpm add:track   # crea content/songs/<id>/ con audio + cover + track.json
 pnpm add:show    # crea content/shows/<id>/ con hero + show.json
 pnpm add:video   # crea content/videos/<id>/ con poster/preview + video.json
+pnpm add:gallery # crea content/gallery/<ciudad>/ y copia las fotos que le pases
 ```
 
 **Importante derechos:** solo producción propia o con permiso. Sets con tracks de terceros mejor como embed SoundCloud/YouTube (el audio reactivo real solo funciona con archivos propios por CORS).
@@ -102,6 +104,8 @@ Ver guía completa: `docs/CONTENT-GUIDE.md` · resumen para el artista: `content
   generada y no se versiona.
 - Originales pesados de hero/brand/press en `media-src/` (no se sube a git).
 - En producción, setear `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev` y `getMediaUrl()` resuelve (subí ahí `public/media/` tal cual).
+- Un JSON inválido avisa por consola en local y **falla el build en CI**
+  (`ITL_ALLOW_INVALID_CONTENT=1` para forzar uno permisivo).
 
 ---
 

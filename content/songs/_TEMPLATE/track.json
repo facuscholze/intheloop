@@ -9,5 +9,6 @@
   "date": "2026-01-01",
   "genres": ["Tribal House", "House"],
   "colorAccent": "#ff5a1f",
+  "embedUrl": null,
   "links": { "soundcloud": null, "spotify": null, "beatport": null }
 }

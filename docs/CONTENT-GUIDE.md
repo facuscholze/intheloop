@@ -6,9 +6,9 @@ adentro. El sitio lee las carpetas en build: no hay que registrar nada en ningú
 
 ```
 content/
-  gallery/<ciudad>/      fotos sueltas → aparecen solas en la sección GALLERY
+  gallery/<ciudad>/      fotos sueltas + city.json (opcional)
   shows/<show>/          show.json + hero.jpg (la foto del hover)
-  songs/<tema>/          song.json + audio + cover.jpg
+  songs/<tema>/          track.json + audio + cover.jpg
   videos/<video>/        video.json + poster.jpg (+ video)
   site.json              artista, contacto, redes
 ```
@@ -51,7 +51,7 @@ content/gallery/tandil/
   10.jpg
 ```
 
-**Opcional** `_city.json` para forzar nombre/bandera/orden:
+**Opcional** `city.json` para forzar nombre/bandera/orden:
 
 ```json
 {
@@ -117,7 +117,7 @@ Con CLI: `pnpm add:show` crea la carpeta, copia la foto y escribe el JSON.
 
 ```
 content/songs/beach-groove-126/
-  song.json
+  track.json
   beach-groove-126.wav
   cover.jpg
 ```
@@ -141,8 +141,20 @@ content/songs/beach-groove-126/
 - El **id** del tema es el nombre de la carpeta.
 - Si no ponés `audio`/`cover`, se usan el primer audio y la primera imagen que
   haya en la carpeta.
-- Si el audio es **WAV**, los peaks de la waveform y la duración se calculan
-  solos (no hacen falta ni `pnpm gen:waveform` ni `waveformPeaks` en el JSON).
+- La **waveform** se calcula sola: WAV se lee con JS; MP3, M4A, FLAC, OGG…
+  necesitan **ffmpeg** (los runners de GitHub Actions ya lo traen; local:
+  `brew install ffmpeg`, `apt install ffmpeg` o `FFMPEG_PATH=/ruta/a/ffmpeg`).
+  Si no hay ffmpeg, el tema queda sin peaks y la tarjeta usa su waveform
+  decorativa (no se rompe nada). Los peaks se guardan si corrés
+  `pnpm gen:waveform`; si no, se calculan en memoria durante el build.
+- **Sin audio propio**: si el tema vive en SoundCloud/Spotify/Beatport, dejá la
+  carpeta sin audio y usá:
+  - `"embedUrl": "https://soundcloud.com/…"` → reproductor oficial embebido en
+    la tarjeta (el iframe se carga al hacer clic).
+  - `"links": { "soundcloud": …, "spotify": …, "beatport": …, "youtube": … }`
+    → botones "Escuchar en…".
+  Estos temas **no** entran a la cola del player del sitio (no hay archivo que
+  reproducir), así que `next/prev` nunca cae en un tema mudo.
 - `type`: `track` | `set` | `mix`. `draft: true` lo oculta.
 - Los audios LARGO plazo conviene servirlos desde un bucket
   (`NEXT_PUBLIC_MEDIA_BASE_URL`) — ver más abajo.
@@ -225,13 +237,30 @@ public/media/content/gallery/tandil/01-thumb.webp  (mini, para grillas)
 | Qué | Válido |
 |---|---|
 | Imágenes | jpg, jpeg, png, webp, avif, gif, tiff → se convierten a WebP |
-| Audio | wav, mp3, m4a, aac, ogg, opus, flac, aiff |
+| Audio | wav, mp3, m4a, aac, ogg, opus, flac, aiff (peaks de MP3/M4A/etc. requieren ffmpeg) |
 | Video | mp4, webm, mov, m4v, ogv, m3u8, mkv |
 
 Si una imagen no se puede leer (HEIC, por ejemplo), `sync:media` avisa y la
 saltea: pasala a JPG/PNG/WebP.
 
 ---
+
+## Errores de contenido: local vs CI
+
+Una carpeta con problemas **no borra el sitio en tu compu**: la consola avisa
+qué carpeta y qué campo falla, y ese item se omite.
+
+- `⚠️  content/shows/temple-caba/show.json no valida → city: Required`
+- `⚠️  content/songs/mi-tema/ no tiene track.json …`
+- `⚠️  falta public/media/content/… — corré "pnpm sync:media"`
+
+En **CI** (GitHub Actions, Vercel…) ese mismo problema **falla el build**, así
+un JSON roto nunca llega a producción. Escape hatch:
+`ITL_ALLOW_INVALID_CONTENT=1 pnpm build`.
+
+Casos que son solo advertencia (no frenan nada): una carpeta de galería que
+todavía no tiene fotos, y una carpeta con varios JSON (se usa el primero y se
+avisa cuál).
 
 ## Scripts útiles
 
@@ -247,6 +276,17 @@ pnpm gen:waveform       # escribe los peaks en los song.json (los WAV ya se calc
 pnpm optimize:images    # solo hero/press/brand de media-src/ → public/media/
 pnpm migrate:content    # migra contenido del formato viejo (JSON suelto) al nuevo
 ```
+
+## Audios: git, git-lfs o bucket
+
+Por defecto `content/songs/<tema>/*.mp3|wav` **se versiona** (el build necesita
+los archivos). Si tenés sets pesados:
+
+1. Bucket/CDN (recomendado): subí el audio y poné la URL en `"audio"` (o seteá
+   `NEXT_PUBLIC_MEDIA_BASE_URL` y subí el contenido de `public/media/`).
+2. Git-lfs: `git lfs track "content/songs/**/*.wav"`.
+3. No versionarlos: descomentá las líneas de audio en `.gitignore` (ojo: el
+   build local y el deploy necesitan el archivo de todas formas).
 
 ## Migración desde el formato viejo
 
@@ -265,8 +305,8 @@ archivos viejos (quedan en el historial de git). Es idempotente: no pisa nada.
 
 `src/lib/content.ts` valida todo en build y avisa por consola:
 
-- `TrackSchema`: title, artist, type, audio, cover, bpm (60-200), key, duration,
-  date, genres, colorAccent, links, waveformPeaks, draft.
+- `TrackSchema`: title, artist, type, audio, embedUrl, cover, bpm (60-200),
+  key, duration, date, genres, colorAccent, links, waveformPeaks, draft.
 - `ShowSchema`: venue, city, country, date, instagram, galleryUrl, hero,
   featured, needsReview, draft.
 - `VideoSchema`: title, src, youtubeId, poster, previewSrc, date, venue,

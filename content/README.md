@@ -5,9 +5,9 @@ nada en ningún índice: los loaders (`src/lib/content.ts`) leen las carpetas so
 
 ```
 content/
-  gallery/<ciudad>/     🖼  fotos sueltas (una carpeta por ciudad)
+  gallery/<ciudad>/     🖼  fotos sueltas + city.json (opcional)
   shows/<show>/         📍 show.json + hero.jpg
-  songs/<tema>/         🎵 song.json + audio + cover.jpg
+  songs/<tema>/         🎵 track.json + audio + cover.jpg
   videos/<video>/       🎬 video.json + poster.jpg (+ el video si es self-hosted)
   site.json             datos del artista / contacto
 ```
@@ -24,14 +24,14 @@ Cada sección trae una carpeta `_TEMPLATE/` con un `LEEME.txt` y un JSON de ejem
 2. Soltá las fotos adentro: `jpg`, `jpeg`, `png`, `webp`, `avif`.
    Se ordenan por nombre de archivo (`01.jpg`, `02.jpg`, … `10.jpg`).
    La primera es la tapa de la ciudad.
-3. Opcional: `_city.json` si querés fijar el nombre exacto, el país (bandera) o
+3. Opcional: `city.json` si querés fijar el nombre exacto, el país (bandera) o
    el orden en el carrusel:
 
 ```json
 { "city": "París", "country": "FR", "date": "2025-09-12", "order": 1, "cover": "03.jpg" }
 ```
 
-Sin `_city.json` la ciudad se llama como la carpeta, y si algún show es de esa
+Sin `city.json` la ciudad se llama como la carpeta, y si algún show es de esa
 ciudad la galería hereda el país.
 
 ## Show
@@ -47,9 +47,16 @@ ciudad la galería hereda el país.
 1. Copiá `content/songs/_TEMPLATE/` a `content/songs/<nombre-del-tema>/`.
 2. Soltá el audio (`wav`, `mp3`, `m4a`, `flac`, `ogg`…) y la portada
    (`cover.jpg`, o cualquier imagen: si no la nombrás, se usa la primera).
-3. Completá `song.json`. Si no ponés `audio` ni `cover`, se usan los archivos
-   que estén en la carpeta. Si el audio es **WAV**, los peaks de la waveform y
-   la duración se calculan solos al cargar.
+3. Completá `track.json`. Si no ponés `audio` ni `cover`, se usan los archivos
+   que estén en la carpeta. La waveform se calcula sola: WAV se lee siempre;
+   para MP3/M4A/FLAC hace falta `ffmpeg` instalado (si no está, la tarjeta usa
+   una waveform decorativa y listo).
+
+**¿El tema no tiene audio propio?** Dejá la carpeta sin audio y poné una de
+estas dos cosas en el JSON: `embedUrl` (el link de SoundCloud → aparece el
+reproductor oficial en la tarjeta) o `links.soundcloud/spotify/beatport` (→
+quedan botones "Escuchar en…"). Así una canción tuya que vive en las
+plataformas se muestra igual, sin prometer un play que no existe.
 
 ## Video
 
@@ -71,10 +78,27 @@ ciudad la galería hereda el país.
 - El sitio es estático (GitHub Pages): por eso lo que se sirve es siempre
   `public/media/content/...` (generado, no se versiona).
 
+## ¿Dónde va el audio? (peso y git)
+
+- Por defecto los audios se versionan en git (el build los necesita), pero si
+  tenés temas pesados conviene un bucket: subilos a Cloudflare R2 / S3 y
+  seteá `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev`. El sitio resuelve
+  las URLs solo.
+- Si preferís no versionarlos, en `.gitignore` hay líneas comentadas listas
+  para descomentar (`content/songs/**/*.mp3`, etc.) o podés usar git-lfs.
+
 ## Derechos
 
 Subí audio solo si es producción propia o tenés permiso. Sets con temas de
 terceros: mejor como embed de SoundCloud/YouTube.
+
+## Si algo está mal escrito
+
+- **En tu compu:** la consola te avisa (`⚠️ content/shows/<carpeta>/show.json
+  no valida → city: Required`) y esa carpeta se saltea: el resto del sitio
+  sigue andando.
+- **En el deploy (CI):** ese mismo error **frena el build**, así nunca se
+  publica un contenido roto. Si necesitás publicar igual, `ITL_ALLOW_INVALID_CONTENT=1`.
 
 ## Fotos de ejemplo
 
