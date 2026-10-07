@@ -254,7 +254,7 @@ function resolveMedia(
   if (/^(https?:)?\/\//i.test(resolved) || resolved.startsWith("/")) return resolved
   if (!mediaExists(resolved)) {
     contentError(
-      `falta public/media/${resolved} — corré "pnpm sync:media" (o "pnpm dev", que ya lo hace solo)`
+      `falta public/media/${resolved} — el JSON apunta a un archivo que no existe (revisá el nombre en la carpeta) o no corrió "pnpm sync:media"`
     )
     return null
   }
@@ -292,8 +292,15 @@ export function loadShows(): Show[] {
     const raw = parsed.data
     const files = listContentFiles(itemDir)
     const ctx = { kind: "shows" as const, slug, files }
+    const images = folderImages(files)
     const heroValue =
-      raw.hero ?? raw.photo ?? pickPrimaryFile(folderImages(files), PRIMARY_IMAGE_NAMES.shows)
+      declaredMedia(
+        raw.hero ?? raw.photo,
+        images,
+        itemDir,
+        files,
+        `content/shows/${slug}/${json.file}`
+      ) ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.shows)
 
     if (raw.draft) continue
     shows.push({
@@ -338,8 +345,12 @@ export function loadTracks(): Track[] {
     const images = folderImages(files)
     const audios = sortContentFiles(files.filter(isAudioFile))
 
-    const coverValue = raw.cover ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.songs)
-    const audioValue = raw.audio ?? raw.audioSrc ?? audios[0] ?? null
+    const where = `content/songs/${slug}/${json.file}`
+    const coverValue =
+      declaredMedia(raw.cover, images, itemDir, files, where) ??
+      pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.songs)
+    const audioValue =
+      declaredMedia(raw.audio ?? raw.audioSrc, audios, itemDir, files, where) ?? audios[0] ?? null
 
     // Audio local (carpeta del tema o formato viejo): peaks y duración se
     // calculan solos — WAV con JS, MP3/M4A/… con ffmpeg si está instalado.
@@ -386,6 +397,39 @@ export function loadTracks(): Track[] {
   return tracks.sort(byDateDesc)
 }
 
+/**
+ * Valor de media declarado en el JSON (`audio`, `cover`, `hero`, `poster`…)
+ * llevado a un archivo que exista de verdad.
+ *
+ * Devuelve:
+ *  - `undefined` si el JSON no declara nada → sigue el auto-pick de siempre;
+ *  - el valor tal cual si es externo, absoluto o apunta a un archivo que existe;
+ *  - el ÚNICO archivo de ese tipo que haya en la carpeta, si el declarado no
+ *    está (típico: renombraron el archivo después de escribir el JSON). La
+ *    intención no es ambigua y la convención documentada es "si no ponés el
+ *    campo, se usa el archivo que haya", así que avisamos en vez de tirar el
+ *    build abajo por un typo;
+ *  - el valor declarado si hay varios candidatos o ninguno: ahí no adivinamos y
+ *    deja que `resolveMedia` → `contentError` lo corte en CI, que es lo que
+ *    corresponde cuando el archivo realmente falta.
+ */
+function declaredMedia(
+  declared: string | null | undefined,
+  candidates: string[],
+  itemDir: string,
+  files: string[],
+  where: string
+): string | undefined {
+  if (!declared) return undefined
+  if (/^(https?:)?\/\//i.test(declared) || declared.startsWith("/")) return declared
+  if (findLocalFile(declared, itemDir, files)) return declared
+  if (candidates.length !== 1) return declared
+  warnOnce(
+    `${where} declara "${declared}", que no está en la carpeta: uso ${candidates[0]} (corregí el JSON)`
+  )
+  return candidates[0]
+}
+
 /** Ubica el archivo local de un valor de media (carpeta del item o public/media). */
 function findLocalFile(
   value: string | null | undefined,
@@ -425,8 +469,10 @@ export function loadVideos(): Video[] {
 
     const files = listContentFiles(itemDir)
     const ctx = { kind: "videos" as const, slug, files }
+    const images = folderImages(files)
     const posterValue =
-      raw.poster ?? pickPrimaryFile(folderImages(files), PRIMARY_IMAGE_NAMES.videos)
+      declaredMedia(raw.poster, images, itemDir, files, `content/videos/${slug}/${json.file}`) ??
+      pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.videos)
 
     videos.push({
       id: raw.id ?? slug,
@@ -478,7 +524,9 @@ export function loadGalleries(): GalleryCity[] {
 
     const city = meta.city ?? titleFromSlug(slug)
     const ctx = { kind: "gallery" as const, slug, files }
-    const coverValue = meta.cover ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.gallery)
+    const coverValue =
+      declaredMedia(meta.cover, images, itemDir, files, `content/gallery/${slug}/city.json`) ??
+      pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.gallery)
     const cover = resolveMedia(coverValue, ctx)
 
     const photos: GalleryPhoto[] = []

@@ -22,4 +22,7 @@ media-src/**/*
 !media-src/README.md
 tsconfig.tsbuildinfo
 .husky/_
-content/songs/*/song.mp3
+# Ojo: NO ignorar audio dentro de content/songs/ (ni "song.mp3" ni ningún otro
+# nombre). El build lee esos archivos y en CI no existe lo que no se commiteó:
+# un track.json que apunta a un audio ignorado revienta el build con
+# "Contenido inválido → falta public/media/…".
