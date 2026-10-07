@@ -1,0 +1,13 @@
+{
+  "title": "Título del tema",
+  "artist": "Tommy Petersen",
+  "type": "track",
+  "audio": "titulo-del-tema.wav",
+  "cover": "cover.jpg",
+  "bpm": 124,
+  "key": "Am",
+  "date": "2026-01-01",
+  "genres": ["Tribal House", "House"],
+  "colorAccent": "#ff5a1f",
+  "links": { "soundcloud": null, "spotify": null, "beatport": null }
+}

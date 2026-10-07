@@ -1,0 +1,12 @@
+UN VIDEO = UNA CARPETA
+======================
+
+content/videos/mi-video/
+  video.json    ← los datos (copiá este ejemplo)
+  poster.jpg    ← la miniatura
+  (opcional) mi-video.mp4   ← si es self-hosted, "src": "mi-video.mp4"
+
+Ojo con el peso: un MP4 de más de 100 MB conviene subirlo a un bucket y usar
+una URL en "src" (o dejar "src": null + "youtubeId").
+
+Las carpetas que empiezan con "_" (como _TEMPLATE) se ignoran.
