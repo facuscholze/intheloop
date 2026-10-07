@@ -7,6 +7,20 @@ import { audioEngine } from "@/lib/audio-engine"
 import { getMediaUrl } from "@/lib/media"
 import { useMediaSession } from "@/hooks/useMediaSession"
 
+/**
+ * ¿Hubo que aceptar que el <audio> no va a sonar?
+ *
+ * Si el store se queda en `isPlaying: true` con el elemento en pausa, la barra
+ * dice "reproduciendo" con el tiempo clavado en 0 — que es exactamente lo que se
+ * ve cuando el navegador frena el autoplay, o cuando el archivo no carga.
+ *
+ * `AbortError` no cuenta: es un play() interrumpido por un pause()/load()
+ * nuestro, y enseguida viene otro intento.
+ */
+function playbackFailed(error: unknown): boolean {
+  return (error as { name?: string } | null)?.name !== "AbortError"
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const currentTrack = usePlayerStore((s) => s.currentTrack)
@@ -45,7 +59,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (isPlaying) {
-      audio.play().catch((e) => console.warn("Play failed", e))
+      audio.play().catch((e) => {
+        console.warn("Play failed", e)
+        if (playbackFailed(e)) usePlayerStore.getState().pause()
+      })
       audioEngine?.resume()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +74,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (!audio) return
 
     if (isPlaying) {
-      if (audio.src) audio.play().catch(() => {})
+      if (audio.src)
+        audio.play().catch((e) => {
+          if (playbackFailed(e)) usePlayerStore.getState().pause()
+        })
       audioEngine?.resume()
       audioEngine?.start()
     } else {
@@ -102,14 +122,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       state.next()
     }
 
+    // Si el archivo no carga (404, formato que el navegador no decodifica,
+    // bucket sin CORS) el elemento se queda en pausa y el store seguiría
+    // diciendo que suena: avisamos y bajamos el estado de reproducción.
+    const handleError = () => {
+      const code = audio.error?.code
+      // 1 = MEDIA_ERR_ABORTED: lo interrumpimos nosotros (cambio de tema).
+      if (code === 1) return
+      console.warn("El audio no se pudo reproducir (MediaError", code, ")", audio.currentSrc)
+      usePlayerStore.getState().pause()
+    }
+
     audio.addEventListener("timeupdate", handleTimeUpdate)
     audio.addEventListener("loadedmetadata", handleLoadedMetadata)
     audio.addEventListener("ended", handleEnded)
+    audio.addEventListener("error", handleError)
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate)
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata)
       audio.removeEventListener("ended", handleEnded)
+      audio.removeEventListener("error", handleError)
     }
   }, [setProgress, setDuration])
 

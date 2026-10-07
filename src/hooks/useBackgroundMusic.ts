@@ -28,10 +28,11 @@ import { audioEngine } from "@/lib/audio-engine"
 const BACKGROUND_VOLUME = 0.25
 
 /**
- * Cuánto le damos al <audio> para que arranque antes de asumir que el navegador
- * frenó el autoplay. Sobran: el elemento tarda un render en tener `src`.
+ * Cuánto esperamos antes del primer reintento propio: lo justo para que
+ * PlayerProvider haya enganchado el <audio> al engine. Los listeners de gesto
+ * se arman de una, no después de esta espera.
  */
-const AUTOPLAY_GRACE_MS = 1500
+const RETRY_AFTER_MS = 250
 
 export function useBackgroundMusic() {
   const hasEntered = useUIStore((s) => s.hasEntered)
@@ -53,27 +54,42 @@ export function useBackgroundMusic() {
     usePlayerStore.setState({ volume: BACKGROUND_VOLUME })
     playTrack(pick)
 
-    // ¿El navegador dejó sonar el tema? Si no, esperamos el primer gesto.
-    let timer = 0
-    const detach = () => {
-      window.clearTimeout(timer)
-      window.removeEventListener("pointerdown", retry)
-      window.removeEventListener("keydown", retry)
-    }
-    const retry = () => {
-      detach()
-      audioEngine?.resume()
-      const el = audioEngine?.audioEl
-      if (el) el.play().catch(() => {})
-      else usePlayerStore.getState().play()
+    // El navegador puede frenar el play() (política de autoplay). Los listeners
+    // van armados DESDE YA: antes se activaban recién pasado un tiempo y, si el
+    // visitante clickeaba en esa ventana, el audio no arrancaba nunca y la barra
+    // quedaba clavada en 0 mientras la UI decía "reproduciendo".
+    let checkTimer = 0
+
+    function detach() {
+      window.clearTimeout(checkTimer)
+      window.removeEventListener("pointerdown", tryStart)
+      window.removeEventListener("keydown", tryStart)
     }
 
-    timer = window.setTimeout(() => {
+    function sounding() {
       const el = audioEngine?.audioEl
-      if (el && !el.paused) return
-      window.addEventListener("pointerdown", retry, { once: true })
-      window.addEventListener("keydown", retry, { once: true })
-    }, AUTOPLAY_GRACE_MS)
+      return Boolean(el && !el.paused)
+    }
+
+    function tryStart() {
+      if (sounding()) {
+        detach()
+        return
+      }
+      audioEngine?.resume()
+      // Todo por el store: si llamáramos a play() directo sobre el elemento, la
+      // UI y el <audio> podrían volver a desincronizarse.
+      usePlayerStore.getState().play()
+      window.clearTimeout(checkTimer)
+      checkTimer = window.setTimeout(() => {
+        if (sounding()) detach()
+      }, 300)
+    }
+
+    window.addEventListener("pointerdown", tryStart)
+    window.addEventListener("keydown", tryStart)
+    // Cubre el caso en que el gesto ya ocurrió (el click en ENTER).
+    checkTimer = window.setTimeout(tryStart, RETRY_AFTER_MS)
 
     return detach
   }, [hasEntered, queueLength])
