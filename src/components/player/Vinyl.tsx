@@ -124,7 +124,6 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
       ref={ref}
       className="relative rounded-full will-change-transform select-none"
       style={{ width: size, height: size }}
-      data-cursor="drag"
     >
       {/* Vinyl record */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-black shadow-[inset_0_0_20px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.1)]">

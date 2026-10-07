@@ -72,7 +72,7 @@ export default function NotFound() {
       <canvas ref={canvasRef} className="absolute inset-0" aria-hidden="true" />
 
       <div className="relative z-10 max-w-2xl">
-        <h1 className="font-display text-[clamp(80px,20vw,200px)] font-bold leading-none tracking-tight" aria-label="Error 404">
+        <h1 className="font-display text-[clamp(100px,24vw,260px)] font-bold leading-none tracking-tight" aria-label="Error 404">
           <span aria-hidden="true" className="flex justify-center gap-1">
             {"404".split("").map((c, i) => (
               <span key={i} className="notfound-char inline-block bg-gradient-to-r from-[var(--accent-fire)] to-[var(--accent-magenta)] bg-clip-text text-transparent">
@@ -103,10 +103,6 @@ export default function NotFound() {
           >
             Escuchar música
           </Link>
-        </div>
-
-        <div className="mt-12 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]" aria-hidden="true">
-          404 interactiva • Visualizador + glitch • Fase 6 a11y safe
         </div>
 
         <div className="mt-6">

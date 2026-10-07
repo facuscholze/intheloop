@@ -62,25 +62,25 @@ export function Newsletter() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
-      <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Newsletter • MailerLite endpoint env</div>
+      <div className="font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Newsletter</div>
 
       <div className="absolute left-[-5000px] h-0 w-0 overflow-hidden" aria-hidden="true">
         <input type="text" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="tu@email.com"
-          className="flex-1 rounded-full border border-[var(--border)] bg-[var(--bg)] px-4 py-2 font-mono text-xs uppercase outline-none focus:border-[var(--accent-fire)]"
+          className="min-w-0 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg)] px-4 py-2 font-mono text-xs uppercase outline-none focus:border-[var(--accent-fire)]"
           required
         />
         <button
           type="submit"
           disabled={status === "sending"}
-          className="rounded-full bg-[var(--fg)] px-6 py-2 font-mono text-xs font-bold uppercase tracking-widest text-black hover:bg-[var(--accent-lime)] disabled:opacity-50"
+          className="shrink-0 rounded-full bg-[var(--fg)] px-6 py-2 font-mono text-xs font-bold uppercase tracking-widest text-black hover:bg-[var(--accent-lime)] disabled:opacity-50"
         >
           {status === "sending" ? "..." : "OK"}
         </button>
@@ -89,7 +89,7 @@ export function Newsletter() {
       {error && <div className="font-mono text-[10px] text-red-400">{error}</div>}
       {status === "error" && <div className="font-mono text-[10px] text-red-400">Error. Probá más tarde.</div>}
 
-      <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--fg-dim)]">Sin spam • Solo fechas y música nueva • Endpoint env NEWSLETTER_ENDPOINT</div>
+      <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--fg-dim)]">Sin spam • Solo fechas y música nueva</div>
     </form>
   );
 }

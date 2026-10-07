@@ -5,12 +5,10 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Providers } from "../providers";
 import { Grain } from "@/components/effects/Grain";
-import { CursorBlob } from "@/components/effects/CursorBlob";
 import { EnterScreen } from "@/components/enter/EnterScreen";
 import { Header } from "@/components/ui/Header";
 import { Menu } from "@/components/ui/Menu";
 import { Player } from "@/components/player/Player";
-import { ClubModeToggle, ClubModeEffect } from "@/components/effects/ClubMode";
 import { ScreenShake } from "@/components/effects/ScreenShake";
 import { CineMode } from "@/components/video/CineMode";
 import { KonamiCode, Screensaver } from "@/components/effects/EasterEggs";
@@ -86,14 +84,14 @@ export default async function LocaleLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Sora:wght@300..700&family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
         <style>{`
           :root {
-            --font-display: "Syne", system-ui, sans-serif;
-            --font-sans: "Space Grotesk", system-ui, sans-serif;
-            --font-mono: "JetBrains Mono", monospace;
+            --font-display: "Anton", "Arial Narrow", system-ui, sans-serif;
+            --font-sans: "Sora", system-ui, sans-serif;
+            --font-mono: "Space Mono", monospace;
           }
         `}</style>
       </head>
@@ -102,15 +100,12 @@ export default async function LocaleLayout({
           <Providers>
             <SkipLink />
             <Grain />
-            <CursorBlob />
             <ScreenShake />
-            <ClubModeEffect />
             <KonamiCode />
             <Screensaver />
             <EnterScreen />
             <Header />
             <Menu />
-            <ClubModeToggle />
             <main id="main-content" tabIndex={-1}>
               {children}
             </main>

@@ -101,7 +101,6 @@ export function PlayerExpanded() {
                   className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-fire)] text-black transition-transform hover:scale-105 active:scale-95"
                   aria-label={isPlaying ? "Pausar" : "Reproducir"}
                   aria-pressed={isPlaying}
-                  data-cursor="play"
                 >
                   {isPlaying ? (
                     <Pause className="h-6 w-6" aria-hidden="true" />
@@ -195,7 +194,7 @@ export function PlayerExpanded() {
                 {high.toFixed(2)}
               </div>
               <div className="mt-1 text-[var(--fg-dim)]">
-                Todo el sitio late con la música. Modo Club oscurece y deja solo luces.
+                Todo el sitio late con la música. Efectos siempre en MAX.
               </div>
               <div className="mt-2 text-[9px]">
                 Atajos: Space play/pause, Cmd+→ next, Cmd+← prev. Media Session API activo.

@@ -12,8 +12,6 @@ export function EnterScreen() {
   const setHasEntered = useUIStore((s) => s.setHasEntered);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
   const setReducedMotion = useUIStore((s) => s.setReducedMotion);
-  const tier = useQualityStore((s) => s.tier);
-  const setTier = useQualityStore((s) => s.setTier);
 
   const [eqBars, setEqBars] = useState<number[]>(Array.from({ length: 32 }, () => Math.random()));
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,7 +42,7 @@ export function EnterScreen() {
   }, [hasEntered, reducedMotion]);
 
   useEffect(() => {
-    if (hasEntered || tier === "low" || reducedMotion) return;
+    if (hasEntered || reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -76,7 +74,7 @@ export function EnterScreen() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };
-  }, [hasEntered, tier, reducedMotion]);
+  }, [hasEntered, reducedMotion]);
 
   // Focus management
   useEffect(() => {
@@ -137,15 +135,15 @@ export function EnterScreen() {
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <div
-        className="pointer-events-none absolute top-1/2 left-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.18),_transparent_60%)] blur-[80px]"
+        className="pointer-events-none absolute top-1/2 left-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.18),_transparent_60%)] md:blur-[80px]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute top-[15%] left-[15%] h-[50vh] w-[50vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.14),_transparent_60%)] blur-[60px]"
+        className="pointer-events-none absolute top-[15%] left-[15%] h-[50vh] w-[50vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(255,46,147,0.14),_transparent_60%)] md:blur-[60px]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute right-[10%] bottom-[10%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(200,255,0,0.08),_transparent_60%)] blur-[50px]"
+        className="pointer-events-none absolute right-[10%] bottom-[10%] h-[40vh] w-[40vw] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(200,255,0,0.08),_transparent_60%)] md:blur-[50px]"
         aria-hidden="true"
       />
 
@@ -164,24 +162,38 @@ export function EnterScreen() {
           IN THE LOOP AGENCY • ENTER EXPERIENCE
         </div>
 
-        <h1 className="font-display text-[clamp(48px,14vw,160px)] leading-[0.85] font-extrabold tracking-[-0.04em]">
-          <span className="block overflow-hidden">
+        {/* El <h1> del sitio vive en el Hero; acá es presentacional */}
+        <p
+          className="font-display text-[clamp(50px,16vw,150px)] leading-[0.95] font-extrabold tracking-[0.01em] whitespace-nowrap"
+          aria-label="Tommy Petersen"
+        >
+          <span className="block overflow-hidden whitespace-nowrap">
             {"TOMMY".split("").map((c, i) => (
               <span key={i} className="enter-char inline-block" aria-hidden="true">
                 {c}
               </span>
             ))}
-            <span className="sr-only">Tommy</span>
           </span>
-          <span className="block overflow-hidden bg-gradient-to-r from-[var(--accent-fire)] via-[var(--accent-magenta)] to-[var(--accent-gold)] bg-clip-text text-transparent">
-            {"PETERSEN".split("").map((c, i) => (
-              <span key={i} className="enter-char inline-block" aria-hidden="true">
+          <span className="block overflow-hidden whitespace-nowrap">
+            {"PETERSEN".split("").map((c, i, arr) => (
+              <span
+                key={i}
+                className="enter-char grad-letter inline-block"
+                aria-hidden="true"
+                style={{
+                  // Gradiente por letra (clip propio): robusto ante los
+                  // transforms de GSAP y en Safari/iOS.
+                  backgroundImage:
+                    "linear-gradient(90deg, var(--accent-fire), var(--accent-magenta) 50%, var(--accent-gold))",
+                  backgroundSize: `${arr.length * 100}% 100%`,
+                  backgroundPosition: `${(i / (arr.length - 1)) * 100}% 0`,
+                }}
+              >
                 {c}
               </span>
             ))}
-            <span className="sr-only">Petersen</span>
           </span>
-        </h1>
+        </p>
 
         <p className="mt-4 font-mono text-xs tracking-[0.3em] text-[var(--fg-muted)] uppercase">
           TRIBAL HOUSE / HOUSE / LATIN GROOVES — ARGENTINA
@@ -206,7 +218,6 @@ export function EnterScreen() {
           <button
             ref={enterButtonRef}
             onClick={handleEnter}
-            data-cursor="play"
             className="group relative overflow-hidden rounded-full bg-[var(--accent-fire)] px-12 py-4 font-bold tracking-widest text-black uppercase transition-transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)] active:scale-[0.98]"
             aria-label="Entrar con sonido - el sitio arranca con música, podés silenciarlo cuando quieras"
           >
@@ -221,8 +232,7 @@ export function EnterScreen() {
         </div>
 
         <p className="mt-6 max-w-md font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
-          Entra con sonido • Botón de silencio siempre visible arriba • El sitio late con la música
-          • WebGL + audio reactivo
+          Entra con sonido • El sitio late con la música • Podés silenciarlo cuando quieras
         </p>
 
         <label className="mt-10 flex cursor-pointer items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-4 py-2 text-xs tracking-widest text-[var(--fg-muted)] uppercase transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--accent-lime)] hover:border-[var(--accent-lime)]">
@@ -231,7 +241,6 @@ export function EnterScreen() {
             checked={reducedMotion}
             onChange={(e) => {
               setReducedMotion(e.target.checked);
-              if (e.target.checked) setTier("low");
             }}
             className="h-4 w-4 accent-[var(--accent-lime)]"
             aria-label="Reducir efectos intensos y flashes"
@@ -239,9 +248,6 @@ export function EnterScreen() {
           Reducir efectos intensos (sin flashes)
         </label>
 
-        <div className="mt-4 font-mono text-[10px] text-[var(--fg-dim)]" aria-live="polite">
-          Efectos: {tier.toUpperCase()} • Optimizado para tu dispositivo
-        </div>
       </div>
 
       <div

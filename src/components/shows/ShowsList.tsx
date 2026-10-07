@@ -44,7 +44,7 @@ export function ShowsList({ shows }: ShowsListProps) {
     <div>
       {/* Filters */}
       <div className="mb-8 flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
+        <div className="flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
           <span className="px-3 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
             País:
           </span>
@@ -65,7 +65,7 @@ export function ShowsList({ shows }: ShowsListProps) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
+        <div className="flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
           <span className="px-3 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
             Año:
           </span>

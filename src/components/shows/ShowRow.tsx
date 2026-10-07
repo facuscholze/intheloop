@@ -25,7 +25,6 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
       className="group relative flex items-center justify-between border-b border-[var(--border)] py-6 transition-all duration-300 hover:bg-[var(--bg)] hover:px-4 md:py-8"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      data-cursor="view"
     >
       <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-6">
         <div className="flex items-center gap-3">
@@ -46,14 +45,10 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase">
+          {/* needsReview es interno: nunca se renderiza en la UI pública */}
           <span className="text-[var(--fg-muted)]">
-            {show.city} {show.country} • {show.date}
+            {[show.city, show.country].filter(Boolean).join(" ")} • {show.date}
           </span>
-          {show.needsReview && (
-            <span className="rounded-full bg-[var(--accent-gold)]/20 px-2 py-0.5 text-[9px] text-[var(--accent-gold)]">
-              ⚠️ {show.needsReview}
-            </span>
-          )}
         </div>
       </div>
 
@@ -132,10 +127,7 @@ export function FloatingPhoto({ show }: { show: Show | null }) {
           <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[var(--accent-fire)]/30 to-[var(--accent-gold)]/20 p-4 text-center">
             <div className="font-display text-xl font-bold">{show.venue}</div>
             <div className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
-              {show.city} • {show.country}
-            </div>
-            <div className="mt-2 text-[10px] text-[var(--fg-dim)]">
-              Foto en media-src/images/shows/{show.id}.jpg
+              {[show.city, show.country].filter(Boolean).join(" • ")}
             </div>
           </div>
         )}
@@ -152,7 +144,7 @@ export function FloatingPhoto({ show }: { show: Show | null }) {
 
       <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3">
         <div className="font-mono text-[10px] tracking-widest text-white/80 uppercase">
-          {show.date} • {show.city}
+          {[show.date, show.city].filter(Boolean).join(" • ")}
         </div>
       </div>
     </div>

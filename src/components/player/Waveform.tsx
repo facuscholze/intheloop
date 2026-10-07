@@ -138,7 +138,6 @@ export function Waveform({
       onMouseLeave={handleMouseUp}
       onTouchStart={handleSeek}
       onTouchMove={handleSeek}
-      data-cursor="drag"
     >
       <canvas ref={canvasRef} className="h-full w-full" style={{ width: "100%", height: "100%" }} />
 

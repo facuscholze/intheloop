@@ -43,10 +43,5 @@
       "submit": "Send",
       "sending": "Sending..."
     }
-  },
-  "quality": {
-    "max": "Max",
-    "normal": "Normal",
-    "min": "Min"
   }
 }

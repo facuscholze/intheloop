@@ -52,7 +52,6 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
         // CSS-var driven: beat pulse without re-rendering at audio rate
         scale: isCurrent ? "calc(1 + var(--beat) * 0.02)" : undefined,
       }}
-      data-cursor="play"
     >
       {/* Glow */}
       <div
@@ -112,7 +111,6 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all ${isCurrentPlaying ? "bg-[var(--accent-fire)] text-black" : "bg-[var(--bg-2)] text-[var(--fg)] hover:bg-[var(--fg)] hover:text-black"}`}
           aria-label={isCurrentPlaying ? `Pausar ${track.title}` : `Reproducir ${track.title}`}
           aria-pressed={isCurrentPlaying}
-          data-cursor="play"
         >
           {isCurrentPlaying ? "⏸" : "▶"}
         </button>

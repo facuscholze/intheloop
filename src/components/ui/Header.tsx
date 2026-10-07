@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Volume2, VolumeX, Menu as MenuIcon, X } from "lucide-react";
 import { useUIStore } from "@/stores/uiStore";
-import { useQualityStore } from "@/stores/qualityStore";
 import { usePlayerStore } from "@/stores/playerStore";
 import { MagneticButton } from "./magnetic-button";
 
 export function Header() {
   const isMenuOpen = useUIStore((s) => s.isMenuOpen);
   const setMenuOpen = useUIStore((s) => s.setMenuOpen);
-  const tier = useQualityStore((s) => s.tier);
-  const setTier = useQualityStore((s) => s.setTier);
   const muted = usePlayerStore((s) => s.muted);
   const toggleMute = usePlayerStore((s) => s.toggleMute);
   const [scrolled, setScrolled] = useState(false);
@@ -41,36 +38,6 @@ export function Header() {
       </Link>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Quality toggle - desktop */}
-        <div
-          className="hidden items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-2)] p-1 md:flex"
-          role="group"
-          aria-label="Calidad de efectos visuales"
-        >
-          {(
-            [
-              { id: "high", label: "Max", aria: "Calidad máxima, todos los efectos" },
-              { id: "medium", label: "Normal", aria: "Calidad normal, balance rendimiento" },
-              { id: "low", label: "Min", aria: "Calidad mínima, máximo rendimiento, sin efectos" },
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTier(t.id as any)}
-              className={`rounded-full px-3 py-1 font-mono text-[10px] tracking-widest uppercase transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent-lime)] ${
-                tier === t.id
-                  ? "bg-[var(--fg)] text-black"
-                  : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
-              }`}
-              aria-pressed={tier === t.id}
-              aria-label={t.aria}
-              title={t.aria}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
         {/* Mute - always accessible (global, persists) */}
         <button
           onClick={toggleMute}
@@ -101,7 +68,7 @@ export function Header() {
         {/* Mobile book */}
         <a
           href="#booking"
-          className="flex h-11 items-center justify-center rounded-full bg-[var(--accent-fire)] px-5 py-2 text-[10px] font-bold tracking-widest text-black uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:hidden"
+          className="cta flex h-11 items-center justify-center rounded-full bg-[var(--accent-fire)] px-4 py-2 text-[10px] font-bold tracking-widest text-black uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] sm:px-5 md:hidden"
           aria-label="Ir a formulario de booking"
         >
           BOOK

@@ -43,10 +43,5 @@
       "submit": "Enviar",
       "sending": "Enviando..."
     }
-  },
-  "quality": {
-    "max": "Max",
-    "normal": "Normal",
-    "min": "Mínimo"
   }
 }
