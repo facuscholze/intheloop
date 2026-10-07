@@ -1,47 +1,48 @@
 "use client"
 
 import { useRef, useState, useEffect, useCallback } from "react"
-import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react"
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock"
 import { useUIStore } from "@/stores/uiStore"
 import { gsap } from "@/lib/motion"
-
-interface GalleryItem {
-  id: string
-  city: string
-  country: string
-  count?: number
-}
-
-const mockGalleries: GalleryItem[] = [
-  { id: "paris", city: "París", country: "FR", count: 12 },
-  { id: "berlin", city: "Berlín", country: "DE", count: 8 },
-  { id: "recoleta", city: "Recoleta", country: "AR", count: 15 },
-  { id: "tandil", city: "Tandil", country: "AR", count: 20 },
-  { id: "azul", city: "Azul", country: "AR", count: 10 },
-  { id: "olavarria", city: "Olavarría", country: "AR", count: 18 },
-  { id: "camboriu", city: "Camboriú", country: "BR", count: 9 },
-  { id: "vitoria", city: "Vitoria-Gasteiz", country: "ES", count: 6 }
-]
+import { getMediaUrl } from "@/lib/media"
+import type { GalleryCity } from "@/lib/content"
 
 const FLAGS: Record<string, string> = {
   AR: "🇦🇷",
   BR: "🇧🇷",
   DE: "🇩🇪",
   ES: "🇪🇸",
-  FR: "🇫🇷"
+  FR: "🇫🇷",
+  CZ: "🇨🇿",
+  MX: "🇲🇽",
+  US: "🇺🇸",
+  IT: "🇮🇹",
+  UY: "🇺🇾",
+  CL: "🇨🇱",
+  CO: "🇨🇴",
+  PE: "🇵🇪"
+}
+
+interface Props {
+  /** Ciudades leídas de content/gallery/<ciudad>/ (una carpeta por ciudad). */
+  galleries: GalleryCity[]
 }
 
 /**
  * Coverflow: la galería activa al frente como una tapa de disco, las vecinas
- * retirándose en perspectiva. Flechas, swipe, teclado y lightbox.
+ * retirándose en perspectiva. Flechas, swipe, teclado y lightbox con las fotos
+ * reales de la carpeta de la ciudad.
  */
-export function GalleryCarousel() {
+export function GalleryCarousel({ galleries }: Props) {
   const [active, setActive] = useState(0)
-  const [lightbox, setLightbox] = useState<GalleryItem | null>(null)
+  const [lightboxId, setLightboxId] = useState<string | null>(null)
+  const [photoIndex, setPhotoIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ x: number; dragged: boolean } | null>(null)
   const reducedMotion = useUIStore((s) => s.reducedMotion)
+
+  const lightbox = galleries.find((g) => g.id === lightboxId) ?? null
 
   // Lightbox con transición FLIP (misma idea que CineMode): el panel nace
   // desde la card activa, se expande a su lugar final y al cerrar vuelve.
@@ -51,23 +52,27 @@ export function GalleryCarousel() {
   const closingRef = useRef(false)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
 
-  const openLightbox = (item: GalleryItem, sourceEl?: HTMLElement | null) => {
+  const openLightbox = (gallery: GalleryCity, sourceEl?: HTMLElement | null) => {
     const el =
       sourceEl ??
-      (containerRef.current?.querySelector(`[data-gallery-id="${item.id}"]`) as HTMLElement | null)
+      (containerRef.current?.querySelector(
+        `[data-gallery-id="${gallery.id}"]`
+      ) as HTMLElement | null)
     sourceRectRef.current = el ? el.getBoundingClientRect() : null
     closingRef.current = false
-    setLightbox(item)
+    setPhotoIndex(null)
+    setLightboxId(gallery.id)
   }
 
   const closeLightbox = useCallback(() => {
-    if (closingRef.current || !lightbox) return
+    if (closingRef.current || !lightboxId) return
     const overlay = overlayRef.current
     const panel = panelRef.current
     const rect = sourceRectRef.current
     const reduced = useUIStore.getState().reducedMotion
     if (!overlay || !panel || !rect || rect.width === 0 || reduced) {
-      setLightbox(null)
+      setLightboxId(null)
+      setPhotoIndex(null)
       return
     }
     closingRef.current = true
@@ -75,7 +80,8 @@ export function GalleryCarousel() {
 
     const finish = () => {
       closingRef.current = false
-      setLightbox(null)
+      setLightboxId(null)
+      setPhotoIndex(null)
     }
     const safety = window.setTimeout(finish, 1200)
     const panelRect = panel.getBoundingClientRect()
@@ -102,11 +108,11 @@ export function GalleryCarousel() {
       )
       .to(panel.querySelector(".lightbox-content"), { opacity: 0, duration: 0.2 }, 0)
       .to(overlay, { opacity: 0, duration: 0.4, ease: "power2.in" }, 0.2)
-  }, [lightbox])
+  }, [lightboxId])
 
   // Animación de apertura
   useEffect(() => {
-    if (!lightbox) return
+    if (!lightboxId) return
     const overlay = overlayRef.current
     const panel = panelRef.current
     const rect = sourceRectRef.current
@@ -146,26 +152,35 @@ export function GalleryCarousel() {
     return () => {
       tlRef.current?.kill()
     }
-  }, [lightbox])
+  }, [lightboxId])
 
   const go = useCallback(
-    (dir: 1 | -1) => setActive((i) => Math.min(mockGalleries.length - 1, Math.max(0, i + dir))),
-    []
+    (dir: 1 | -1) => setActive((i) => Math.min(galleries.length - 1, Math.max(0, i + dir))),
+    [galleries.length]
   )
 
-  // Lightbox: lock de scroll + Esc
+  // Lightbox: lock de scroll + teclado (Esc cierra la foto grande o el panel)
   useEffect(() => {
-    if (!lightbox) return
+    if (!lightboxId) return
     const token = lockScroll()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox()
+      if (e.key === "Escape") {
+        if (photoIndex !== null) setPhotoIndex(null)
+        else closeLightbox()
+      } else if (e.key === "ArrowRight" && lightbox && photoIndex !== null) {
+        setPhotoIndex((i) => (i === null ? i : (i + 1) % lightbox.photos.length))
+      } else if (e.key === "ArrowLeft" && lightbox && photoIndex !== null) {
+        setPhotoIndex((i) =>
+          i === null ? i : (i - 1 + lightbox.photos.length) % lightbox.photos.length
+        )
+      }
     }
     window.addEventListener("keydown", onKey)
     return () => {
       unlockScroll(token)
       window.removeEventListener("keydown", onKey)
     }
-  }, [lightbox, closeLightbox])
+  }, [lightboxId, photoIndex, lightbox, closeLightbox])
 
   // Teclado sobre el carrusel
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -177,7 +192,7 @@ export function GalleryCarousel() {
       go(-1)
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
-      openLightbox(mockGalleries[active])
+      if (galleries[active]) openLightbox(galleries[active])
     }
   }
 
@@ -195,6 +210,21 @@ export function GalleryCarousel() {
     if (!st) return
     const dx = e.clientX - st.x
     if (Math.abs(dx) > 48) go(dx < 0 ? 1 : -1)
+  }
+
+  if (galleries.length === 0) {
+    return (
+      <div className="rounded-[2rem] border border-dashed border-[var(--border)] bg-[var(--bg)] p-12 text-center">
+        <p className="font-mono text-sm tracking-widest text-[var(--fg-muted)] uppercase">
+          Todavía no hay galerías
+        </p>
+        <p className="mx-auto mt-3 max-w-md font-mono text-xs leading-relaxed text-[var(--fg-dim)]">
+          Creá una carpeta por ciudad en{" "}
+          <code className="text-[var(--accent-gold)]">content/gallery/&lt;ciudad&gt;/</code> y soltá
+          las fotos adentro: se optimizan solas y aparecen acá.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -217,7 +247,7 @@ export function GalleryCarousel() {
           </button>
           <button
             onClick={() => go(1)}
-            disabled={active === mockGalleries.length - 1}
+            disabled={active === galleries.length - 1}
             className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] transition-colors hover:border-[var(--accent-gold)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] disabled:opacity-30"
             aria-label="Galería siguiente"
           >
@@ -238,7 +268,7 @@ export function GalleryCarousel() {
         onPointerUp={onPointerUp}
         className="relative h-[380px] cursor-grab touch-pan-y overflow-hidden select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)] active:cursor-grabbing md:h-[440px]"
       >
-        {mockGalleries.map((item, i) => {
+        {galleries.map((gallery, i) => {
           const off = i - active
           const abs = Math.abs(off)
           const isActive = off === 0
@@ -246,10 +276,11 @@ export function GalleryCarousel() {
           // oculta (rotateY de ángulos grandes proyecta bounds enormes).
           const voff = Math.sign(off) * Math.min(abs, 2)
           const hidden = abs > 2
+          const coverUrl = getMediaUrl(gallery.coverThumb ?? gallery.cover)
           return (
             <article
-              key={item.id}
-              data-gallery-id={item.id}
+              key={gallery.id}
+              data-gallery-id={gallery.id}
               className="absolute inset-x-0 top-1/2 mx-auto block h-[340px] w-[min(78vw,320px)] -translate-y-1/2 overflow-hidden rounded-[1.75rem] border bg-[var(--bg-2)] transition-[transform,opacity,filter,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-[400px]"
               style={{
                 borderColor: isActive ? "var(--accent-gold)" : "var(--border)",
@@ -263,18 +294,32 @@ export function GalleryCarousel() {
               aria-hidden={hidden || undefined}
               onClick={(e) => {
                 if (dragState.current?.dragged) return
-                if (isActive) openLightbox(item, e.currentTarget)
+                if (isActive) openLightbox(gallery, e.currentTarget)
                 else setActive(i)
               }}
             >
-              {/* Fondo de marca por ciudad (sin foto real todavía) */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-gold)]/25 via-[var(--bg-2)] to-[var(--accent-fire)]/15" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,_rgba(255,214,10,0.16),_transparent_60%)]" />
+              {/* Foto de tapa de la ciudad */}
+              {coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={coverUrl}
+                  alt={`Galería de ${gallery.city}`}
+                  loading={isActive ? "eager" : "lazy"}
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-gold)]/25 via-[var(--bg-2)] to-[var(--accent-fire)]/15" />
+              )}
+              {/* Scrim para que el texto se lea sobre cualquier foto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
 
               <div className="relative flex h-full flex-col justify-between p-6">
                 <div className="flex items-start justify-between">
                   <div className="rounded-full bg-black/60 px-3 py-1 font-mono text-[10px] tracking-widest text-white uppercase backdrop-blur">
-                    {FLAGS[item.country] ?? item.country} {item.country}
+                    {gallery.country
+                      ? `${FLAGS[gallery.country] ?? ""} ${gallery.country}`
+                      : "Galería"}
                   </div>
                   {isActive && (
                     <div
@@ -288,10 +333,10 @@ export function GalleryCarousel() {
 
                 <div>
                   <div className="font-display text-3xl text-white uppercase md:text-4xl">
-                    {item.city}
+                    {gallery.city}
                   </div>
                   <div className="mt-1 font-mono text-xs text-white/60 uppercase">
-                    {item.count ? `${item.count} fotos` : "Galería"}
+                    {gallery.count} {gallery.count === 1 ? "foto" : "fotos"}
                   </div>
                 </div>
               </div>
@@ -317,18 +362,18 @@ export function GalleryCarousel() {
 
       {/* Posición */}
       <div
-        className="mt-6 flex items-center justify-center gap-2"
+        className="mt-6 flex flex-wrap items-center justify-center gap-2"
         role="tablist"
         aria-label="Galerías"
       >
-        {mockGalleries.map((item, i) => (
+        {galleries.map((gallery, i) => (
           <button
-            key={item.id}
+            key={gallery.id}
             role="tab"
             aria-selected={i === active}
-            aria-label={`Galería de ${item.city}`}
+            aria-label={`Galería de ${gallery.city}`}
             onClick={() => setActive(i)}
-            className="dot-btn flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+            className="dot-btn flex h-6 items-center justify-center gap-2 rounded-full px-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
           >
             <span
               className={`block rounded-full transition-all duration-300 ${
@@ -354,33 +399,101 @@ export function GalleryCarousel() {
         >
           <div
             ref={panelRef}
-            className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8 will-change-transform"
+            className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] will-change-transform"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="lightbox-content">
-              <div className="flex items-center justify-between">
-                <div className="font-display text-3xl uppercase">
-                  {FLAGS[lightbox.country]} {lightbox.city}
+            <div className="lightbox-content flex max-h-[90vh] flex-col">
+              <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] p-6">
+                <div>
+                  <div className="font-display text-2xl uppercase md:text-3xl">
+                    {lightbox.country ? `${FLAGS[lightbox.country] ?? ""} ` : ""}
+                    {lightbox.city}
+                  </div>
+                  <div className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
+                    {photoIndex === null
+                      ? `${lightbox.photos.length} ${lightbox.photos.length === 1 ? "foto" : "fotos"}`
+                      : `${photoIndex + 1} / ${lightbox.photos.length}`}
+                    {lightbox.date ? ` • ${lightbox.date}` : ""}
+                  </div>
                 </div>
-                <button
-                  onClick={closeLightbox}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
-                  aria-label="Cerrar galería"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  {photoIndex !== null && (
+                    <button
+                      onClick={() => setPhotoIndex(null)}
+                      className="flex h-10 items-center rounded-full bg-[var(--bg)] px-4 font-mono text-[10px] tracking-widest uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                    >
+                      Ver todas
+                    </button>
+                  )}
+                  <button
+                    onClick={closeLightbox}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                    aria-label="Cerrar galería"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-xl bg-gradient-to-br from-[var(--bg)] to-[var(--bg-3)]"
+
+              {photoIndex === null ? (
+                <div className="grid max-h-[70vh] grid-cols-2 gap-3 overflow-y-auto p-6 md:grid-cols-3">
+                  {lightbox.photos.map((photo, i) => {
+                    const thumbUrl = getMediaUrl(photo.thumb)
+                    return (
+                      <button
+                        key={photo.src}
+                        onClick={() => setPhotoIndex(i)}
+                        className="group relative aspect-square overflow-hidden rounded-xl border border-[var(--border)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                        aria-label={`Ampliar ${photo.alt}`}
+                      >
+                        {thumbUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbUrl}
+                            alt={photo.alt}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="relative flex min-h-[50vh] flex-1 items-center justify-center bg-black/40">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getMediaUrl(lightbox.photos[photoIndex].src) ?? undefined}
+                    alt={lightbox.photos[photoIndex].alt}
+                    className="max-h-[70vh] w-full object-contain"
                   />
-                ))}
-              </div>
-              <div className="mt-6 font-mono text-xs text-[var(--fg-muted)] uppercase">
-                Fotos en camino — seguí a Tommy en Instagram para ver el archivo completo
-              </div>
+                  {lightbox.photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={() =>
+                          setPhotoIndex(
+                            (i) => ((i ?? 0) - 1 + lightbox.photos.length) % lightbox.photos.length
+                          )
+                        }
+                        className="absolute left-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                        aria-label="Foto anterior"
+                      >
+                        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPhotoIndex((i) => ((i ?? 0) + 1) % lightbox.photos.length)
+                        }
+                        className="absolute right-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                        aria-label="Foto siguiente"
+                      >
+                        <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

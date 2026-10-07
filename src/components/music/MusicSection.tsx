@@ -33,7 +33,8 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
 
   const isCurrent = currentTrack?.id === track.id;
   const isCurrentPlaying = isCurrent && isPlaying;
-  const coverUrl = getMediaUrl(track.cover);
+  // La caja del cover es chica (64px): usamos la versión mini si existe.
+  const coverUrl = getMediaUrl(track.coverThumb ?? track.cover);
   const peaks =
     track.waveformPeaks && track.waveformPeaks.length > 0 ? track.waveformPeaks : FALLBACK_PEAKS;
   const shownPeaks = peaks.slice(0, 40);
