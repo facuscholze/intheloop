@@ -82,8 +82,14 @@ export function PlayerExpanded() {
                 {currentTrack.title}
               </h2>
               <p className="mt-2 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
-                {currentTrack.artist} • {currentTrack.bpm} BPM • {currentTrack.key} •{" "}
-                {currentTrack.genres.join(", ")}
+                {[
+                  currentTrack.artist,
+                  currentTrack.bpm != null ? `${currentTrack.bpm} BPM` : null,
+                  currentTrack.key,
+                  currentTrack.genres.length ? currentTrack.genres.join(", ") : null,
+                ]
+                  .filter(Boolean)
+                  .join(" • ")}
               </p>
 
               {/* Transport — the expanded view covers the PlayerBar, so it
@@ -171,7 +177,12 @@ export function PlayerExpanded() {
                       <div>
                         <div className="font-display text-sm font-bold">{track.title}</div>
                         <div className="font-mono text-[10px] text-[var(--fg-muted)] uppercase">
-                          {track.bpm} BPM • {track.key}
+                          {[
+                            track.bpm != null ? `${track.bpm} BPM` : null,
+                            track.key,
+                          ]
+                            .filter(Boolean)
+                            .join(" • ") || track.type}
                         </div>
                       </div>
                     </div>

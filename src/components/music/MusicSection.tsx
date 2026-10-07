@@ -37,6 +37,13 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
   const peaks =
     track.waveformPeaks && track.waveformPeaks.length > 0 ? track.waveformPeaks : FALLBACK_PEAKS;
   const shownPeaks = peaks.slice(0, 40);
+  const trackMetadata = [
+    track.artist,
+    track.bpm != null ? `${track.bpm} BPM` : null,
+    track.key,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   const handleToggle = () => {
     // FIX: the old button ALWAYS called playTrack (isPlaying: true + progress
@@ -91,7 +98,7 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
           <div className="min-w-0">
             <div className="font-display text-lg leading-tight font-bold">{track.title}</div>
             <div className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
-              {track.artist} • {track.bpm} BPM • {track.key}
+              {trackMetadata}
             </div>
             <div className="mt-1 flex gap-2">
               {track.genres.map((g) => (
@@ -141,9 +148,9 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
 
       <div className="mt-3 flex items-center justify-between font-mono text-[10px] text-[var(--fg-dim)] uppercase">
         <span>
-          {track.duration
+          {track.duration != null
             ? `${Math.floor(track.duration / 60)}:${String(Math.floor(track.duration % 60)).padStart(2, "0")}`
-            : "8:00"}{" "}
+            : "—"}{" "}
           • {track.type}
         </span>
         <span className="flex items-center gap-1">
