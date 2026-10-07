@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/stores/uiStore";
 import { useQualityStore } from "@/stores/qualityStore";
-import { usePlayerStore } from "@/stores/playerStore";
 import { audioEngine } from "@/lib/audio-engine";
 import { gsap } from "@/lib/motion";
 
@@ -99,17 +98,9 @@ export function EnterScreen() {
       console.warn("AudioContext init failed", e);
     }
 
-    // Enter WITH sound: start the first track of the queue (respects mute).
-    try {
-      const player = usePlayerStore.getState();
-      if (!player.currentTrack && player.queue.length > 0) {
-        player.playTrack(player.queue[0]);
-      } else if (player.currentTrack && !player.isPlaying) {
-        player.play();
-      }
-    } catch (e) {
-      console.warn("Autoplay failed", e);
-    }
+    // La música de fondo la arranca `useBackgroundMusic()` (tema al azar, 25%):
+    // vive ahí para que también funcione en las visitas siguientes, donde esta
+    // pantalla ya no aparece porque `hasEntered` quedó guardado.
 
     if (titleRef.current && !reducedMotion) {
       gsap.to(titleRef.current, {

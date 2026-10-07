@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { registerGSAP } from "@/lib/motion";
 import { useLenis } from "@/hooks/useLenis";
+import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
 import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
 import { installAnchorScroll } from "@/lib/smooth-scroll";
@@ -21,6 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   // Lenis smooth scroll - only after enter and not reduced motion
   useLenis(hasEntered && !reducedMotion);
+
+  // Un tema al azar a volumen bajo apenas entra (música de fondo)
+  useBackgroundMusic();
 
   // Quality init
   useEffect(() => {
