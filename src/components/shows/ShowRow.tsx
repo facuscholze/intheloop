@@ -19,7 +19,15 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
 
   const handleMouseLeave = () => onHover(null);
 
-  return (
+  // La fila entera es un link: a la galería del show si tiene, y si no al
+  // Instagram del venue (el mismo orden que ya muestra la etiqueta "IG →").
+  // Sin ninguno de los dos, la fila queda como antes: informativa, no clickeable.
+  const href = show.galleryUrl ?? show.instagram;
+  const linkLabel = show.galleryUrl
+    ? `Ver la galería de ${show.venue}`
+    : `Ver el Instagram de ${show.venue}`;
+
+  const row = (
     <div
       ref={rowRef}
       className="group relative flex items-center justify-between border-b border-[var(--border)] py-6 transition-all duration-300 hover:bg-[var(--bg)] hover:px-4 md:py-8"
@@ -63,6 +71,21 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
       {/* Hover accent line */}
       <div className="absolute bottom-0 left-0 h-px w-0 bg-[var(--accent-fire)] transition-all duration-500 group-hover:w-full" />
     </div>
+  );
+
+  if (!href) return row;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={linkLabel}
+      title={linkLabel}
+      className="block focus-visible:ring-2 focus-visible:ring-[var(--accent-fire)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-2)] focus-visible:outline-none"
+    >
+      {row}
+    </a>
   );
 });
 
