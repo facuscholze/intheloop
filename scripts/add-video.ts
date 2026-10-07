@@ -36,6 +36,10 @@ async function main() {
 
   // ---- Video local (o embed de YouTube)
   logStep("Video")
+  console.log("📎 Subí UN archivo de video con el audio adentro (si grabaste video y")
+  console.log(
+    "   audio por separado, unilos antes con ffmpeg: ver content/videos/_TEMPLATE/LEEME.txt)\n"
+  )
   const srcInput = await prompt(
     "Ruta del video local (Enter para buscar en media-src/video/, o dejalo vacío si usás YouTube)",
     ""

@@ -143,6 +143,10 @@ nada que registrar. Detalle para el artista: `content/README.md` y `docs/CONTENT
   `public/media/content/<tipo>/<slug>/<nombre>.webp` (+ `-thumb.webp`), copia
   audio/video tal cual y borra huérfanos. Es incremental (mtime) y escribe con
   `.tmp` + rename. Lo corren `pnpm dev` (además con `--watch`) y `pnpm build`.
+- **Videos:** un solo archivo con el audio embebido (no hay pista externa);
+  `previewSrc` es un loop mudo opcional para el hover y `poster` la miniatura.
+  HLS soportado (`src: "stream.m3u8"` + segmentos `.ts`/`.m4s`, que se copian
+  como passthrough vía `isStreamSegment`).
 - **Temas sin audio propio:** `Track.playable` + `embedUrl` (facade de
   SoundCloud que carga el iframe al click) o `links.*` como botones; la cola del
   player solo lleva temas reproducibles.

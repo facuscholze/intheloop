@@ -61,9 +61,21 @@ plataformas se muestra igual, sin prometer un play que no existe.
 ## Video
 
 1. Copiá `content/videos/_TEMPLATE/` a `content/videos/<nombre-del-video>/`.
-2. Soltá `poster.jpg` (miniatura) y, si es self-hosted, el `mp4`.
-3. Completá `video.json`. Si usás YouTube, dejá `src: null` y poné `youtubeId`.
-   Los MP4 de más de 100 MB conviene subirlos a un bucket.
+2. Soltá el video **en un solo archivo MP4 con el audio adentro** y, si tenés,
+   `poster.jpg` (miniatura) y `preview.mp4` (loop corto de 3-6 s, sin audio,
+   para el hover).
+3. Completá `video.json` con el nombre del archivo en `"src"`. Si usás YouTube,
+   dejá `src: null` y poné `youtubeId`.
+
+**¿Grabaste video y audio por separado?** Se unen antes de subir, con una línea:
+
+```bash
+ffmpeg -i video.mp4 -i audio.wav -map 0:v:0 -map 1:a:0 \
+  -c:v copy -c:a aac -b:a 256k -shortest mi-video.mp4
+```
+
+El sitio no tiene campo para una pista de audio aparte: suena el audio que trae
+el MP4. Recomendado MP4 (H.264 + AAC) 1080p; si pesa más de 100 MB, bucket.
 
 ---
 

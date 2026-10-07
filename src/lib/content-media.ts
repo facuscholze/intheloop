@@ -78,6 +78,12 @@ const AUDIO_EXT = new Set([
   ".aiff"
 ])
 const VIDEO_EXT = new Set([".mp4", ".webm", ".mov", ".m4v", ".ogv", ".m3u8", ".mkv"])
+/**
+ * Archivos que acompañan a un video y hay que copiar tal cual sin tratarlos
+ * como imagen: los segmentos de un HLS (.ts, .m4s) que referencia el .m3u8.
+ * Sin esto, subir un HLS quedaba a medias (el playlist viajaba y los pedazos no).
+ */
+const STREAM_EXT = new Set([".ts", ".m4s"])
 
 /** Archivos/carpetas que se ignoran: `_TEMPLATE`, `.DS_Store`, etc. */
 export function isIgnoredName(name: string): boolean {
@@ -203,9 +209,12 @@ export function copiedMediaPath(kind: ContentKind, slug: string, relPath: string
   )}${ext}`
 }
 
+/** ¿Es parte de un stream (segmento HLS) y no un archivo suelto? */
+export const isStreamSegment = (file: string): boolean => STREAM_EXT.has(extOf(file))
+
 /** Los audio/video se copian tal cual; las imágenes se optimizan a WebP. */
 export function isPassthroughFile(file: string): boolean {
-  return isAudioFile(file) || isVideoFile(file)
+  return isAudioFile(file) || isVideoFile(file) || isStreamSegment(file)
 }
 
 /**

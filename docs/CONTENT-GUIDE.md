@@ -165,34 +165,90 @@ Con CLI: `pnpm add:track`.
 
 ## 4) Videos
 
+### ¿Video con audio adentro o video y audio por separado?
+
+**Un solo archivo, con el audio adentro.** El sitio no tiene un campo para una
+pista de audio externa: reproduce el archivo con su propio sonido (y cuando
+abrís el modo cine, el player del sitio se baja solo para que se escuche el
+video). Si grabaste video y audio por separado, se unen en **un** MP4 con
+ffmpeg antes de subirlo (receta más abajo).
+
 ```
 content/videos/live-le-fleurus-paris/
-  video.json
-  poster.jpg
+  video.json        ← los datos
+  set-vivo.mp4      ← el video CON su audio adentro
+  poster.jpg        ← la miniatura (la genera ffmpeg o la sacás vos)
+  preview.mp4       ← opcional: loop de 3-6 s sin audio para el hover
 ```
 
 ```json
 {
   "title": "Live @ Le Fleurus Paris",
-  "src": null,
+  "src": "set-vivo.mp4",
   "youtubeId": null,
   "poster": "poster.jpg",
-  "previewSrc": null,
+  "previewSrc": "preview.mp4",
   "date": "2025-09-12",
   "venue": "Le Fleurus",
   "colorAccent": "#FF2E93"
 }
 ```
 
-- `src` puede ser un archivo dentro de la carpeta (`"mi-video.mp4"`), una ruta
+- `src` puede ser un archivo dentro de la carpeta (`"set-vivo.mp4"`), una ruta
   absoluta del sitio (`/media/...`) o una URL de bucket. Con `youtubeId` se usa
-  el facade de YouTube.
-- `previewSrc`: loop corto para el hover (si falta, se usa el video completo).
+  el facade de YouTube (ahí no subís archivo).
+- `previewSrc` es **opcional**: loop corto y **sin audio** para el hover (en la
+  grilla suena en mute igual). Si falta, se usa el video completo.
+- `poster` es **opcional**: si no lo ponés, se usa la primera imagen de la
+  carpeta.
+- `draft: true` lo oculta (útil si todavía no tenés el archivo ni el ID).
 - Un MP4 de más de ~100 MB: mejor a un bucket (GitHub Pages tiene límites).
-- `draft: true` lo oculta.
 
-Con CLI: `pnpm add:video` (además genera poster y preview con ffmpeg si está
-instalado).
+### Recetas con ffmpeg
+
+```bash
+# 1) Unir video + audio separados en UN mp4 (audio del mixer, video de cámara)
+ffmpeg -i video.mp4 -i audio.wav \
+  -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 256k -shortest set-vivo.mp4
+
+# 2) Recomendado para subir: 1080p H.264 + AAC, listo para web (faststart)
+ffmpeg -i original.mov -c:v libx264 -crf 20 -preset slow -vf scale=1920:-2 \
+  -c:a aac -b:a 256k -movflags +faststart set-vivo.mp4
+
+# 3) Poster (miniatura)
+ffmpeg -ss 00:00:01 -i set-vivo.mp4 -vframes 1 poster.jpg
+
+# 4) Preview de 5 s para el hover (sin audio)
+ffmpeg -ss 00:00:02 -t 5 -i set-vivo.mp4 -an -vf scale=640:-2 -c:v libx264 -crf 28 preview.mp4
+
+# 5) (Opcional) HLS para sets largos: playlist + segmentos en la misma carpeta
+ffmpeg -i set-vivo.mp4 -c:v libx264 -crf 22 -c:a aac -hls_time 6 \
+  -hls_playlist_type vod -hls_segment_filename "seg-%03d.ts" stream.m3u8
+#    → en el JSON: "src": "stream.m3u8"  (los .ts se copian solos; dejá los
+#      nombres de los segmentos en minúsculas y sin espacios, tal como los
+#      escribe ffmpeg)
+```
+
+### Formatos y tamaños
+
+| Qué | Formato recomendado | Nota |
+|---|---|---|
+| Video | **MP4 (H.264 + AAC)** | `webm` y `mov` también se copian; `mkv` no lo reproduce el navegador |
+| Resolución | 1080p (1920 px de ancho) | 4K pesa mucho y no se nota en la card |
+| Peso | ideal < 100 MB | si pesa más: bucket (`NEXT_PUBLIC_MEDIA_BASE_URL`) |
+| Poster | JPG/PNG, 16:9 | se optimiza a WebP 1600 px + mini |
+| Preview | MP4 corto (3-6 s), sin audio | opcional |
+| HLS (opcional) | `.m3u8` + segmentos `.ts` | para sets largos |
+
+### Si el video no tiene audio
+
+Funciona igual (se ve en silencio). Si querés que *suene* algo mientras tanto,
+subí por separado ese audio como tema en `content/songs/` — pero ojo: se
+reproduce en el player del sitio por su cuenta, **no sincronizado** con el
+video. Si necesitás video mudo + audio propio sincronizado, avisá y se agrega.
+
+Con CLI: `pnpm add:video` (crea la carpeta, copia el video, y genera poster y
+preview con ffmpeg si está instalado).
 
 ---
 
@@ -238,7 +294,7 @@ public/media/content/gallery/tandil/01-thumb.webp  (mini, para grillas)
 |---|---|
 | Imágenes | jpg, jpeg, png, webp, avif, gif, tiff → se convierten a WebP |
 | Audio | wav, mp3, m4a, aac, ogg, opus, flac, aiff (peaks de MP3/M4A/etc. requieren ffmpeg) |
-| Video | mp4, webm, mov, m4v, ogv, m3u8, mkv |
+| Video | mp4, webm, mov, m4v, ogv, m3u8, mkv (+ segmentos .ts/.m4s de un HLS) |
 
 Si una imagen no se puede leer (HEIC, por ejemplo), `sync:media` avisa y la
 saltea: pasala a JPG/PNG/WebP.

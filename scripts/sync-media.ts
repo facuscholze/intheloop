@@ -26,9 +26,8 @@ import {
   dedupeByDerived,
   derivedMediaPath,
   extname,
-  isAudioFile,
   isImageFile,
-  isVideoFile,
+  isPassthroughFile,
   KIND_DIR,
   sortContentFiles,
   type ContentKind
@@ -134,7 +133,8 @@ async function syncItem(
   // La carpeta puede haber sido borrada mientras corría el sync
   if (files.length === 0 && !fs.existsSync(itemDir)) return
   const images = dedupeByDerived(files.filter(isImageFile))
-  const copies = files.filter((f) => isAudioFile(f) || isVideoFile(f))
+  // Audio, video y segmentos de HLS: se copian tal cual (no se reconvierten).
+  const copies = files.filter((f) => isPassthroughFile(f))
 
   for (const rel of images) {
     const fullRel = derivedMediaPath(kind, slug, rel)
@@ -255,7 +255,7 @@ function report(stats: Stats, changed: boolean) {
     parts.push(`🖼️  ${stats.images} imagen${stats.images === 1 ? "" : "es"} optimizadas${saved}`)
   }
   if (stats.copies > 0) {
-    parts.push(`📎 ${stats.copies} audio/video copiados (${formatMb(stats.bytesCopied)})`)
+    parts.push(`📎 ${stats.copies} archivos de media copiados (${formatMb(stats.bytesCopied)})`)
   }
   if (stats.pruned > 0) parts.push(`🧹 ${stats.pruned} derivado(s) huérfano(s) borrados`)
   if (stats.skipped > 0) parts.push(`⏭️  ${stats.skipped} al día`)
