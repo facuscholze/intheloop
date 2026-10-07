@@ -131,6 +131,8 @@ async function syncItem(
   expected: Set<string>
 ) {
   const files = sortContentFiles(listContentFiles(itemDir))
+  // La carpeta puede haber sido borrada mientras corría el sync
+  if (files.length === 0 && !fs.existsSync(itemDir)) return
   const images = dedupeByDerived(files.filter(isImageFile))
   const copies = files.filter((f) => isAudioFile(f) || isVideoFile(f))
 
