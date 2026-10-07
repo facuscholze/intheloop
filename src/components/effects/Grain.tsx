@@ -10,6 +10,9 @@ export function Grain() {
 
   useEffect(() => {
     if (tier === "low") return;
+    // Touch/coarse: el grain está oculto por CSS (perf) — sin loop de rAF
+    if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)
+      return;
     const el = ref.current;
     if (!el) return;
 
@@ -39,13 +42,18 @@ export function Grain() {
   }, [tier]);
 
   if (tier === "low") {
-    // CSS only grain for low tier
-    return <div className="grain" style={{ opacity: 0.03 }} />;
+    // Tier bajo: grain desactivado por completo (perf)
+    return null;
   }
 
   return (
     <>
-      <div ref={ref} className="grain" />
+      <div
+        className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden"
+        aria-hidden="true"
+      >
+        <div ref={ref} className="grain" />
+      </div>
       {/* Additional canvas grain for high tier */}
       {tier === "high" && (
         <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.015] mix-blend-soft-light">

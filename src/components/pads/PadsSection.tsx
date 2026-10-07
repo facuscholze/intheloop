@@ -160,7 +160,7 @@ export function PadsSection() {
   if (tier === "low") {
     return (
       <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8 text-center font-mono text-xs text-[var(--fg-muted)] uppercase">
-        Pads sampler disponible en modo efectos Normal/Max (Tone.js) — Fase 4
+        Sampler tribal temporalmente no disponible
       </div>
     );
   }
@@ -171,7 +171,7 @@ export function PadsSection() {
         <div>
           <h3 className="font-display text-3xl font-bold">SAMPLER TRIBAL</h3>
           <p className="mt-2 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
-            Toca los pads • QWERTY • Crossfader entre tracks • Tone.js
+            Toca los pads o usá el teclado • Crossfader entre tracks
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -228,7 +228,6 @@ export function PadsSection() {
                   : `0 0 calc(var(--bass) * 10px) ${pad.color}20`,
                 transform: isActive ? `scale(1.05)` : `scale(calc(1 + var(--bass) * 0.02))`,
               }}
-              data-cursor="play"
               aria-label={`Pad ${pad.label} (tecla ${pad.key})`}
             >
               <div className="font-display text-lg">{pad.label}</div>
@@ -277,7 +276,7 @@ export function PadsSection() {
             124 → 126 • {(crossfader * 2).toFixed(1)}% mix
           </div>
           <div className="mt-2 font-mono text-[9px] text-[var(--fg-dim)] uppercase">
-            Juguete del sitio • Tone.js en Fase 4 completo con samples reales
+            Percusión tribal en vivo — armá tu propio groove
           </div>
         </div>
       </div>

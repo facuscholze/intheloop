@@ -34,6 +34,8 @@ export const VideoSchema = z.object({
   date: z.string().nullable().optional(),
   venue: z.string().nullable().optional(),
   colorAccent: z.string().nullable().optional(),
+  // No publicar hasta tener el media/ID real
+  draft: z.boolean().default(false),
 });
 
 export const ShowSchema = z.object({
@@ -108,7 +110,9 @@ export function loadVideos(): Video[] {
     const raw = JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8"));
     return VideoSchema.parse(raw);
   });
-  return videos.sort((a, b) => {
+  // Los videos en draft no se publican
+  const published = videos.filter((v) => !v.draft);
+  return published.sort((a, b) => {
     if (!a.date || !b.date) return 0;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });

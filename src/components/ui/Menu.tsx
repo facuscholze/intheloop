@@ -157,9 +157,8 @@ export function Menu() {
               href={link.href}
               onClick={() => setOpen(false)}
               className="menu-link group flex items-baseline gap-6 overflow-hidden rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)]"
-              data-cursor="view"
             >
-              <span className="font-display text-[clamp(32px,8vw,96px)] leading-none font-bold tracking-tight transition-colors group-hover:text-[var(--accent-fire)] group-focus-visible:text-[var(--accent-fire)]">
+              <span className="font-display text-[clamp(44px,11vw,128px)] leading-none font-bold tracking-tight transition-colors group-hover:text-[var(--accent-fire)] group-focus-visible:text-[var(--accent-fire)]">
                 {link.label}
               </span>
               <span

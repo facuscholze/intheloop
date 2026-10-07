@@ -89,7 +89,6 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
       onMouseMove={handleMouseMove}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      data-cursor="view"
       role="button"
       tabIndex={0}
       aria-label={`Ver video ${video.title} en modo cine - ${video.venue} ${video.date}`}

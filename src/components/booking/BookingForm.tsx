@@ -365,7 +365,6 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
         disabled={status === "sending"}
         className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-fire)] px-6 py-4 text-sm font-bold tracking-widest text-black uppercase transition-all hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] disabled:opacity-50 disabled:hover:scale-100"
         style={{ boxShadow: `0 0 calc(10px + var(--bass) * 20px) rgba(255,90,31,0.3)` }}
-        data-cursor="view"
         aria-label={status === "sending" ? "Enviando formulario" : "Enviar formulario de booking"}
       >
         {status === "sending" ? "Enviando..." : "Enviar booking →"}

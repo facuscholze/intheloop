@@ -96,7 +96,7 @@ export function KonamiCode() {
       aria-live="polite"
       aria-label="Easter egg activado: modo rave"
     >
-      <div className="font-display animate-pulse text-[clamp(48px,12vw,120px)] font-bold text-white mix-blend-difference">
+      <div className="font-display animate-pulse text-[clamp(64px,15vw,150px)] font-bold text-white mix-blend-difference">
         RAVE MODE!
       </div>
       <style>{`
@@ -223,11 +223,15 @@ export function Screensaver() {
   );
 }
 
-export function Counters() {
-  const shows = 20;
-  const countries = 5;
-  const years = 3;
-
+export function Counters({
+  shows,
+  countries,
+  yearsRange,
+}: {
+  shows: number;
+  countries: string[];
+  yearsRange: string;
+}) {
   return (
     <div
       className="grid grid-cols-3 gap-6 rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] p-8"
@@ -235,16 +239,16 @@ export function Counters() {
       aria-label="Estadísticas"
     >
       {[
-        { value: shows, label: "Shows", sub: "2023-2026" },
-        { value: countries, label: "Países", sub: "AR, ES, BR, FR, DE" },
-        { value: years, label: "Años", sub: "Desde los 14" },
+        { value: shows, label: "Shows", sub: yearsRange },
+        { value: countries.length, label: "Países", sub: countries.join(", ") },
+        { value: 3, label: "Años", sub: "Desde los 14" },
       ].map((c) => (
         <div key={c.label} className="text-center">
           <div
             className="font-display text-4xl font-bold text-[var(--accent-fire)] md:text-5xl"
             aria-label={`${c.value} ${c.label}`}
           >
-            {c.value}+
+            {c.value}
           </div>
           <div className="font-mono text-xs tracking-widest text-[var(--fg)] uppercase">
             {c.label}

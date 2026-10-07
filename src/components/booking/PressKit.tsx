@@ -6,20 +6,22 @@ import { getMediaUrl } from "@/lib/media";
 
 interface PressKitProps {
   className?: string;
+  showsCount: number;
+  countriesCount: number;
 }
 
-export function PressKit({ className = "" }: PressKitProps) {
+export function PressKit({ className = "", showsCount, countriesCount }: PressKitProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Mock press kit data - in production this would come from content/site.json or API
+  // Bio y stats: los totales llegan calculados desde content/shows.json
   const pressKitData = {
     bio: {
-      es: "Tommy Petersen es DJ y productor de Buenos Aires, Argentina, especializado en Tribal House, House y Latin grooves con texturas melódicas. Con 3 años de carrera desde los 14, ha tocado en 20+ shows en 5 países.",
-      en: "Tommy Petersen is a DJ and producer from Buenos Aires, Argentina, specializing in Tribal House, House and Latin grooves with melodic textures. With 3 years career since age 14, he has played 20+ shows in 5 countries.",
+      es: `Tommy Petersen es DJ y productor de Buenos Aires, Argentina, especializado en Tribal House, House y Latin grooves con texturas melódicas. Con 3 años de carrera desde los 14, ha tocado en ${showsCount} shows en ${countriesCount} países.`,
+      en: `Tommy Petersen is a DJ and producer from Buenos Aires, Argentina, specializing in Tribal House, House and Latin grooves with melodic textures. With 3 years career since age 14, he has played ${showsCount} shows in ${countriesCount} countries.`,
     },
     stats: {
-      shows: 20,
-      countries: 5,
+      shows: showsCount,
+      countries: countriesCount,
       years: 3,
     },
     genres: ["Tribal House", "House", "Latin Grooves", "Melodic House"],
@@ -118,7 +120,7 @@ Generated: ${new Date().toISOString()}
       }
     } catch (e) {
       console.warn("Download failed", e);
-      alert("Press kit aún no subido. Subí archivos a media-src/press/ + pnpm optimize:images. Por ahora contactá a events@intheloop.agency o descargá el txt generado.");
+      alert("El PDF todavía no está disponible. Contactanos en events@intheloop.agency o descargá la info en texto.");
     } finally {
       setIsGenerating(false);
     }
@@ -147,7 +149,7 @@ Generated: ${new Date().toISOString()}
 
       <div className="mb-6 grid grid-cols-3 gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4">
         <div className="text-center">
-          <div className="font-display text-2xl font-bold text-[var(--accent-fire)]">{pressKitData.stats.shows}+</div>
+          <div className="font-display text-2xl font-bold text-[var(--accent-fire)]">{pressKitData.stats.shows}</div>
           <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--fg-dim)]">Shows</div>
         </div>
         <div className="text-center">
@@ -210,8 +212,7 @@ Generated: ${new Date().toISOString()}
       </div>
 
       <div className="mt-4 rounded-xl bg-[var(--bg)] p-3 font-mono text-[10px] uppercase tracking-widest text-[var(--fg-dim)]">
-        <p>📁 Subí PDFs a media-src/press/ y fotos a media-src/images/press/ + pnpm optimize:images</p>
-        <p className="mt-1">Si no hay archivos, se genera PDF básico con bio + stats.</p>
+        <p>¿Necesitás el rider técnico o fotos en alta? Escribinos a events@intheloop.agency</p>
       </div>
     </div>
   );

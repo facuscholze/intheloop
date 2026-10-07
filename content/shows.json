@@ -109,7 +109,7 @@
   },
   {
     "id": "nane-recoleta",
-    "venue": "Nane (en el sitio figura como 'Nombre')",
+    "venue": "Nane",
     "city": "Recoleta",
     "country": "AR",
     "date": "2025-05-23",
@@ -117,7 +117,7 @@
     "galleryUrl": null,
     "photo": null,
     "featured": false,
-    "needsReview": "Nombre traducido automáticamente; confirmar"
+    "needsReview": "Nombre traducido automáticamente; confirmar. En el sitio viejo figura como 'Nombre'"
   },
   {
     "id": "kuk-olavarria",
@@ -157,7 +157,7 @@
   },
   {
     "id": "brothers-bar-tandil",
-    "venue": "Brothers Bar (en el sitio figura como 'Hermanos')",
+    "venue": "Brothers Bar",
     "city": "Tandil",
     "country": "AR",
     "date": "2024-02-19",
@@ -165,7 +165,7 @@
     "galleryUrl": null,
     "photo": null,
     "featured": false,
-    "needsReview": "Nombre traducido automáticamente; confirmar"
+    "needsReview": "Nombre traducido automáticamente; confirmar. En el sitio viejo figura como 'Hermanos'"
   },
   {
     "id": "club-camboriu",
@@ -193,7 +193,7 @@
   },
   {
     "id": "glow-bar-tandil",
-    "venue": "Glow Bar (en el sitio figura como 'Brilla')",
+    "venue": "Glow Bar",
     "city": "Tandil",
     "country": "AR",
     "date": "2024-01-18",
@@ -201,11 +201,11 @@
     "galleryUrl": null,
     "photo": null,
     "featured": false,
-    "needsReview": "Nombre traducido automáticamente; confirmar"
+    "needsReview": "Nombre traducido automáticamente; confirmar. En el sitio viejo figura como 'Brilla'"
   },
   {
     "id": "call-me-fest-azul",
-    "venue": "Call Me Fest (en el sitio figura como '¡Llámame!')",
+    "venue": "Call Me Fest",
     "city": "Azul",
     "country": "AR",
     "date": "2024-01-01",
@@ -213,7 +213,7 @@
     "galleryUrl": null,
     "photo": null,
     "featured": false,
-    "needsReview": "Nombre traducido automáticamente; confirmar"
+    "needsReview": "Nombre traducido automáticamente; confirmar. En el sitio viejo figura como '¡Llámame!'"
   },
   {
     "id": "nakala-vitoria",

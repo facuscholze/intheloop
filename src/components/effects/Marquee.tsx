@@ -163,7 +163,7 @@ export function MarqueeGiant({ text }: { text: string }) {
       >
         <div className="flex justify-center whitespace-nowrap">
           <span
-            className="font-display mx-8 text-[clamp(32px,8vw,80px)] leading-none font-bold tracking-tight text-transparent uppercase"
+            className="font-display mx-8 text-[clamp(40px,10vw,104px)] leading-none font-bold tracking-tight text-transparent uppercase"
             style={{ WebkitTextStroke: "1px var(--border-strong)" }}
           >
             {text}
@@ -187,7 +187,7 @@ export function MarqueeGiant({ text }: { text: string }) {
         {Array.from({ length: 6 }).map((_, i) => (
           <span
             key={i}
-            className="font-display mx-8 text-[clamp(32px,8vw,80px)] leading-none font-bold tracking-tight text-transparent uppercase"
+            className="font-display mx-8 text-[clamp(40px,10vw,104px)] leading-none font-bold tracking-tight text-transparent uppercase"
             style={{ WebkitTextStroke: "1px var(--border-strong)" }}
           >
             {text}

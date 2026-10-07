@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Track } from "@/lib/content";
+import { audioEngine } from "@/lib/audio-engine";
 
 interface PlayerState {
   queue: Track[];
@@ -25,6 +26,7 @@ interface PlayerState {
   next: () => void;
   prev: () => void;
   setProgress: (p: number) => void;
+  seek: (fraction: number) => void;
   setVolume: (v: number) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
@@ -119,6 +121,14 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       setProgress: (p) => set({ progress: p }),
+
+      // Seek 0..1 sobre la pista actual (barra estilo Spotify)
+      seek: (fraction) => {
+        const f = Math.min(1, Math.max(0, fraction));
+        set({ progress: f });
+        const d = get().duration || audioEngine?.audioEl?.duration || 0;
+        if (d > 0) audioEngine?.seek(f * d);
+      },
       setVolume: (v) => set({ volume: v, ...(v > 0 ? { muted: false } : {}) }),
       setDuration: (d) => set({ duration: d }),
 

@@ -73,8 +73,8 @@
     scroll-behavior: auto !important;
   }
   .grain,
-  [class*=\"animate-\"],
-  [style*=\"animation\"] {
+  [class*="animate-"],
+  [style*="animation"] {
     animation: none !important;
   }
 }

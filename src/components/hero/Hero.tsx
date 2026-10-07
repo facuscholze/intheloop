@@ -8,7 +8,7 @@ import { HeroShaderR3F } from "./HeroShaderR3F";
 import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
 
-export function Hero() {
+export function Hero({ countries }: { countries: string[] }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subRef = useRef<HTMLParagraphElement>(null);
   const entranceRef = useRef<HTMLDivElement>(null);
@@ -99,10 +99,10 @@ export function Hero() {
 
           <h1
             ref={titleRef}
-            className="font-display text-[clamp(56px,13vw,190px)] leading-[0.85] font-extrabold tracking-[-0.05em] text-[var(--fg)]"
+            className="font-display text-[clamp(54px,17vw,150px)] leading-[0.95] font-extrabold tracking-[0.01em] text-[var(--fg)] whitespace-nowrap md:text-[clamp(76px,9.5vw,190px)]"
             style={{ perspective: "1000px" }}
           >
-            <span className="block overflow-hidden">
+            <span className="block overflow-hidden whitespace-nowrap">
               {"TOMMY".split("").map((c, i) => (
                 <span
                   key={i}
@@ -114,12 +114,23 @@ export function Hero() {
               ))}
               <span className="sr-only">Tommy</span>
             </span>
-            <span className="block overflow-hidden bg-gradient-to-r from-[var(--accent-fire)] via-[var(--accent-magenta)] to-[var(--accent-gold)] bg-clip-text text-transparent">
-              {"PETERSEN".split("").map((c, i) => (
+            <span className="block overflow-hidden whitespace-nowrap">
+              {"PETERSEN".split("").map((c, i, arr) => (
                 <span
                   key={i}
-                  className="char inline-block will-change-transform"
+                  className="char grad-letter inline-block will-change-transform"
                   aria-hidden="true"
+                  style={{
+                    // Gradiente continuo a lo largo de la palabra: cada letra
+                    // recorta SU PROPIO fondo (clip por letra) para que el
+                    // texto transformado por GSAP nunca pierda el gradiente
+                    // (bug conocido de bg-clip-text en padre + hijos con
+                    // transform, sobre todo Safari/iOS).
+                    backgroundImage:
+                      "linear-gradient(90deg, var(--accent-fire), var(--accent-magenta) 50%, var(--accent-gold))",
+                    backgroundSize: `${arr.length * 100}% 100%`,
+                    backgroundPosition: `${(i / (arr.length - 1)) * 100}% 0`,
+                  }}
                 >
                   {c}
                 </span>
@@ -147,17 +158,15 @@ export function Hero() {
               <MagneticButton className="bg-[var(--fg)] text-black hover:bg-[var(--accent-lime)]">
                 <a
                   href="#booking"
-                  data-cursor="view"
                   aria-label="Ir a formulario de booking para contratar a Tommy"
-                  className="rounded-full px-2 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="cta rounded-full px-2 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   BOOK TOMMY
                 </a>
               </MagneticButton>
               <a
                 href="#music"
-                data-cursor="play"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-8 py-4 font-mono text-xs tracking-widest text-[var(--fg)] uppercase transition-colors hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                className="cta inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-8 py-4 font-mono text-xs tracking-widest text-[var(--fg)] uppercase transition-colors hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
                 aria-label="Ir a sección de música y reproducir tracks"
               >
                 <span aria-hidden="true">▶</span> Escuchar
@@ -166,8 +175,8 @@ export function Hero() {
 
             <dl className="grid grid-cols-2 gap-6 border-t border-[var(--border)] pt-8 font-mono text-xs tracking-widest text-[var(--fg-dim)] uppercase md:grid-cols-4">
               <div>
-                <dt className="text-[var(--fg)]">5 países</dt>
-                <dd>AR, ES, BR, FR, DE</dd>
+                <dt className="text-[var(--fg)]">{countries.length} países</dt>
+                <dd>{countries.join(", ")}</dd>
               </div>
               <div>
                 <dt className="text-[var(--fg)]">Tribal / House</dt>
@@ -191,7 +200,7 @@ export function Hero() {
         <div
           className="relative hidden md:block"
           role="img"
-          aria-label="Imagen hero de Tommy Petersen - placeholder, agregar foto real en media-src/images/hero/"
+          aria-label="Composición de marca de Tommy Petersen"
         >
           <div ref={entranceRef}>
             <div
@@ -204,7 +213,6 @@ export function Hero() {
                     ? "scale(1)"
                     : "scale(calc(1 + var(--bass) * 0.05 + var(--beat) * 0.03))",
               }}
-              data-cursor="view"
             >
               <div
                 className="absolute inset-0 bg-gradient-to-br from-[var(--accent-fire)] via-[var(--bg-2)] to-[var(--accent-magenta)]"
@@ -241,13 +249,10 @@ export function Hero() {
 
               <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6">
                 <div className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
-                  Foto hero placeholder
+                  Tribal House / House / Latin grooves
                 </div>
                 <div className="font-display text-lg font-bold text-white">
-                  Agregá foto en media-src/images/hero/
-                </div>
-                <div className="mt-1 font-mono text-[9px] text-white/40 uppercase">
-                  Optimizada WebP 2500px + thumb • next/image priority
+                  Every dancefloor has its own story.
                 </div>
               </div>
 

@@ -26,11 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [hasEntered]);
 
   // Reduced motion media query listener
+  // (accesibilidad: pausa animaciones; la calidad sigue siempre en MAX)
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handler = (e: MediaQueryListEvent) => {
       useUIStore.getState().setReducedMotion(e.matches);
-      if (e.matches) useQualityStore.getState().setTier("low");
     };
     mq.addEventListener("change", handler);
     if (mq.matches) useUIStore.getState().setReducedMotion(true);

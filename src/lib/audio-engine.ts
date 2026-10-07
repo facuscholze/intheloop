@@ -295,6 +295,17 @@ class AudioEngine {
     if (this.audioEl) this.audioEl.volume = v;
   }
 
+  /** Seek absoluto en segundos sobre el elemento de audio activo. */
+  seek(seconds: number) {
+    if (this.audioEl && Number.isFinite(seconds) && seconds >= 0) {
+      try {
+        this.audioEl.currentTime = seconds;
+      } catch {
+        /* seek antes de metadata — ignorar */
+      }
+    }
+  }
+
   duck(to = 0.15, duration = 0.5) {
     if (!this.gain || !this.context) return;
     const now = this.context.currentTime;
