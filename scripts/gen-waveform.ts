@@ -2,16 +2,18 @@
 /**
  * pnpm gen:waveform
  *
- * Genera los peaks de la waveform para los temas que no los tengan.
- * Ojo: ya no hace falta correrlo — si el audio es WAV, `content.ts` los calcula
- * solo en build. Este script sirve para dejarlos escritos en el `song.json`.
+ * Genera los peaks de la waveform para los temas que no los tengan y los
+ * escribe en el `track.json` (así el build no recalcula nada).
+ *
+ * Ojo: ya no hace falta correrlo — `content.ts` los calcula solo en build.
+ * WAV se lee en JS; MP3/M4A/… necesitan ffmpeg (si no está, se avisa).
  *
  * Uso: pnpm gen:waveform [--force]
  */
 import fs from "node:fs"
 import path from "node:path"
 import { contentItemDirs, listContentFiles, PUBLIC_MEDIA_DIR } from "../src/lib/content-fs"
-import { analyzeWav } from "../src/lib/wav"
+import { analyzeAudioFile, hasFfmpeg } from "../src/lib/audio-analysis"
 import { extname, slugifySegment, sortContentFiles, isAudioFile } from "../src/lib/content-media"
 
 const force = process.argv.includes("--force")
@@ -31,9 +33,9 @@ function resolveAudioPath(value: string | null | undefined, itemDir: string, fil
 
 let updated = 0
 for (const { slug, dir } of contentItemDirs("songs")) {
-  const jsonPath = path.join(dir, "song.json")
+  const jsonPath = path.join(dir, "track.json")
   if (!fs.existsSync(jsonPath)) {
-    console.log(`⏭️  content/songs/${slug}/ sin song.json`)
+    console.log(`⏭️  content/songs/${slug}/ sin track.json`)
     continue
   }
   const json = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
@@ -47,21 +49,21 @@ for (const { slug, dir } of contentItemDirs("songs")) {
   const audioValue = json.audio ?? json.audioSrc ?? files.filter(isAudioFile)[0] ?? null
   const audioPath = resolveAudioPath(audioValue, dir, files)
 
-  if (audioPath && extname(audioPath) === ".wav") {
-    const analysis = analyzeWav(audioPath)
-    if (analysis) {
-      json.waveformPeaks = analysis.peaks
-      if (!json.duration && analysis.duration) json.duration = Math.round(analysis.duration)
-      fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`)
-      console.log(`✅ ${slug}: ${analysis.peaks.length} peaks desde ${path.basename(audioPath)}`)
-      updated++
-      continue
-    }
+  const analysis = audioPath ? analyzeAudioFile(audioPath) : null
+  if (analysis) {
+    json.waveformPeaks = analysis.peaks
+    if (!json.duration && analysis.duration) json.duration = Math.round(analysis.duration)
+    fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`)
+    console.log(
+      `✅ ${slug}: ${analysis.peaks.length} peaks (${analysis.source}) desde ${path.basename(audioPath!)}`
+    )
+    updated++
+    continue
   }
 
-  // Sin WAV no se pueden calcular peaks reales (no decodeamos MP3 acá). El
-  // JSON queda sin peaks y la UI usa su waveform decorativa estable.
-  console.log(`⚠️  ${slug}: audio no WAV (o inexistente) → se queda sin peaks`)
+  console.log(
+    `⚠️  ${slug}: no se pudieron calcular peaks (${hasFfmpeg() ? "audio ilegible" : "ffmpeg no está instalado"}) → la UI usa su waveform decorativa`
+  )
 }
 
 console.log(`\n✅ ${updated} tema(s) actualizados`)

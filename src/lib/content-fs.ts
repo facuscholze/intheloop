@@ -21,6 +21,26 @@ export function warnOnce(message: string) {
   console.warn(`⚠️  ${message}`)
 }
 
+/** En CI (GitHub Actions, Vercel…) el contenido inválido corta el build. */
+function isCI(): boolean {
+  const ci = process.env.CI
+  if (!ci || ci === "false" || ci === "0") return false
+  return process.env.ITL_ALLOW_INVALID_CONTENT !== "1"
+}
+
+/**
+ * Problema en el contenido.
+ *
+ * En local avisa por consola y el item se omite (el sitio sigue andando: nadie
+ * quiere que una carpeta rota le impida ver la galería). En CI **falla el
+ * build**: así un JSON inválido nunca llega a producción. Se puede forzar el
+ * comportamiento permisivo con `ITL_ALLOW_INVALID_CONTENT=1`.
+ */
+export function contentError(message: string) {
+  if (isCI()) throw new Error(`Contenido inválido → ${message}`)
+  warnOnce(message)
+}
+
 export function listContentDirs(dir: string): string[] {
   if (!fs.existsSync(dir)) return []
   return fs
@@ -44,34 +64,42 @@ export function listContentFiles(dir: string, base = dir): string[] {
 }
 
 /**
- * Lee el JSON del item dentro de su carpeta: el nombre canónico
- * (`show.json`, `song.json`, `video.json`, `_city.json`) o el primer `.json`
- * que haya, para que se pueda llamar como sea.
+ * Lee el JSON del item dentro de su carpeta. `primaryNames` son los nombres
+ * canónicos (el primero manda; los demás son alias de compatibilidad). Si no
+ * está ninguno, se usa el primer `.json` que no empiece con `_`, para que la
+ * carpeta se pueda llamar como sea.
  */
 export function readFolderJson(
   dir: string,
-  primaryName: string
+  primaryNames: string | string[]
 ): { data: unknown; file: string } | null {
   if (!fs.existsSync(dir)) return null
+  const names = Array.isArray(primaryNames) ? primaryNames : [primaryNames]
   const jsonFiles = fs
     .readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".json"))
     .map((entry) => entry.name)
     .sort()
-  if (jsonFiles.length === 0) return null
-  const file = jsonFiles.includes(primaryName)
-    ? primaryName
-    : (jsonFiles.find((name) => !isIgnoredName(name)) ?? jsonFiles[0])
-  const ignored = jsonFiles.filter((name) => name !== file)
-  if (ignored.length > 0) {
+
+  const primary = names
+    .map((name) => jsonFiles.find((file) => file.toLowerCase() === name.toLowerCase()))
+    .find(Boolean)
+  const file = primary ?? jsonFiles.find((name) => !isIgnoredName(name)) ?? jsonFiles[0] ?? null
+  if (!file) return null
+
+  const others = jsonFiles.filter(
+    (name) => name !== file && (!isIgnoredName(name) || names.includes(name))
+  )
+  if (others.length > 0) {
     warnOnce(
       `${path.basename(dir)}/ tiene varios JSON (${jsonFiles.join(", ")}): uso ${file} e ignoro el resto`
     )
   }
+
   try {
     return { data: JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8")), file }
   } catch (error) {
-    warnOnce(`${path.basename(dir)}/${file} tiene un JSON inválido: ${String(error)}`)
+    contentError(`${path.basename(dir)}/${file} tiene un JSON inválido (${String(error)})`)
     return null
   }
 }

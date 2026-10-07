@@ -56,7 +56,7 @@ async function main() {
     }
   }
 
-  // _city.json opcional: sólo si el nombre visible difiere del slug o si
+  // city.json opcional: sólo si el nombre visible difiere del slug o si
   // querés fijar país/orden.
   const country = await prompt("País ISO2 para la bandera (opcional)", "")
   const order = await prompt("Orden en el carrusel (opcional, menor = antes)", "")
@@ -66,8 +66,8 @@ async function main() {
   if (order && !Number.isNaN(Number(order))) meta.order = Number(order)
 
   if (Object.keys(meta).length > 0) {
-    fs.writeFileSync(path.join(itemDir, "_city.json"), `${JSON.stringify(meta, null, 2)}\n`)
-    logSuccess(`Metadatos en ${path.join(itemDir, "_city.json")}`)
+    fs.writeFileSync(path.join(itemDir, "city.json"), `${JSON.stringify(meta, null, 2)}\n`)
+    logSuccess(`Metadatos en ${path.join(itemDir, "city.json")}`)
   }
 
   const photos = sortContentFiles(

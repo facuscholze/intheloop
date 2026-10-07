@@ -2,7 +2,7 @@ UN TEMA = UNA CARPETA
 =====================
 
 content/songs/mi-tema/
-  song.json          ← los datos (copiá este ejemplo)
+  track.json          ← los datos (copiá este ejemplo)
   mi-tema.wav        ← el audio
   cover.jpg          ← la portada
 

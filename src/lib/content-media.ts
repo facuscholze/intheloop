@@ -45,12 +45,16 @@ export const KIND_DIR: Record<ContentKind, string> = {
   videos: "videos"
 }
 
-/** Nombre del JSON principal de cada item (queda al lado de la imagen). */
-export const KIND_JSON: Record<ContentKind, string> = {
-  gallery: "_city.json",
-  shows: "show.json",
-  songs: "song.json",
-  videos: "video.json"
+/**
+ * Nombre del JSON principal de cada item (queda al lado de la imagen).
+ * Es una lista: el primero es el canónico y los demás son alias que seguimos
+ * aceptando para no romper carpetas ya creadas.
+ */
+export const KIND_JSON: Record<ContentKind, string[]> = {
+  gallery: ["city.json", "_city.json"],
+  shows: ["show.json"],
+  songs: ["track.json", "song.json"],
+  videos: ["video.json"]
 }
 
 /** Nombres preferidos al elegir la imagen principal de una carpeta. */

@@ -1,9 +1,9 @@
 /**
  * CONTENIDO — cada cosa en su carpeta.
  *
- *   content/gallery/<ciudad>/…imágenes        galería por ciudad (solo soltar fotos)
- *   content/shows/<show>/show.json + hero.jpg  show + imagen hero (la del hover)
- *   content/songs/<tema>/song.json + cover.jpg + tema.wav
+ *   content/gallery/<ciudad>/…imágenes + city.json (opcional)
+ *   content/shows/<show>/show.json + hero.jpg      (la foto del hover)
+ *   content/songs/<tema>/track.json + cover.jpg + tema.wav|mp3
  *   content/videos/<video>/video.json + poster.jpg
  *
  * Los loaders leen TODO lo que haya en cada carpeta (nada hardcodeado) y
@@ -33,6 +33,7 @@ import {
   type MediaVariant
 } from "./content-media"
 import {
+  contentError,
   contentItemDirs,
   CONTENT_DIR,
   listContentFiles,
@@ -41,7 +42,7 @@ import {
   readFolderJson,
   warnOnce
 } from "./content-fs"
-import { analyzeWav } from "./wav"
+import { analyzeAudioFile } from "./audio-analysis"
 
 // ---------------------------------------------------------------- schemas
 // Estos schemas describen el JSON **tal cual lo escribe el artista** dentro de
@@ -55,6 +56,11 @@ export const TrackSchema = z.object({
   type: z.enum(["track", "set", "mix"]).default("track"),
   /** Archivo de audio dentro de la carpeta (ej. "tema.wav") o URL. */
   audio: z.string().nullable().optional(),
+  /**
+   * Embed oficial (SoundCloud) para temas sin audio propio: si no hay archivo
+   * en la carpeta, la tarjeta muestra el widget en vez del player del sitio.
+   */
+  embedUrl: z.string().nullable().optional(),
   /** Formato viejo: ruta relativa a public/media (ej. "audio/tema.wav"). */
   audioSrc: z.string().nullable().optional(),
   /** Imagen dentro de la carpeta (si falta, se usa la primera que haya). */
@@ -109,7 +115,7 @@ export const ShowSchema = z.object({
   draft: z.boolean().default(false)
 })
 
-/** `_city.json` opcional dentro de cada carpeta de galería. */
+/** `city.json` (o `_city.json`) opcional dentro de cada carpeta de galería. */
 export const GalleryCitySchema = z.object({
   city: z.string().optional(),
   country: z.string().optional(),
@@ -157,7 +163,11 @@ export interface Track {
   genres: string[]
   colorAccent: string | null
   links: TrackRaw["links"]
+  /** Embed oficial (SoundCloud) para temas que no tienen audio propio. */
+  embedUrl: string | null
   waveformPeaks: number[] | null
+  /** false = la tarjeta no puede sonar en el player (solo embed/links). */
+  playable: boolean
   /** Carpeta de origen, relativa al repo (para mensajes de debug). */
   folder: string
 }
@@ -220,6 +230,11 @@ function describe(error: z.ZodError): string {
   return error.issues.map((i) => `${i.path.join(".") || "(raíz)"}: ${i.message}`).join("; ")
 }
 
+/** ¿El tema tiene algún link externo para escuchar? */
+function hasLinks(links: TrackRaw["links"]): boolean {
+  return Boolean(links.soundcloud || links.spotify || links.beatport || links.youtube)
+}
+
 /** Orden por fecha descendente (las fechas sin valor van al final). */
 function byDateDesc(a: { date: string | null }, b: { date: string | null }): number {
   return (b.date ?? "").localeCompare(a.date ?? "")
@@ -238,7 +253,7 @@ function resolveMedia(
   if (!resolved) return null
   if (/^(https?:)?\/\//i.test(resolved) || resolved.startsWith("/")) return resolved
   if (!mediaExists(resolved)) {
-    warnOnce(
+    contentError(
       `falta public/media/${resolved} — corré "pnpm sync:media" (o "pnpm dev", que ya lo hace solo)`
     )
     return null
@@ -264,14 +279,14 @@ export function loadShows(): Show[] {
   for (const { slug, dir: itemDir } of contentItemDirs("shows")) {
     const json = readFolderJson(itemDir, KIND_JSON.shows)
     if (!json) {
-      warnOnce(
-        `content/shows/${slug}/ no tiene show.json (creá uno o mirá content/shows/_TEMPLATE/)`
+      contentError(
+        `content/shows/${slug}/ no tiene show.json (copiá content/shows/_TEMPLATE/ o corré "pnpm add:show")`
       )
       continue
     }
     const parsed = ShowSchema.safeParse(json.data)
     if (!parsed.success) {
-      warnOnce(`content/shows/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
+      contentError(`content/shows/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
       continue
     }
     const raw = parsed.data
@@ -305,14 +320,14 @@ export function loadTracks(): Track[] {
   for (const { slug, dir: itemDir } of contentItemDirs("songs")) {
     const json = readFolderJson(itemDir, KIND_JSON.songs)
     if (!json) {
-      warnOnce(
-        `content/songs/${slug}/ no tiene song.json (creá uno o mirá content/songs/_TEMPLATE/)`
+      contentError(
+        `content/songs/${slug}/ no tiene track.json (copiá content/songs/_TEMPLATE/ o corré "pnpm add:track")`
       )
       continue
     }
     const parsed = TrackSchema.safeParse(json.data)
     if (!parsed.success) {
-      warnOnce(`content/songs/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
+      contentError(`content/songs/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
       continue
     }
     const raw = parsed.data
@@ -326,22 +341,35 @@ export function loadTracks(): Track[] {
     const coverValue = raw.cover ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.songs)
     const audioValue = raw.audio ?? raw.audioSrc ?? audios[0] ?? null
 
-    // WAV local (dentro de la carpeta o en el formato viejo) → peaks y duración
-    // calculados solos, sin correr ningún script.
-    const wavPath = findLocalFile(audioValue, itemDir, files)
-    const wav = wavPath && extname(wavPath).toLowerCase() === ".wav" ? analyzeWav(wavPath) : null
+    // Audio local (carpeta del tema o formato viejo): peaks y duración se
+    // calculan solos — WAV con JS, MP3/M4A/… con ffmpeg si está instalado.
+    // Ojo: solo se decodifica si REALMENTE falta algo (un MP3 de una hora no
+    // se analiza en cada build si el JSON ya trae peaks y duración).
+    const needsPeaks = !(raw.waveformPeaks && raw.waveformPeaks.length > 0)
+    const needsDuration = raw.duration == null
+    const audioPath = needsPeaks || needsDuration ? findLocalFile(audioValue, itemDir, files) : null
+    const analysis = audioPath ? analyzeAudioFile(audioPath) : null
+
+    const audioSrc = resolveMedia(audioValue, ctx)
+    const embedUrl = raw.embedUrl ?? null
+    if (!audioSrc && !embedUrl && !hasLinks(raw.links)) {
+      warnOnce(
+        `content/songs/${slug}/ no tiene audio ni links: la tarjeta va a quedar muda (agregá audio.*, embedUrl o links.*)`
+      )
+    }
 
     tracks.push({
       id: raw.id ?? slug,
       title: raw.title,
       artist: raw.artist,
       type: raw.type,
-      audioSrc: resolveMedia(audioValue, ctx),
+      audioSrc,
+      embedUrl,
       cover: resolveMedia(coverValue, ctx),
       coverThumb: resolveMedia(coverValue, { ...ctx, variant: "thumb" }),
       bpm: raw.bpm ?? null,
       key: raw.key ?? null,
-      duration: raw.duration ?? (wav?.duration ? Math.round(wav.duration) : null),
+      duration: raw.duration ?? (analysis?.duration ? Math.round(analysis.duration) : null),
       date: raw.date ?? null,
       genres: raw.genres,
       colorAccent: raw.colorAccent ?? null,
@@ -349,7 +377,8 @@ export function loadTracks(): Track[] {
       waveformPeaks:
         raw.waveformPeaks && raw.waveformPeaks.length > 0
           ? raw.waveformPeaks
-          : (wav?.peaks ?? null),
+          : (analysis?.peaks ?? null),
+      playable: audioSrc !== null,
       folder: `content/songs/${slug}`
     })
   }
@@ -381,14 +410,14 @@ export function loadVideos(): Video[] {
   for (const { slug, dir: itemDir } of contentItemDirs("videos")) {
     const json = readFolderJson(itemDir, KIND_JSON.videos)
     if (!json) {
-      warnOnce(
-        `content/videos/${slug}/ no tiene video.json (creá uno o mirá content/videos/_TEMPLATE/)`
+      contentError(
+        `content/videos/${slug}/ no tiene video.json (copiá content/videos/_TEMPLATE/ o corré "pnpm add:video")`
       )
       continue
     }
     const parsed = VideoSchema.safeParse(json.data)
     if (!parsed.success) {
-      warnOnce(`content/videos/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
+      contentError(`content/videos/${slug}/${json.file} no valida → ${describe(parsed.error)}`)
       continue
     }
     const raw = parsed.data
@@ -420,7 +449,7 @@ export function loadVideos(): Video[] {
 /**
  * Galerías por ciudad: una carpeta por ciudad dentro de `content/gallery/` y
  * adentro las fotos. No hace falta JSON: el nombre de la carpeta es la ciudad.
- * Si querés bandera/fecha/orden, agregá `_city.json` (ver `_TEMPLATE/`).
+ * Si querés bandera/fecha/orden, agregá `city.json` (ver `_TEMPLATE/`).
  */
 export function loadGalleries(): GalleryCity[] {
   const entries: { order: number | null; city: GalleryCity }[] = []
@@ -442,7 +471,7 @@ export function loadGalleries(): GalleryCity[] {
     const json = readFolderJson(itemDir, KIND_JSON.gallery)
     const parsed = json ? GalleryCitySchema.safeParse(json.data) : null
     if (parsed && !parsed.success) {
-      warnOnce(`content/gallery/${slug}/${json!.file} no valida → ${describe(parsed.error)}`)
+      contentError(`content/gallery/${slug}/${json!.file} no valida → ${describe(parsed.error)}`)
     }
     const meta = parsed?.success ? parsed.data : {}
     const order = meta.order ?? null
@@ -482,7 +511,7 @@ export function loadGalleries(): GalleryCity[] {
     })
   }
 
-  // Orden: `order` del _city.json (si está), después la ciudad con más fotos.
+  // Orden: `order` de city.json (si está), después la ciudad con más fotos.
   return entries
     .sort((a, b) => {
       const orderA = a.order ?? Number.MAX_SAFE_INTEGER

@@ -6,7 +6,7 @@
  * (una carpeta por item, con el JSON y sus archivos adentro):
  *
  *   content/shows.json         → content/shows/<id>/show.json        (+ hero)
- *   content/tracks/<id>.json   → content/songs/<id>/song.json        (+ audio + cover)
+ *   content/tracks/<id>.json   → content/songs/<id>/track.json       (+ audio + cover)
  *   content/videos/<id>.json   → content/videos/<id>/video.json      (+ poster + video)
  *
  * Los archivos que apuntaba cada JSON (audio, cover, poster…) se copian desde
@@ -110,13 +110,13 @@ function migrateTracks() {
     >
     const id = slugifySegment(String(raw.id ?? file.replace(/\.json$/, "")))
     const itemDir = path.join(CONTENT, "songs", id)
-    if (fs.existsSync(path.join(itemDir, "song.json"))) {
+    if (fs.existsSync(path.join(itemDir, "track.json"))) {
       skipped.push(`content/songs/${id}/ (ya existía)`)
       continue
     }
     const audio = bringFile((raw.audio ?? raw.audioSrc) as string | null, itemDir)
     const cover = bringFile(raw.cover as string | null, itemDir)
-    writeJson(path.join(itemDir, "song.json"), {
+    writeJson(path.join(itemDir, "track.json"), {
       title: raw.title,
       artist: raw.artist ?? "Tommy Petersen",
       type: raw.type ?? "track",
@@ -132,7 +132,7 @@ function migrateTracks() {
       waveformPeaks: raw.waveformPeaks ?? null,
       draft: raw.draft ?? false
     })
-    migrated.push(`content/songs/${id}/song.json`)
+    migrated.push(`content/songs/${id}/track.json`)
   }
   fs.rmSync(legacy, { recursive: true, force: true })
 }

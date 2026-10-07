@@ -2,7 +2,7 @@
 /**
  * pnpm add:track
  * CLI para agregar un tema: crea su carpeta en `content/songs/<id>/` con el
- * `song.json`, el audio y la portada. Si el audio es WAV, los peaks de la
+ * `track.json`, el audio y la portada. Si el audio es WAV, los peaks de la
  * waveform y la duración se calculan solos.
  *
  * También podés hacerlo a mano: copiá `content/songs/_TEMPLATE/` a
@@ -12,7 +12,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { TrackSchema } from "../src/lib/content"
-import { analyzeWav } from "../src/lib/wav"
+import { analyzeAudioFile } from "../src/lib/audio-analysis"
 import {
   copyIntoContentFolder,
   findFirstExisting,
@@ -75,19 +75,20 @@ async function main() {
   const cover = coverSource ? copyIntoContentFolder(coverSource, itemDir, "cover") : null
   if (!cover) logWarn("Sin portada: se usa un degradado con la inicial del tema.")
 
-  // ---- Waveform + duración (solo si el audio es WAV: no hay decoder a mano)
+  // ---- Waveform + duración (WAV en JS; MP3/M4A con ffmpeg si está)
   let waveformPeaks: number[] | null = null
   let duration: number | null = null
-  if (audio && path.extname(audio).toLowerCase() === ".wav") {
-    const analysis = analyzeWav(path.join(itemDir, audio))
+  if (audio) {
+    const analysis = analyzeAudioFile(path.join(itemDir, audio))
     if (analysis) {
       waveformPeaks = analysis.peaks
       duration = analysis.duration ? Math.round(analysis.duration) : null
-      logSuccess(`Waveform: ${analysis.peaks.length} peaks • duración ${duration}s`)
+      logSuccess(
+        `Waveform real (${analysis.source}): ${analysis.peaks.length} peaks • duración ${duration}s`
+      )
+    } else {
+      logWarn("Sin peaks: la card usa una waveform decorativa (instalá ffmpeg para MP3/M4A).")
     }
-  }
-  if (!waveformPeaks) {
-    logWarn("Sin peaks (el audio no es WAV): la card usa una waveform decorativa.")
   }
 
   const trackData = {
@@ -116,7 +117,7 @@ async function main() {
     process.exit(1)
   }
 
-  const jsonPath = path.join(itemDir, "song.json")
+  const jsonPath = path.join(itemDir, "track.json")
   fs.mkdirSync(itemDir, { recursive: true })
   fs.writeFileSync(jsonPath, `${JSON.stringify(parsed.data, null, 2)}\n`)
   logSuccess(`JSON escrito en ${jsonPath}`)
