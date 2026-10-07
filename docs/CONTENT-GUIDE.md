@@ -1,132 +1,277 @@
-# Guía de contenido — agregar canción / video / show en 2 minutos
+# Guía de contenido — cada cosa en su carpeta
 
-Todo el contenido vive en `content/` validado con Zod (`src/lib/content.ts`). No toques código de animaciones.
+Todo el contenido vive en `content/`, **una carpeta por cosa**, con sus archivos
+adentro. El sitio lee las carpetas en build: no hay que registrar nada en ningún
+índice, ni tocar código de animaciones.
 
-## Audios: producción propia o con permiso
-
-> **Derechos:** solo subí audio si es producción propia de Tommy o tenés permiso. Sets con tracks de terceros mejor como embed SoundCloud/YouTube (link en JSON). El audio reactivo real solo funciona con archivos propios (CORS).
-
-## 1) Agregar canción
-
-```bash
-pnpm add:track
+```
+content/
+  gallery/<ciudad>/      fotos sueltas → aparecen solas en la sección GALLERY
+  shows/<show>/          show.json + hero.jpg (la foto del hover)
+  songs/<tema>/          song.json + audio + cover.jpg
+  videos/<video>/        video.json + poster.jpg (+ video)
+  site.json              artista, contacto, redes
 ```
 
-**Qué hace:**
-1. Pregunta título, ID, BPM, key, géneros, color, links SoundCloud/Spotify/Beatport
-2. Busca audio en `media-src/audio/tracks/{id}.wav|mp3` y cover en `media-src/covers/{id}.jpg|png`
-3. Copia audio a `public/media/audio/{id}.ext` y optimiza cover a `public/media/images/covers/{id}.webp` (800x800) + thumb 200x200 con sharp
-4. Genera waveform peaks 120 puntos leyendo WAV (si es WAV) o random placeholder
-5. Escribe `content/tracks/{id}.json` validado Zod
+Regla de oro: **las carpetas y archivos que empiezan con `_` se ignoran**
+(`_TEMPLATE`, borradores, notas). Cada sección trae su `_TEMPLATE/` para copiar.
 
-**Manual (sin CLI):**
-- Copiá `content/tracks/_TEMPLATE.json` → `content/tracks/mi-tema.json`
-- Completá campos
-- Poné audio original en `media-src/audio/tracks/mi-tema.wav` (WAV o MP3 320kbps ideal)
-- Cover cuadrado 1400x1400 mínimo en `media-src/covers/mi-tema.jpg`
-- `pnpm gen:waveform` + `pnpm optimize:images`
+---
 
-**En producción:**
-- Audios pesados no van a git. Subilos a bucket (Cloudflare R2 / S3) y seteá `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev`
-- `getMediaUrl()` resuelve: si env está seteado, usa `https://bucket/audio/...`, si no, local `/media/audio/...`
-
-## 2) Agregar video
+## 0) El flujo corto (sin CLI)
 
 ```bash
-pnpm add:video
+# 1. creás la carpeta del item y soltás los archivos
+# 2. (opcional) completás el JSON — copiá el de _TEMPLATE/
+pnpm dev
 ```
 
-**Qué hace:**
-1. Pide título, ID, venue, fecha, color, YouTube ID opcional, ruta local video
-2. Copia video a `public/media/video/{id}.mp4`
-3. Intenta generar poster con ffmpeg `ffmpeg -y -i video -ss 00:00:01 -vframes 1 poster.jpg`
-4. Intenta generar preview 5s loop `ffmpeg -ss 00:00:02 -t 5 -an -vf scale=640:-2`
-5. Optimiza poster a WebP 1280x720 con sharp
-6. Escribe `content/videos/{id}.json`
+`pnpm dev` levanta el sitio y, en paralelo, un watcher de `content/`: todo lo que
+sueltes se optimiza al vuelo (`public/media/content/...`) y aparece al refrescar.
+Al hacer `pnpm build` (o el deploy de GitHub Pages) lo mismo corre automático.
 
-**Manual:**
-- Copiá `_TEMPLATE.json` en `content/videos/`
-- `src` puede ser `video/mi-video.mp4` (self-hosted) o dejar null y usar `youtubeId`
-- Poster en `media-src/images/posters/` y preview loop 3-6s en `media-src/video/previews/`
-- Si no hay poster/preview, UI usa gradiente + waveform simulada
-
-**HLS (streaming adaptativo):**
-- Generá HLS con ffmpeg: `ffmpeg -i input.mp4 -c:v libx264 -crf 22 -c:a aac -hls_time 6 -hls_playlist_type vod output.m3u8`
-- Subí a `public/media/video/hls/{id}/` o bucket, y en JSON `src: "video/hls/{id}/output.m3u8"`
-- `useHLS` hook carga hls.js dinámico
-
-## 3) Agregar show
+Si querés forzarlo a mano:
 
 ```bash
-pnpm add:show
+pnpm sync:media     # optimiza lo que haga falta (incremental) y limpia huérfanos
+pnpm watch:media    # queda mirando content/ sin levantar el sitio
 ```
 
-**Qué hace:**
-1. Pide venue, ciudad, país ISO2, fecha, IG, gallery URL, featured, ID
-2. Busca foto en `media-src/images/shows/{id}.jpg`
-3. Optimiza a WebP 800x600 en `public/media/images/shows/`
-4. Append a `content/shows.json` y sort por fecha desc
+---
 
-**Manual:**
-- Editá `content/shows.json` directo (array). Campos: id, venue, city, country, date YYYY-MM-DD, instagram, galleryUrl, photo, featured, needsReview
-- Foto original en `media-src/images/shows/fecha-venue.jpg` (ej: `2025-09-12-le-fleurus.jpg`)
+## 1) Galería por ciudad
 
-## 4) Foto del hero
+Una carpeta por ciudad, las fotos adentro. Nada más: se ordenan por nombre de
+archivo y aparecen en el carrusel de GALLERY (la primera foto es la tapa).
 
-La tarjeta del hero (al lado de "TOMMY PETERSEN" en desktop, debajo de los
-botones en mobile) muestra `public/media/images/hero/hero.webp`: una versión
-liviana (WebP 1200×1600, ~70 KB) del original `public/media/images/hero.jpg`
-(4000×3000, 1,8 MB). El original pesado no se carga en la página.
+```
+content/gallery/tandil/
+  01.jpg
+  02.jpg
+  10.jpg
+```
 
-Para cambiarla:
-1. Poné la foto nueva en `media-src/images/hero/hero.jpg` (tiene que llamarse
-   `hero`; ideal vertical 3:4 o 4:5, con la persona sin pegarse al borde
-   izquierdo: la tarjeta recorta las esquinas en diagonal).
-2. `pnpm optimize:images` → regenera `public/media/images/hero/hero.webp`
-   (respeta la rotación EXIF de las fotos de celular).
+**Opcional** `_city.json` para forzar nombre/bandera/orden:
+
+```json
+{
+  "city": "París",
+  "country": "FR",
+  "date": "2025-09-12",
+  "order": 1,
+  "cover": "03.jpg",
+  "description": "Sunset session en el Sena"
+}
+```
+
+| Campo | Para qué |
+|---|---|
+| `city` | Nombre que se muestra (si falta: el nombre de la carpeta) |
+| `country` | Código ISO2 para la bandera (si falta, se hereda del show de esa ciudad) |
+| `date` | Fecha que aparece en el lightbox |
+| `order` | Menor = aparece antes en el carrusel |
+| `cover` | Foto de tapa (si falta: la primera) |
+
+Formatos de imagen: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `tiff`.
+Podés anidar subcarpetas dentro de la ciudad si querés organizar por fecha; se
+respetan en el orden.
+
+**Derechos y peso:** las fotos se versionan en git. Bajalas a ~2000 px de ancho
+antes de subirlas para no inflar el repo (la optimización a WebP es automática).
+
+---
+
+## 2) Shows
+
+```
+content/shows/temple-caba/
+  show.json
+  hero.jpg        ← la que aparece al pasar el mouse por la fila
+```
+
+`show.json` (schema Zod en `src/lib/content.ts` → `ShowSchema`):
+
+```json
+{
+  "venue": "Temple",
+  "city": "CABA",
+  "country": "AR",
+  "date": "2026-06-27",
+  "instagram": "https://www.instagram.com/club.temple/",
+  "galleryUrl": null,
+  "hero": "hero.jpg",
+  "featured": false
+}
+```
+
+- Si no ponés `hero`, se usa la primera imagen de la carpeta.
+- `featured: true` muestra el badge en la lista.
+- `draft: true` (opcional) saca el show del sitio sin borrarlo.
+- `needsReview` es interno (nunca se renderiza).
+
+Con CLI: `pnpm add:show` crea la carpeta, copia la foto y escribe el JSON.
+
+---
+
+## 3) Temas (canciones / sets / mixes)
+
+```
+content/songs/beach-groove-126/
+  song.json
+  beach-groove-126.wav
+  cover.jpg
+```
+
+```json
+{
+  "title": "Beach Groove",
+  "artist": "Tommy Petersen",
+  "type": "track",
+  "audio": "beach-groove-126.wav",
+  "cover": "cover.jpg",
+  "bpm": 126,
+  "key": "Fm",
+  "date": "2026-01-15",
+  "genres": ["Tribal House", "House"],
+  "colorAccent": "#FF2E93",
+  "links": { "soundcloud": null, "spotify": null, "beatport": null }
+}
+```
+
+- El **id** del tema es el nombre de la carpeta.
+- Si no ponés `audio`/`cover`, se usan el primer audio y la primera imagen que
+  haya en la carpeta.
+- Si el audio es **WAV**, los peaks de la waveform y la duración se calculan
+  solos (no hacen falta ni `pnpm gen:waveform` ni `waveformPeaks` en el JSON).
+- `type`: `track` | `set` | `mix`. `draft: true` lo oculta.
+- Los audios LARGO plazo conviene servirlos desde un bucket
+  (`NEXT_PUBLIC_MEDIA_BASE_URL`) — ver más abajo.
+
+Con CLI: `pnpm add:track`.
+
+---
+
+## 4) Videos
+
+```
+content/videos/live-le-fleurus-paris/
+  video.json
+  poster.jpg
+```
+
+```json
+{
+  "title": "Live @ Le Fleurus Paris",
+  "src": null,
+  "youtubeId": null,
+  "poster": "poster.jpg",
+  "previewSrc": null,
+  "date": "2025-09-12",
+  "venue": "Le Fleurus",
+  "colorAccent": "#FF2E93"
+}
+```
+
+- `src` puede ser un archivo dentro de la carpeta (`"mi-video.mp4"`), una ruta
+  absoluta del sitio (`/media/...`) o una URL de bucket. Con `youtubeId` se usa
+  el facade de YouTube.
+- `previewSrc`: loop corto para el hover (si falta, se usa el video completo).
+- Un MP4 de más de ~100 MB: mejor a un bucket (GitHub Pages tiene límites).
+- `draft: true` lo oculta.
+
+Con CLI: `pnpm add:video` (además genera poster y preview con ffmpeg si está
+instalado).
+
+---
+
+## 5) Foto del hero
+
+La tarjeta del hero (al lado de "TOMMY PETERSEN") sigue usando
+`public/media/images/hero/hero.webp`. Para cambiarla:
+
+1. Poné la foto nueva en `media-src/images/hero/hero.jpg` (vertical 3:4 o 4:5).
+2. `pnpm optimize:images` → regenera `public/media/images/hero/hero.webp`.
 3. Commit y push.
 
-El texto alternativo (accesibilidad/SEO) está en `HERO_PHOTO.alt`, en
-`src/components/hero/Hero.tsx`.
+El texto alternativo está en `HERO_PHOTO.alt` (`src/components/hero/Hero.tsx`).
+
+---
+
+## 6) Cómo funciona la media (para entender, no hace falta tocarlo)
+
+El sitio es **estático** (`output: "export"`): Next sólo puede servir archivos
+que estén en `public/`. Por eso `scripts/sync-media.ts` copia cada imagen de
+`content/` a:
+
+```
+content/gallery/tandil/01.jpg
+        ↓  pnpm sync:media
+public/media/content/gallery/tandil/01.webp        (optimizada, máx 1920 px)
+public/media/content/gallery/tandil/01-thumb.webp  (mini, para grillas)
+```
+
+- Las reglas de nombres viven en `src/lib/content-media.ts` y las usan **los
+  loaders y el script**, así que nunca se desincronizan.
+- Audio y video se copian tal cual (no se reconvierten).
+- `public/media/content/` es generado: no se versiona y se regenera en cada
+  build. Si algo no aparece, corré `pnpm sync:media` (o mirá la consola: el
+  loader avisa qué archivo falta).
+- Con `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket` la media se sirve desde el
+  bucket (`https://bucket/content/...`): subí ahí el contenido de
+  `public/media/` tal cual.
+
+## 7) Formatos y límites
+
+| Qué | Válido |
+|---|---|
+| Imágenes | jpg, jpeg, png, webp, avif, gif, tiff → se convierten a WebP |
+| Audio | wav, mp3, m4a, aac, ogg, opus, flac, aiff |
+| Video | mp4, webm, mov, m4v, ogv, m3u8, mkv |
+
+Si una imagen no se puede leer (HEIC, por ejemplo), `sync:media` avisa y la
+saltea: pasala a JPG/PNG/WebP.
+
+---
 
 ## Scripts útiles
 
 ```bash
-pnpm gen:sample-audio   # genera 3 WAV demo tribales 124/126/122 BPM + JSON + peaks
-pnpm gen:sample-videos  # genera 4 JSON demo videos
-pnpm gen:waveform       # regenera peaks para tracks sin peaks (lee WAV)
-pnpm optimize:images    # sharp: media-src/images/* -> public/media/images/* WebP + thumbs
+pnpm dev                # sitio + watcher de content/ (soltás fotos y aparecen)
+pnpm build              # sync:media + next build (export estático)
+pnpm sync:media         # optimiza imágenes / copia media pendiente
+pnpm sync:media --force # regenera TODO (útil si cambiaste los tamaños)
+pnpm add:track          # CLI: crea content/songs/<id>/ con audio, cover y JSON
+pnpm add:show           # CLI: crea content/shows/<id>/ con hero y JSON
+pnpm add:video          # CLI: crea content/videos/<id>/ con poster/preview y JSON
+pnpm gen:waveform       # escribe los peaks en los song.json (los WAV ya se calculan solos)
+pnpm optimize:images    # solo hero/press/brand de media-src/ → public/media/
+pnpm migrate:content    # migra contenido del formato viejo (JSON suelto) al nuevo
 ```
 
-## Flujo completo 2 minutos
+## Migración desde el formato viejo
 
-1. Soltá archivo original en `media-src/` (no importa nombre perfecto, pero ideal minúsculas con guiones)
-2. `pnpm add:track` (o video/show) → responde prompts → listo
-3. `pnpm dev` → probá en /es#music o #videos o #shows
-4. Commit y push → Vercel deploy auto o Coolify Docker
+Si venías del formato plano (`content/shows.json`, `content/tracks/*.json`,
+`content/videos/*.json`), corré:
+
+```bash
+pnpm migrate:content
+```
+
+Crea las carpetas por item, mueve los archivos que cada JSON referenciaba
+(audio, cover, poster) desde `public/media/` a la carpeta del item y borra los
+archivos viejos (quedan en el historial de git). Es idempotente: no pisa nada.
 
 ## Validación Zod
 
-Todo JSON se valida en build con `src/lib/content.ts`:
-- `TrackSchema`: id, title, artist default, type track|set|mix, audioSrc nullable, cover nullable, bpm 60-200, key, duration, date, genres[], colorAccent, links{}, waveformPeaks[]
-- `VideoSchema`: id, title, src nullable, youtubeId nullable, poster, previewSrc, date, venue, colorAccent
-- `ShowSchema`: id, venue, city, country, date, instagram, galleryUrl, photo, featured, needsReview
+`src/lib/content.ts` valida todo en build y avisa por consola:
 
-Si falta cover/poster, UI genera fallback visual gradiente/shader, no hueco.
+- `TrackSchema`: title, artist, type, audio, cover, bpm (60-200), key, duration,
+  date, genres, colorAccent, links, waveformPeaks, draft.
+- `ShowSchema`: venue, city, country, date, instagram, galleryUrl, hero,
+  featured, needsReview, draft.
+- `VideoSchema`: title, src, youtubeId, poster, previewSrc, date, venue,
+  colorAccent, draft.
+- `GalleryCitySchema` (`_city.json`): city, country, date, order, description, cover.
 
-## CMS opcional (fase final)
-
-Para que cliente edite sin tocar JSON, podés agregar Keystatic o Decap CMS (git-based, sin DB):
-- Keystatic: `npm install @keystatic/core @keystatic/next` + config en `keystatic.config.ts` leyendo `content/` schemas
-- Decap: `public/admin/` con `config.yml` + `decap-cms-app`
-
-Ambos hacen commit + deploy automático. Por ahora no incluido para mantener bundle liviano.
-
-## Checklist contenido inicial
-
-- [ ] Fotos hero alta resolución `media-src/images/hero/` 2500px+ ancho
-- [ ] 2-3 temas propios WAV/MP3 + covers cuadradas 1400x1400
-- [ ] 2-3 videos 1080p MP4 + posters
-- [ ] Confirmar shows con `needsReview` en `shows.json`
-- [ ] Logo SVG/PNG transparente en `media-src/brand/`
-- [ ] Press kit PDF en `media-src/press/` (opcional)
+Si un JSON no valida, ese item se saltea con un aviso claro (el resto del sitio
+sigue andando). Si falta una imagen o un cover, la UI usa su fallback visual.

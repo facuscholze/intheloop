@@ -31,18 +31,19 @@ pnpm typecheck
 ## Estructura
 
 ```
-content/              # JSON validado con Zod (tracks, videos, shows.json, site.json)
-  tracks/_TEMPLATE.json
-  videos/_TEMPLATE.json
-  shows.json
-  site.json
-public/media/         # Generado (optimizado) - no editar a mano
-  audio/ images/ video/
-media-src/            # ORIGINALES que sube el cliente (no va a git)
-  audio/tracks/ sets/ intro/
-  video/live/ clips/ previews/
-  images/hero/ shows/ about/ press/ galleries/
-  covers/ brand/
+content/              # UNA CARPETA POR COSA (JSON + archivos + validación Zod)
+  gallery/<ciudad>/   #   fotos sueltas → aparecen solas en GALLERY
+  shows/<show>/       #   show.json + hero.jpg (foto del hover)
+  songs/<tema>/       #   song.json + audio + cover.jpg
+  videos/<video>/     #   video.json + poster.jpg (+ video)
+  site.json           #   datos del artista / contacto
+  */_TEMPLATE/        #   plantillas para copiar (las carpetas con _ se ignoran)
+public/media/         # Generado - no editar a mano
+  content/            #   derivado de content/ (WebP + thumbs) por `pnpm sync:media`
+  images/hero/ ...    #   hero/press/brand desde media-src/
+media-src/            # ORIGINALES pesados para hero/brand/press (no va a git)
+  images/hero/ about/ press/
+  brand/
 src/
   app/                # Next App Router, layout, page, globals.css, API routes
   components/
@@ -51,56 +52,56 @@ src/
   stores/             # Zustand: player, quality, ui
   hooks/ i18n/ shaders/ styles/
 messages/             # es.json / en.json (next-intl)
-scripts/              # CLI: add:track, add:video, add:show, gen:waveform, optimize:images
+scripts/              # sync-media (content → public/media), dev, migrate, CLI: add:track/add:video/add:show
 docs/                 # BRIEF, PLAN, CHECKLIST
 ```
 
 ---
 
-## Contenido — cómo agregar
+## Contenido — cada cosa en su carpeta
 
-Todo en `content/` validado con Zod (`src/lib/content.ts`). Para agregar:
+Todo vive en `content/` y se lee solo: **no hay que registrar nada en un índice**.
+Cada item es una carpeta con su JSON y sus archivos (validado con Zod en `src/lib/content.ts`).
 
-### Canción / set — 2 minutos
+```
+content/gallery/tandil/         01.jpg, 02.jpg…            → carrusel de GALLERY
+content/shows/temple-caba/      show.json + hero.jpg       → fila del show + foto del hover
+content/songs/beach-groove/     song.json + tema.wav + cover.jpg
+content/videos/live-paris/      video.json + poster.jpg
+```
 
 ```bash
-pnpm add:track
-# Te pregunta: título, ID, BPM, key, géneros, color, links SoundCloud/Spotify/Beatport
-# Busca audio en media-src/audio/tracks/{id}.wav|mp3 y cover en media-src/covers/{id}.jpg
-# Optimiza: copia audio a public/media/audio, cover a WebP 800x800 + thumb 200 + waveform peaks 120
-# Escribe content/tracks/{id}.json validado Zod
+pnpm dev        # sitio + watcher: soltás una foto en su carpeta y aparece sola
+pnpm sync:media # optimiza las imágenes a public/media/content/ (WebP + minis)
+```
+
+- **Galería:** una carpeta por ciudad, adentro las fotos. Opcional `_city.json`
+  para forzar nombre/bandera/orden.
+- **Show:** `show.json` + la foto `hero.jpg` (la del hover). Si no la nombrás
+  `hero`, se usa la primera imagen de la carpeta.
+- **Tema:** `song.json` + audio + cover. Con WAV, los peaks y la duración se
+  calculan solos.
+- **Video:** `video.json` + `poster.jpg` (+ mp4 si es self-hosted).
+
+También hay CLI interactiva que crea la carpeta, copia los archivos y escribe el JSON:
+
+```bash
+pnpm add:track   # crea content/songs/<id>/ con audio + cover + song.json
+pnpm add:show    # crea content/shows/<id>/ con hero + show.json
+pnpm add:video   # crea content/videos/<id>/ con poster/preview + video.json
 ```
 
 **Importante derechos:** solo producción propia o con permiso. Sets con tracks de terceros mejor como embed SoundCloud/YouTube (el audio reactivo real solo funciona con archivos propios por CORS).
 
-### Video — 2 minutos
-
-```bash
-pnpm add:video
-# Pide: título, ID, venue, fecha, YouTube ID, ruta video local
-# Copia video a public/media/video/{id}.mp4
-# Genera poster ffmpeg -ss 1 + preview 5s loop + optimiza WebP 1280x720
-# Escribe content/videos/{id}.json
-# Manual: src puede ser video/mi-video.mp4 o youtubeId, poster en media-src/images/posters/
-```
-
-### Show — 2 minutos
-
-```bash
-pnpm add:show
-# Pide: venue, ciudad, país, fecha, IG, gallery URL, featured, ID
-# Busca foto en media-src/images/shows/{id}.jpg -> optimiza WebP 800x600
-# Append a content/shows.json sort fecha desc
-# Manual: editá content/shows.json array directo
-```
-
-Ver guía completa: `docs/CONTENT-GUIDE.md`
+Ver guía completa: `docs/CONTENT-GUIDE.md` · resumen para el artista: `content/README.md`
 
 ### Media
 
-- Originales pesados en `media-src/` (no se sube a git).
-- Optimizados en `public/media/` (git-lfs o bucket).
-- En producción, setear `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev` y `getMediaUrl()` resuelve.
+- Las imágenes de `content/` se optimizan a `public/media/content/` con
+  `pnpm sync:media` (lo corren `pnpm dev` y `pnpm build` solos). Esa carpeta es
+  generada y no se versiona.
+- Originales pesados de hero/brand/press en `media-src/` (no se sube a git).
+- En producción, setear `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev` y `getMediaUrl()` resuelve (subí ahí `public/media/` tal cual).
 
 ---
 
@@ -220,7 +221,8 @@ Objetivo: 60fps móvil medio en Medium, LCP <2.5s, contenido principal visible s
 
 ## Checklist cliente
 
-Ver `docs/CHECKLIST-CLIENTE.md` y `content/shows.json` campo `needsReview` para nombres dudosos.
+Ver `docs/CHECKLIST-CLIENTE.md` y `needsReview` dentro de cada
+`content/shows/<show>/show.json` para nombres dudosos.
 
 ---
 

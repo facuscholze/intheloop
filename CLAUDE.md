@@ -55,11 +55,15 @@ pnpm typecheck        # tsc --noEmit
 pnpm format           # prettier
 pnpm analyze          # ANALYZE=true build
 
-pnpm add:track        # CLI agregar track (placeholder Fase 0, completo Fase 5)
-pnpm add:video
-pnpm add:show
-pnpm gen:waveform
-pnpm optimize:images
+pnpm dev              # next dev + watcher de content/ (sync-media --watch)
+pnpm sync:media       # content/ → public/media/content/ (WebP + thumbs, incremental)
+pnpm watch:media      # solo el watcher de content/
+pnpm add:track        # CLI: crea content/songs/<id>/ (audio + cover + song.json)
+pnpm add:video        # CLI: crea content/videos/<id>/ (poster/preview + video.json)
+pnpm add:show         # CLI: crea content/shows/<id>/ (hero + show.json)
+pnpm migrate:content  # migra del formato viejo (shows.json / tracks/*.json) a carpetas
+pnpm gen:waveform     # escribe peaks en los song.json (los WAV ya se calculan solos)
+pnpm optimize:images  # solo hero/press/brand de media-src/
 ```
 
 ## Estructura carpetas
@@ -84,9 +88,16 @@ src/hooks/ useLenis, useIntersectionPause
 src/i18n/ routing, request
 src/shaders/ glsl
 src/styles/ tokens.css (CSS vars paleta + audio reactive + motion)
-content/ tracks/*.json videos/*.json shows.json site.json (Zod)
-public/media/ generado (git-lfs)
-media-src/ originales (gitignored)
+content/ <tipo>/<slug>/… (una carpeta por item, Zod en src/lib/content.ts)
+  gallery/<ciudad>/ fotos sueltas + _city.json opcional
+  shows/<show>/ show.json + hero.jpg
+  songs/<tema>/ song.json + audio + cover.jpg
+  videos/<video>/ video.json + poster.jpg
+  site.json
+  */_TEMPLATE/ plantillas (carpetas con _ se ignoran)
+public/media/content/ generado por scripts/sync-media.ts (gitignored)
+public/media/ otros derivados (hero/press/brand)
+media-src/ originales pesados de hero/brand/press (gitignored)
 messages/ es.json en.json
 scripts/ CLI
 docs/ BRIEF, PLAN, CHECKLIST
@@ -122,11 +133,25 @@ docs/ BRIEF, PLAN, CHECKLIST
 
 ## Cómo agregar contenido
 
-- JSON en `content/` validado Zod. Copiar `_TEMPLATE.json`.
-- Audio original en `media-src/audio/tracks/`, cover en `media-src/covers/`.
-- Video original en `media-src/video/`, poster en `media-src/images/`.
-- Scripts `pnpm add:*` generan optimizados + waveform peaks + JSON.
-- `getMediaUrl()` resuelve local vs CDN bucket.
+Cada cosa es una CARPETA en `content/` con su JSON y sus archivos adentro:
+`gallery/<ciudad>/` (solo fotos), `shows/<show>/`, `songs/<tema>/`, `videos/<video>/`.
+Los loaders (`src/lib/content.ts`) leen las carpetas solas; nada hardcodeado y
+nada que registrar. Detalle para el artista: `content/README.md` y `docs/CONTENT-GUIDE.md`.
+
+- **Media derivada:** el sitio es `output: "export"` y solo puede servir
+  `public/`, así que `scripts/sync-media.ts` copia/optimiza cada imagen a
+  `public/media/content/<tipo>/<slug>/<nombre>.webp` (+ `-thumb.webp`), copia
+  audio/video tal cual y borra huérfanos. Es incremental (mtime) y escribe con
+  `.tmp` + rename. Lo corren `pnpm dev` (además con `--watch`) y `pnpm build`.
+- **Reglas de nombres compartidas:** `src/lib/content-media.ts` (`derivedMediaPath`,
+  `copiedMediaPath`, `resolveMediaValue`, `slugifySegment`, `pickPrimaryFile`,
+  `dedupeByDerived`). Las usan los loaders Y el script: no duplicar.
+- **FS compartido:** `src/lib/content-fs.ts` (`contentItemDirs`, `listContentFiles`,
+  `readFolderJson`, `warnOnce`, `CONTENT_DIR`, `PUBLIC_MEDIA_DIR`).
+- **Peaks/duración:** `src/lib/wav.ts` (`analyzeWav`) — los WAV se analizan en build.
+- Campo de media en el JSON: `https://` → tal cual; `/algo` → tal cual; `hero.jpg`
+  → archivo de la carpeta; `audio/viejo.wav` → formato viejo relativo a public/media.
+- `getMediaUrl()` resuelve local vs CDN bucket (`NEXT_PUBLIC_MEDIA_BASE_URL`).
 
 ## AudioEngine
 
@@ -220,6 +245,17 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - page.tsx: imports JsonLd + BookingForm + Newsletter, booking section grid md 2 cols left contact+eggs+Newsletter+press kit disabled placeholder message upload PDF media-src/press/, right BookingForm contactEmail events@intheloop.agency, footer links sitemap.xml robots.txt OG image target blank + eslint-disable for OG page, Fase 5 note
   - layout.tsx metadata: metadataBase https://www.intheloop.agency, openGraph profile es_AR/en_US, twitter summary_large_image, alternates canonical + languages es/en, keywords, authors, robots index follow
   - Build 30.7kB /[locale] 166kB First Load, OG/icon edge, sitemap 20+ entries, lint fixed
+- Fase 7 ✅ Contenido por carpetas: cada item con su carpeta (`content/gallery/<ciudad>/`,
+  `content/shows/<show>/`, `content/songs/<tema>/`, `content/videos/<video>/`), imágenes
+  al lado del JSON y auto-descubiertas; `scripts/sync-media.ts` (+ --watch) materializa
+  `public/media/content/` en WebP + thumbs con nombres compartidos (`src/lib/content-media.ts`),
+  poda huérfanos y reporta; `scripts/dev.ts` levanta next + watcher (soltás una foto y
+  aparece sola); `analyzeWav` calcula peaks/duración de los WAV en build; galería real con
+  lightbox (grilla + foto grande, flechas/Esc) alimentada por `loadGalleries()`;
+  shows con `hero`/`heroThumb` en el hover; `scripts/migrate-content.ts` migró 19 shows +
+  4 songs + 4 videos; CLI add:track/add:video/add:show reescritos a carpetas;
+  `_TEMPLATE/` + LEEME.txt por sección; docs `content/README.md` y `docs/CONTENT-GUIDE.md`
+  reescritos
 - Fase 6 ✅ A11y + Perf + Responsive + Press Kit + Deploy:
   - A11y WCAG 2.1 AA: skip link SkipLink top -100% -> 0 focus lime bg black text, main#main-content tabIndex -1, focus visible 3px lime offset 2px tokens.css --focus-ring, contrast AA fg-muted #a8a6b0 7.2:1 fg-dim #6e6c78 4.8:1 (was 4.5:1/2.8:1), touch 44px min @media max-width 768px button min 44px, keyboard Tab/Shift+Tab/Enter/Space/Esc, focus trap Menu dialog role=dialog aria-modal aria-hidden focusableElements query Tab loop Esc close restore previous focus, Player role=region aria-label aria-live polite title progressbar aria-valuenow, EnterScreen role=dialog aria-modal focus enterButtonRef reducedMotion skip, VideoCard role=button tabIndex 0 aria-label Ver video modo cine Enter/Space, Marquee role=marquee aria-label pause button aria-pressed IntersectionObserver isVisible pause, ClubMode aria-pressed aria-label reducedMotion+low tier null safe flash Math.min(beat*0.1,0.08) 200ms max 2Hz, EasterEggs FIXED flashing >3Hz: Konami 0.1s 10Hz violation -> 0.6s 1.6Hz safe, gsap duration 0.1 repeat 50 -> 0.6 repeat 8, CSS rave 0.1s infinite -> 0.6s ease-in-out, prefers-reduced-motion disable, Screensaver role=dialog aria-modal button autoFocus Esc, Counters role=region aria-label, Hero aria-label dl dt dd sr-only reducedMotion skip RGB-split, BookingForm aria-label fieldset legend sr-only labels htmlFor id aria-invalid aria-describedby error/hint role=alert focus first error autoComplete, 404 role=main aria-label h1 sr-only reducedMotion skip, PressKit role=region aria-label aria-hidden icons aria-label download, SkipLink, Header role=banner aria-label logo aria-expanded aria-controls main-menu aria-haspopup Quality group aria-pressed title Volume2/VolumeX lucide aria-hidden aria-pressed
   - Perf: bundle 32.9kB /[locale] 171kB First Load shared 103kB chunks 46.7kB+54.2kB+2.14kB middleware 46.3kB, target <150kB gz sin Three dynamic, next.config standalone optimizePackageImports lucide radix motion gsap images avif/webp remotePatterns ** headers nosniff SAMEORIGIN strict-origin, dynamic Three/R3F/drei/postprocessing High/Med only Matter.js High Tone.js Pads HLS Lenis Leva dev, next/image avif/webp sharp priority hero loading lazy, font preconnect display swap, audio WAV 22kHz mono 8s 345KB demo prod MP3 bucket peaks 120 JSON, video poster WebP 1280x720 preview 5s 640 HLS facade YouTube, LCP hero texto CTA SSR sin JS shader progressive grain 6% halos bass CSS vars, RAF IntersectionObserver useIntersectionPause pause outside viewport visibilitychange, Lenis GSAP ticker, FPS measureFPS 2.5s detect-gpu cores mem FPS prefers-reduced-motion save-data tier High/Med/Low toggle localStorage itl-quality, CSS @property bass mid beat will-change-transform only when needed, Zustand persist queue/favs Media Session keyboard crossOrigin anonymous Analyser, PerformanceMonitor dev only LCP CLS FPS tier bundle info toggle fixed bottom left
