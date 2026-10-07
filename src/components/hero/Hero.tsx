@@ -155,14 +155,12 @@ export function Hero({ countries }: { countries: string[] }) {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <MagneticButton className="bg-[var(--fg)] text-black hover:bg-[var(--accent-lime)]">
-                <a
-                  href="#booking"
-                  aria-label="Ir a formulario de booking para contratar a Tommy"
-                  className="cta rounded-full px-2 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                >
-                  BOOK TOMMY
-                </a>
+              <MagneticButton
+                href="#booking"
+                ariaLabel="Ir a formulario de booking para contratar a Tommy"
+                className="cta bg-[var(--fg)] px-8 py-4 text-black hover:bg-[var(--accent-lime)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                BOOK TOMMY
               </MagneticButton>
               <a
                 href="#music"

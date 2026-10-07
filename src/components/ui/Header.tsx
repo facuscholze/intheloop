@@ -55,13 +55,12 @@ export function Header() {
 
         {/* Book CTA - magnetic on desktop */}
         <div className="hidden md:block">
-          <MagneticButton className="bg-[var(--accent-fire)] text-xs text-black">
-            <a
-              href="#booking"
-              className="rounded-full px-2 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-            >
-              BOOK TOMMY
-            </a>
+          <MagneticButton
+            href="#booking"
+            ariaLabel="Ir a formulario de booking para contratar a Tommy"
+            className="bg-[var(--accent-fire)] px-5 py-3 text-xs text-black hover:bg-[var(--accent-gold)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          >
+            BOOK TOMMY
           </MagneticButton>
         </div>
 
