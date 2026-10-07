@@ -126,24 +126,35 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
       style={{ width: size, height: size }}
     >
       {/* Vinyl record */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-black shadow-[inset_0_0_20px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.1)]">
-        {/* Grooves */}
-        <div className="absolute inset-[4px] rounded-full border border-white/[0.05]" />
-        <div className="absolute inset-[8px] rounded-full border border-white/[0.03]" />
-        <div className="absolute inset-[12px] rounded-full border border-white/[0.05]" />
-        <div className="absolute inset-[16px] rounded-full border border-white/[0.02]" />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-black shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
+        {cover ? (
+          <div
+            className="absolute inset-[7%] overflow-hidden rounded-full border border-white/20"
+            aria-hidden="true"
+          >
+            {/* Use an img so cover URLs with spaces or encoded characters load reliably. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cover} alt="" draggable={false} className="h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25" />
+          </div>
+        ) : (
+          /* Fallback label when a track has no cover artwork. */
+          <div
+            className="absolute top-1/2 left-1/2 h-[45%] w-[45%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-black/50"
+            style={{
+              background: "radial-gradient(circle, var(--accent-fire) 0%, var(--accent-magenta) 100%)",
+            }}
+          />
+        )}
 
-        {/* Label */}
-        <div
-          className="absolute top-1/2 left-1/2 flex h-[45%] w-[45%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-black/50"
-          style={{
-            background: cover
-              ? `url(${cover}) center/cover`
-              : `radial-gradient(circle, var(--accent-fire) 0%, var(--accent-magenta) 100%)`,
-          }}
-        >
-          <div className="h-2 w-2 rounded-full bg-black shadow-[0_0_0_2px_rgba(255,255,255,0.2)]" />
-        </div>
+        {/* Grooves */}
+        <div className="absolute inset-[6%] rounded-full border border-white/[0.05]" />
+        <div className="absolute inset-[11%] rounded-full border border-white/[0.03]" />
+        <div className="absolute inset-[16%] rounded-full border border-white/[0.05]" />
+        <div className="absolute inset-[21%] rounded-full border border-white/[0.02]" />
+
+        {/* Spindle hole */}
+        <div className="absolute top-1/2 left-1/2 h-[5%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black shadow-[0_0_0_2px_rgba(255,255,255,0.2)]" />
 
         {/* Shine */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/[0.07] to-transparent" />
