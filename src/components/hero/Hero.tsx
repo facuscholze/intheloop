@@ -5,15 +5,25 @@ import { gsap } from "@/lib/motion";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { HeroShader } from "./HeroShader";
 import { HeroShaderR3F } from "./HeroShaderR3F";
-import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
+import { getMediaUrl } from "@/lib/media";
+
+/**
+ * Foto principal del hero. Es la versión optimizada (WebP 1200×1600, ~70 KB)
+ * del original `public/media/images/hero.jpg` (4000×3000, 1,8 MB).
+ * Para cambiarla: docs/CONTENT-GUIDE.md → "4) Foto del hero".
+ */
+const HERO_PHOTO = {
+  src: "images/hero/hero.webp",
+  width: 1200,
+  height: 1600,
+  alt: "Tommy Petersen tocando en vivo en la cabina, frente a los equipos Pioneer DJ",
+};
 
 export function Hero({ countries }: { countries: string[] }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subRef = useRef<HTMLParagraphElement>(null);
   const entranceRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const tier = useQualityStore((s) => s.tier);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
 
   useEffect(() => {
@@ -34,8 +44,8 @@ export function Hero({ countries }: { countries: string[] }) {
         );
       }
 
-      // Entrance animates the OUTER wrapper so it never fights the
-      // audio-reactive transform of the inner image (CSS vars)
+      // Entrance animates the OUTER wrapper (the photo card itself stays
+      // static: no audio-driven transform, see the card below)
       if (entranceRef.current) {
         gsap.fromTo(
           entranceRef.current,
@@ -56,7 +66,7 @@ export function Hero({ countries }: { countries: string[] }) {
 
   return (
     <section
-      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[var(--bg)] px-6 py-24 md:px-10"
+      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[var(--bg)] px-6 pt-24 pb-32 md:px-10 md:pb-24"
       aria-label="Hero - Tommy Petersen DJ"
     >
       {/* Shader background */}
@@ -147,8 +157,15 @@ export function Hero({ countries }: { countries: string[] }) {
               DJ y productor de Argentina. <span className="text-[var(--fg)]">Tribal House</span> /
               House / Latin grooves con texturas melódicas. Desde los 14 años.{" "}
               <em
-                className="kinetic text-[var(--accent-fire)]"
-                style={{ fontVariationSettings: `"wght" var(--bass-wght)` }}
+                className="font-bold text-[var(--accent-fire)]"
+                style={{
+                  // Brillo al ritmo del bajo. Antes variaba el grosor (wght) y
+                  // eso reacomodaba el párrafo en cada golpe: las palabras
+                  // saltaban de renglón y empujaban todo lo de abajo.
+                  textShadow: reducedMotion
+                    ? undefined
+                    : "0 0 calc(var(--bass) * 16px) rgba(255, 90, 31, 0.6)",
+                }}
               >
                 Every dancefloor has its own story.
               </em>
@@ -194,26 +211,30 @@ export function Hero({ countries }: { countries: string[] }) {
           </div>
         </div>
 
-        {/* Image with organic mask + duotone + RGB-split */}
-        <div
-          className="relative hidden md:block"
-          role="img"
-          aria-label="Composición de marca de Tommy Petersen"
-        >
+        {/* Hero photo with organic mask + brand grade + RGB-split.
+            Estática a propósito: nada de scale/translate atado al audio sobre
+            la foto (con un tema sonando latía y se veía como un parpadeo). */}
+        <div className="relative">
           <div ref={entranceRef}>
             <div
-              ref={imageRef}
-              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] will-change-transform"
-              style={{
-                clipPath: "polygon(10% 0, 100% 0, 90% 100%, 0 100%)",
-                transform:
-                  tier === "low" || reducedMotion
-                    ? "scale(1)"
-                    : "scale(calc(1 + var(--bass) * 0.05 + var(--beat) * 0.03))",
-              }}
+              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)]"
+              style={{ clipPath: "polygon(10% 0, 100% 0, 90% 100%, 0 100%)" }}
             >
+              {/* LCP en desktop: carga inmediata y prioridad alta */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getMediaUrl(HERO_PHOTO.src) ?? undefined}
+                alt={HERO_PHOTO.alt}
+                width={HERO_PHOTO.width}
+                height={HERO_PHOTO.height}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-[50%_70%]"
+              />
+              {/* Grade de marca sutil (fuego → magenta) sobre la foto */}
               <div
-                className="absolute inset-0 bg-gradient-to-br from-[var(--accent-fire)] via-[var(--bg-2)] to-[var(--accent-magenta)]"
+                className="absolute inset-0 bg-gradient-to-br from-[var(--accent-fire)]/35 via-transparent to-[var(--accent-magenta)]/35 mix-blend-soft-light"
                 aria-hidden="true"
               />
               <div
@@ -221,31 +242,28 @@ export function Hero({ countries }: { countries: string[] }) {
                 aria-hidden="true"
               />
 
-              {/* RGB-split effect layers - disabled for reduced motion */}
-              {!reducedMotion && (
-                <>
-                  <div
-                    className="absolute inset-0 opacity-60 mix-blend-screen"
-                    style={{
-                      transform: "translateX(calc(var(--bass) * 4px))",
-                      background:
-                        "linear-gradient(45deg, transparent 30%, rgba(255,90,31,0.2), transparent 70%)",
-                    }}
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="absolute inset-0 opacity-40 mix-blend-screen"
-                    style={{
-                      transform: "translateX(calc(var(--bass) * -4px))",
-                      background:
-                        "linear-gradient(-45deg, transparent 30%, rgba(255,46,147,0.2), transparent 70%)",
-                    }}
-                    aria-hidden="true"
-                  />
-                </>
-              )}
+              {/* RGB-split: bandas de color fijas (ya no se desplazan con el bajo) */}
+              <div
+                className="absolute inset-0 opacity-60 mix-blend-screen"
+                style={{
+                  background:
+                    "linear-gradient(45deg, transparent 30%, rgba(255,90,31,0.2), transparent 70%)",
+                }}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute inset-0 opacity-40 mix-blend-screen"
+                style={{
+                  background:
+                    "linear-gradient(-45deg, transparent 30%, rgba(255,46,147,0.2), transparent 70%)",
+                }}
+                aria-hidden="true"
+              />
 
-              <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6">
+              <div
+                className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6"
+                aria-hidden="true"
+              >
                 <div className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
                   Tribal House / House / Latin grooves
                 </div>
@@ -262,13 +280,13 @@ export function Hero({ countries }: { countries: string[] }) {
           </div>
 
           <div
-            className="absolute top-10 -right-6 rotate-3 rounded-full bg-[var(--accent-lime)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase"
+            className="absolute top-10 -right-3 rotate-3 rounded-full bg-[var(--accent-lime)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase md:-right-6"
             aria-hidden="true"
           >
             Tribal House
           </div>
           <div
-            className="absolute bottom-20 -left-6 -rotate-2 rounded-full bg-[var(--accent-fire)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase"
+            className="absolute bottom-32 -left-3 -rotate-2 rounded-full bg-[var(--accent-fire)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase md:-left-6"
             aria-hidden="true"
           >
             Buenos Aires → Berlín

@@ -1,45 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useQualityStore } from "@/stores/qualityStore";
-import { audioEngine } from "@/lib/audio-engine";
 
+/**
+ * Grano de película global. Opacidad FIJA por tier, a propósito: antes seguía
+ * los agudos del audio en un loop de rAF y, como esta capa cubre toda la
+ * pantalla por encima de todo (z-9999), con un tema sonando la página entera
+ * titilaba. No volver a atarla al audio.
+ */
 export function Grain() {
   const tier = useQualityStore((s) => s.tier);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (tier === "low") return;
-    // Touch/coarse: el grain está oculto por CSS (perf) — sin loop de rAF
-    if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)
-      return;
-    const el = ref.current;
-    if (!el) return;
-
-    // High-frequency value lives in a ref; ONE rAF loop for the component's
-    // lifetime. The old version had `high` in the deps and restarted this
-    // loop on every audio frame (60 cleanup+setup cycles per second).
-    let high = 0;
-    let last = -1;
-    const unsub = audioEngine?.subscribe((a) => {
-      high = a.high;
-    });
-
-    const animate = () => {
-      const target = (tier === "high" ? 0.06 : 0.04) + high * 0.08;
-      const q = Math.round(target * 200);
-      if (q !== last) {
-        last = q;
-        el.style.opacity = `${q / 200}`;
-      }
-      raf = requestAnimationFrame(animate);
-    };
-    let raf = requestAnimationFrame(animate);
-    return () => {
-      cancelAnimationFrame(raf);
-      unsub?.();
-    };
-  }, [tier]);
 
   if (tier === "low") {
     // Tier bajo: grain desactivado por completo (perf)
@@ -52,7 +22,7 @@ export function Grain() {
         className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden"
         aria-hidden="true"
       >
-        <div ref={ref} className="grain" />
+        <div className="grain" style={{ opacity: tier === "high" ? 0.06 : 0.04 }} />
       </div>
       {/* Additional canvas grain for high tier */}
       {tier === "high" && (

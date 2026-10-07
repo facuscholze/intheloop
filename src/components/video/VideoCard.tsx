@@ -93,8 +93,10 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
       tabIndex={0}
       aria-label={`Ver video ${video.title} en modo cine - ${video.venue} ${video.date}`}
       style={{
-        // CSS-var driven: no audio-rate re-renders
-        transform: !reducedMotion && isHovered ? "scale(calc(1 + var(--bass) * 0.02))" : "scale(1)",
+        // Sin escala atada al audio: con un tema sonando la miniatura latía
+        // (se veía como un parpadeo). scale(1) fijo mantiene el stacking
+        // context que recorta el zoom de la imagen con las esquinas redondeadas.
+        transform: "scale(1)",
       }}
     >
       <div
@@ -130,12 +132,6 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
           playsInline
           preload="metadata"
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          style={{
-            filter:
-              !reducedMotion && isHovered
-                ? "hue-rotate(calc(var(--bass) * 20deg)) contrast(calc(1 + var(--bass) * 0.2))"
-                : undefined,
-          }}
           aria-label={`Preview del video ${video.title}`}
         />
       ) : (

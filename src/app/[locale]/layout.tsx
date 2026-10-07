@@ -10,7 +10,6 @@ import { Preloader } from "@/components/enter/Preloader";
 import { Header } from "@/components/ui/Header";
 import { Menu } from "@/components/ui/Menu";
 import { Player } from "@/components/player/Player";
-import { ScreenShake } from "@/components/effects/ScreenShake";
 import { CineMode } from "@/components/video/CineMode";
 import { KonamiCode, Screensaver } from "@/components/effects/EasterEggs";
 import { SkipLink } from "@/components/ui/SkipLink";
@@ -101,7 +100,6 @@ export default async function LocaleLayout({
           <Providers>
             <SkipLink />
             <Grain />
-            <ScreenShake />
             <KonamiCode />
             <Screensaver />
             <Preloader />

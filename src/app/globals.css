@@ -168,12 +168,6 @@
   }
 }
 
-/* Utility for kinetic typo */
-.kinetic {
-  font-variation-settings: "wght" var(--bass-wght, 700);
-  transition: font-variation-settings 0.1s linear;
-}
-
 /* Anton (display) viene en un único peso ya ultranegro: sin faux-bold */
 .font-display {
   font-weight: 400;

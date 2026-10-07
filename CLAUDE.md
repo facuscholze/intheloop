@@ -102,6 +102,11 @@ docs/ BRIEF, PLAN, CHECKLIST
 - Motion tokens en `tokens.css`: --ease-club, --ease-tribal, --ease-smooth, duraciones.
 - Registrar GSAP en `src/lib/motion.ts` `registerGSAP()` una vez en Providers.
 - CustomEase.create club/tribal/smooth/expo.
+- **Audio-reactivo sin parpadeo** (bug real, corregido):
+  - Nunca `transform`/`filter` en `<html>`, `<body>` ni `<main>`: el ancestro pasa a ser containing block de los `position: fixed` (foto flotante de shows, lightbox de galería) y estos saltaban fuera de pantalla en cada beat. Por eso se eliminó ScreenShake.
+  - No atar al audio capas fullscreen (Grain) ni fotos/miniaturas (scale, translate, filter): titilan. La reacción va en glows, bordes, barras EQ, vinilo y shaders.
+  - Nada que cambie el layout con el audio (p. ej. `font-variation-settings` en texto que fluye: las palabras saltan de renglón).
+  - Suavizar `beat` antes de usarlo en áreas grandes: salta de 0 a 1 de golpe.
 
 ## Reglas performance
 
@@ -168,7 +173,7 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - MusicSection client: setQueue(tracks) on mount, playTrack(track,tracks), cards con cover, eq animation when current+playing, waveform 40 bars beat scale, glow radial con bass, hover scale 1.02, data-cursor play
   - 3 demo tracks generados via scripts/gen-sample-audio.ts: WAV mono 22kHz 8s ~345KB, tribal kick + shaker 16th + bassline pattern + conga + mel texture, peaks 120, JSON con bpm/key/colorAccent/waveformPeaks, audioSrc audio/*.wav
   - ClubModeToggle fixed bottom-right sobre player, ClubModeEffect overlay black 0.7-bass*0.3 + vignette + beat flash fire mix-blend-screen, .club-mode filter brightness 0.6 contrast 1.2
-  - ScreenShake: on beat>0.85 && bass>0.5, translate random intensity (beat-0.85)*bass*4 *3px, 80ms reset, disabled Low/reducedMotion
+  - ~~ScreenShake~~ eliminado: el translate en `<main>` hacía parpadear la página y los `fixed` (ver "Audio-reactivo sin parpadeo")
   - Layout: Grain+Cursor+ScreenShake+ClubModeEffect+Enter+Header+Menu+ClubToggle+Player en [locale]/layout para persistencia
   - Build verde 6.56 kB /[locale] (reducido por code splitting), lint warnings fixed
   - .gitattributes LFS comentado para demo audios pequeños, prod usar bucket NEXT_PUBLIC_MEDIA_BASE_URL

@@ -32,8 +32,8 @@ archivo es la única lista interna (no se renderiza en la UI pública).
 
 ## Fotos y media (media-src/)
 
-- [ ] Foto hero real (`media-src/images/hero/`) — hoy se muestra una
-      composición de marca.
+- [x] Foto hero real — cargada (`public/media/images/hero.jpg`, se muestra
+      optimizada desde `public/media/images/hero/hero.webp`).
 - [ ] Fotos de shows (`media-src/images/shows/<id>.jpg`).
 - [ ] Fotos de galerías (`media-src/images/galleries/`).
 - [ ] Posters de videos (`media-src/video/` + `images/posters/`).
