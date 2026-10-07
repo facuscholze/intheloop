@@ -1,86 +1,99 @@
-"use client";
+"use client"
 
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
-import { gsap } from "@/lib/motion";
-import { useUIStore } from "@/stores/uiStore";
-import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { useEffect, useRef } from "react"
+import { X } from "lucide-react"
+import { gsap } from "@/lib/motion"
+import { useUIStore } from "@/stores/uiStore"
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock"
+import { scrollToSection } from "@/lib/smooth-scroll"
 
 const links = [
   { href: "#music", label: "MUSIC", sub: "Tracks / Sets" },
   { href: "#videos", label: "VISUALS", sub: "Live / Aftermovies" },
   { href: "#shows", label: "SHOWS", sub: "Donde toqué" },
   { href: "#gallery", label: "GALLERY", sub: "Fotos" },
-  { href: "#booking", label: "BOOKING", sub: "Contratá" },
-];
+  { href: "#booking", label: "BOOKING", sub: "Contratá" }
+]
 
 export function Menu() {
-  const isOpen = useUIStore((s) => s.isMenuOpen);
-  const setOpen = useUIStore((s) => s.setMenuOpen);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const isOpen = useUIStore((s) => s.isMenuOpen)
+  const setOpen = useUIStore((s) => s.setMenuOpen)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const linksRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+  const pendingHashRef = useRef<string | null>(null)
+
+  /**
+   * Navegación con animación: el link no salta al ancla. Cerramos el menú
+   * (cortina clip-path hacia arriba) y, apenas la cortina empieza a revelar
+   * la página, arrancamos el scroll suave hacia la sección.
+   */
+  const handleNavigate = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    pendingHashRef.current = href
+    setOpen(false)
+  }
 
   // Focus trap and keyboard handling
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return
 
     // Save previous focus
-    previousFocusRef.current = document.activeElement as HTMLElement;
+    previousFocusRef.current = document.activeElement as HTMLElement
 
     // Focus close button after animation
     const timeout = setTimeout(() => {
-      closeButtonRef.current?.focus();
-    }, 300);
+      closeButtonRef.current?.focus()
+    }, 300)
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setOpen(false);
-        return;
+        setOpen(false)
+        return
       }
 
       // Focus trap
       if (e.key === "Tab" && containerRef.current) {
         const focusableElements = containerRef.current.querySelectorAll(
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0] as HTMLElement;
-        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+        )
+        const firstElement = focusableElements[0] as HTMLElement
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
 
         if (e.shiftKey) {
           if (document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement?.focus();
+            e.preventDefault()
+            lastElement?.focus()
           }
         } else {
           if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
+            e.preventDefault()
+            firstElement?.focus()
           }
         }
       }
-    };
+    }
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown)
     return () => {
-      clearTimeout(timeout);
-      document.removeEventListener("keydown", handleKeyDown);
+      clearTimeout(timeout)
+      document.removeEventListener("keydown", handleKeyDown)
       // Restore focus
-      previousFocusRef.current?.focus();
-    };
-  }, [isOpen, setOpen]);
+      previousFocusRef.current?.focus()
+    }
+  }, [isOpen, setOpen])
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return
     const ctx = gsap.context(() => {
       if (isOpen) {
-        gsap.set(containerRef.current, { display: "flex" });
+        gsap.set(containerRef.current, { display: "flex" })
         gsap.fromTo(
           containerRef.current,
           { clipPath: "inset(0 0 100% 0)" },
           { clipPath: "inset(0 0 0% 0)", duration: 0.8, ease: "club" }
-        );
+        )
         gsap.fromTo(
           linksRef.current?.querySelectorAll(".menu-link") || [],
           { y: 100, opacity: 0, rotateX: -30 },
@@ -91,28 +104,35 @@ export function Menu() {
             duration: 0.8,
             stagger: 0.06,
             ease: "power3.out",
-            delay: 0.2,
+            delay: 0.2
           }
-        );
+        )
       } else {
+        const hash = pendingHashRef.current
+        pendingHashRef.current = null
         gsap.to(containerRef.current, {
           clipPath: "inset(0 0 100% 0)",
           duration: 0.6,
           ease: "club",
-          onComplete: () => {
-            if (containerRef.current) gsap.set(containerRef.current, { display: "none" });
+          onStart: () => {
+            // El scroll empieza mientras la cortina sube: la página ya se ve
+            // deslizándose debajo, igual que la transición de CineMode.
+            if (hash) window.setTimeout(() => scrollToSection(hash), 120)
           },
-        });
+          onComplete: () => {
+            if (containerRef.current) gsap.set(containerRef.current, { display: "none" })
+          }
+        })
       }
-    });
-    return () => ctx.revert();
-  }, [isOpen]);
+    })
+    return () => ctx.revert()
+  }, [isOpen])
 
   useEffect(() => {
-    if (!isOpen) return;
-    const token = lockScroll();
-    return () => unlockScroll(token);
-  }, [isOpen]);
+    if (!isOpen) return
+    const token = lockScroll()
+    return () => unlockScroll(token)
+  }, [isOpen])
 
   return (
     <div
@@ -155,7 +175,7 @@ export function Menu() {
             <a
               key={link.href}
               href={link.href}
-              onClick={() => setOpen(false)}
+              onClick={(e) => handleNavigate(e, link.href)}
               className="menu-link group flex items-baseline gap-6 overflow-hidden rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-lime)]"
             >
               <span className="font-display text-[clamp(44px,11vw,128px)] leading-none font-bold tracking-tight transition-colors group-hover:text-[var(--accent-fire)] group-focus-visible:text-[var(--accent-fire)]">
@@ -216,5 +236,5 @@ export function Menu() {
         </div>
       </div>
     </div>
-  );
+  )
 }

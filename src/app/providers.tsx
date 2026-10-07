@@ -5,6 +5,7 @@ import { registerGSAP } from "@/lib/motion";
 import { useLenis } from "@/hooks/useLenis";
 import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
+import { installAnchorScroll } from "@/lib/smooth-scroll";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const reducedMotion = useUIStore((s) => s.reducedMotion);
@@ -14,6 +15,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     registerGSAP();
   }, []);
+
+  // Links internos (#music, #booking...) con scroll animado en vez de salto
+  useEffect(() => installAnchorScroll(), []);
 
   // Lenis smooth scroll - only after enter and not reduced motion
   useLenis(hasEntered && !reducedMotion);
