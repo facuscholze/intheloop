@@ -302,7 +302,10 @@ export function GalleryCarousel() {
                   className="pointer-events-none absolute inset-0 rounded-[1.75rem]"
                   style={{
                     boxShadow: "inset 0 0 0 1px var(--accent-gold)",
-                    scale: "calc(1 + var(--beat) * 0.012)"
+                    scale: "calc(1 + var(--beat) * 0.012)",
+                    // Suaviza el salto 0→1 del beat (antes el aro "pegaba" un
+                    // salto seco en cada golpe y la tapa parecía parpadear)
+                    transition: "scale 150ms ease-out"
                   }}
                   aria-hidden="true"
                 />

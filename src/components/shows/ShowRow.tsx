@@ -28,13 +28,9 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
     >
       <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-6">
         <div className="flex items-center gap-3">
-          <div
-            className="font-display text-2xl font-bold tracking-tight uppercase transition-colors group-hover:text-[var(--accent-fire)] md:text-3xl"
-            style={{
-              // CSS vars: beat pulse without re-rendering every row at 60fps
-              scale: "calc(1 + max(0, var(--beat) - 0.8) * 0.1)",
-            }}
-          >
+          {/* Sin pulso al beat: todas las filas "saltaban" a la vez en cada
+              golpe y la lista entera parecía parpadear */}
+          <div className="font-display text-2xl font-bold tracking-tight uppercase transition-colors group-hover:text-[var(--accent-fire)] md:text-3xl">
             {show.venue}
           </div>
           {show.featured && (

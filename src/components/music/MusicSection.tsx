@@ -54,11 +54,9 @@ const TrackCard = memo(function TrackCard({ track, tracks }: CardProps) {
 
   return (
     <div
+      // Sin escala al beat en la tarjeta que suena: latía con la tapa adentro
+      // y se veía como un parpadeo. El ritmo ya lo marcan las barras de abajo.
       className={`group relative overflow-hidden rounded-[1.5rem] border bg-[var(--bg)] p-6 transition-all hover:scale-[1.02] ${isCurrent ? "border-[var(--accent-fire)] shadow-[0_0_30px_rgba(255,90,31,0.2)]" : "border-[var(--border)] hover:border-[var(--accent-fire)]/50"}`}
-      style={{
-        // CSS-var driven: beat pulse without re-rendering at audio rate
-        scale: isCurrent ? "calc(1 + var(--beat) * 0.02)" : undefined,
-      }}
     >
       {/* Glow */}
       <div

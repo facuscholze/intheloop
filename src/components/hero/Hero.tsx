@@ -5,7 +5,6 @@ import { gsap } from "@/lib/motion";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { HeroShader } from "./HeroShader";
 import { HeroShaderR3F } from "./HeroShaderR3F";
-import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
 import { getMediaUrl } from "@/lib/media";
 
@@ -25,8 +24,6 @@ export function Hero({ countries }: { countries: string[] }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subRef = useRef<HTMLParagraphElement>(null);
   const entranceRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const tier = useQualityStore((s) => s.tier);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
 
   useEffect(() => {
@@ -47,8 +44,8 @@ export function Hero({ countries }: { countries: string[] }) {
         );
       }
 
-      // Entrance animates the OUTER wrapper so it never fights the
-      // audio-reactive transform of the inner image (CSS vars)
+      // Entrance animates the OUTER wrapper (the photo card itself stays
+      // static: no audio-driven transform, see the card below)
       if (entranceRef.current) {
         gsap.fromTo(
           entranceRef.current,
@@ -160,8 +157,15 @@ export function Hero({ countries }: { countries: string[] }) {
               DJ y productor de Argentina. <span className="text-[var(--fg)]">Tribal House</span> /
               House / Latin grooves con texturas melódicas. Desde los 14 años.{" "}
               <em
-                className="kinetic text-[var(--accent-fire)]"
-                style={{ fontVariationSettings: `"wght" var(--bass-wght)` }}
+                className="font-bold text-[var(--accent-fire)]"
+                style={{
+                  // Brillo al ritmo del bajo. Antes variaba el grosor (wght) y
+                  // eso reacomodaba el párrafo en cada golpe: las palabras
+                  // saltaban de renglón y empujaban todo lo de abajo.
+                  textShadow: reducedMotion
+                    ? undefined
+                    : "0 0 calc(var(--bass) * 16px) rgba(255, 90, 31, 0.6)",
+                }}
               >
                 Every dancefloor has its own story.
               </em>
@@ -207,19 +211,14 @@ export function Hero({ countries }: { countries: string[] }) {
           </div>
         </div>
 
-        {/* Hero photo with organic mask + brand grade + RGB-split */}
+        {/* Hero photo with organic mask + brand grade + RGB-split.
+            Estática a propósito: nada de scale/translate atado al audio sobre
+            la foto (con un tema sonando latía y se veía como un parpadeo). */}
         <div className="relative">
           <div ref={entranceRef}>
             <div
-              ref={imageRef}
-              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)] will-change-transform"
-              style={{
-                clipPath: "polygon(10% 0, 100% 0, 90% 100%, 0 100%)",
-                transform:
-                  tier === "low" || reducedMotion
-                    ? "scale(1)"
-                    : "scale(calc(1 + var(--bass) * 0.05 + var(--beat) * 0.03))",
-              }}
+              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--bg-2)]"
+              style={{ clipPath: "polygon(10% 0, 100% 0, 90% 100%, 0 100%)" }}
             >
               {/* LCP en desktop: carga inmediata y prioridad alta */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -243,29 +242,23 @@ export function Hero({ countries }: { countries: string[] }) {
                 aria-hidden="true"
               />
 
-              {/* RGB-split effect layers - disabled for reduced motion */}
-              {!reducedMotion && (
-                <>
-                  <div
-                    className="absolute inset-0 opacity-60 mix-blend-screen"
-                    style={{
-                      transform: "translateX(calc(var(--bass) * 4px))",
-                      background:
-                        "linear-gradient(45deg, transparent 30%, rgba(255,90,31,0.2), transparent 70%)",
-                    }}
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="absolute inset-0 opacity-40 mix-blend-screen"
-                    style={{
-                      transform: "translateX(calc(var(--bass) * -4px))",
-                      background:
-                        "linear-gradient(-45deg, transparent 30%, rgba(255,46,147,0.2), transparent 70%)",
-                    }}
-                    aria-hidden="true"
-                  />
-                </>
-              )}
+              {/* RGB-split: bandas de color fijas (ya no se desplazan con el bajo) */}
+              <div
+                className="absolute inset-0 opacity-60 mix-blend-screen"
+                style={{
+                  background:
+                    "linear-gradient(45deg, transparent 30%, rgba(255,90,31,0.2), transparent 70%)",
+                }}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute inset-0 opacity-40 mix-blend-screen"
+                style={{
+                  background:
+                    "linear-gradient(-45deg, transparent 30%, rgba(255,46,147,0.2), transparent 70%)",
+                }}
+                aria-hidden="true"
+              />
 
               <div
                 className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6"

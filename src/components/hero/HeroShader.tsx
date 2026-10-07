@@ -59,13 +59,23 @@ export function HeroShader() {
       { x: 0.5, y: 0.2, r: 0.2, color: [200, 255, 0] }, // lime
     ];
 
+    // Suavizado propio, igual que el shader R3F: el `beat` crudo salta de 0 a 1
+    // de golpe y los blobs se inflaban un 50% en cada bombo — un flash en todo
+    // el hero con cada golpe. Así laten, pero sin parpadear.
+    const smooth = { bass: 0, mid: 0, beat: 0 };
+
     const draw = () => {
       if (!isVisibleRef.current) {
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
 
-      const { bass, mid, high, beat } = audioRef.current;
+      const a = audioRef.current;
+      smooth.bass += (a.bass - smooth.bass) * 0.1;
+      smooth.mid += (a.mid - smooth.mid) * 0.1;
+      smooth.beat += (a.beat - smooth.beat) * 0.2;
+      const { bass, mid, beat } = smooth;
+      const high = a.high;
 
       timeRef.current += 0.008 + bass * 0.02;
       const t = timeRef.current;
