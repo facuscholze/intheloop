@@ -21,13 +21,13 @@ export default function HomePage() {
   // Stats calculadas desde content/shows.json (nada hardcodeado)
   const countries = Array.from(new Set(shows.map((s) => s.country))).sort();
 
-  const COUNTRY_META: Record<string, { name: string; flag: string }> = {
-    AR: { name: "Argentina", flag: "\u{1F1E6}\u{1F1F7}" },
-    BR: { name: "Brasil", flag: "\u{1F1E7}\u{1F1F7}" },
-    CZ: { name: "Chequia", flag: "\u{1F1E8}\u{1F1FF}" },
-    DE: { name: "Alemania", flag: "\u{1F1E9}\u{1F1EA}" },
-    ES: { name: "España", flag: "\u{1F1EA}\u{1F1F8}" },
-    FR: { name: "Francia", flag: "\u{1F1EB}\u{1F1F7}" },
+  const COUNTRY_META: Record<string, { name: string }> = {
+    AR: { name: "Argentina" },
+    BR: { name: "Brasil" },
+    CZ: { name: "Chequia" },
+    DE: { name: "Alemania" },
+    ES: { name: "España" },
+    FR: { name: "Francia" },
   };
 
   // Grilla de países: legible al primer vistazo (reemplaza la ruta animada)
@@ -36,7 +36,6 @@ export default function HomePage() {
     return {
       code,
       name: COUNTRY_META[code]?.name ?? code,
-      flag: COUNTRY_META[code]?.flag ?? "\u{1F3F3}\u{FE0F}",
       shows: list.length,
       cities: Array.from(
         new Set(list.map((s) => s.city).filter((c): c is string => Boolean(c)))

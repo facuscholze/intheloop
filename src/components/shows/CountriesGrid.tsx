@@ -1,14 +1,15 @@
 interface CountryStat {
   code: string;
   name: string;
-  flag: string;
   shows: number;
   cities: string[];
 }
 
 /**
- * Mapa de países sin mapa: grilla directa y legible con bandera, país,
+ * Mapa de países sin mapa: grilla directa y legible con código ISO, país,
  * cantidad de shows y ciudades donde Tommy tocó. Reemplaza la ruta animada.
+ * Sin banderas: el código + nombre se lee igual en mobile y desktop
+ * (AR Argentina, BR Brasil).
  */
 export function CountriesGrid({ stats }: { stats: CountryStat[] }) {
   return (
@@ -37,9 +38,9 @@ export function CountriesGrid({ stats }: { stats: CountryStat[] }) {
             />
             <div className="relative flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl leading-none md:text-4xl" aria-hidden="true">
-                    {c.flag}
+                <div className="flex items-baseline gap-2.5">
+                  <span className="font-mono text-sm tracking-[0.18em] text-[var(--accent-gold)] md:text-base">
+                    {c.code}
                   </span>
                   <span className="font-display text-lg leading-tight uppercase md:text-xl">
                     {c.name}
