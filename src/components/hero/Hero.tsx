@@ -7,6 +7,19 @@ import { HeroShader } from "./HeroShader";
 import { HeroShaderR3F } from "./HeroShaderR3F";
 import { useQualityStore } from "@/stores/qualityStore";
 import { useUIStore } from "@/stores/uiStore";
+import { getMediaUrl } from "@/lib/media";
+
+/**
+ * Foto principal del hero. Es la versión optimizada (WebP 1200×1600, ~70 KB)
+ * del original `public/media/images/hero.jpg` (4000×3000, 1,8 MB).
+ * Para cambiarla: docs/CONTENT-GUIDE.md → "4) Foto del hero".
+ */
+const HERO_PHOTO = {
+  src: "images/hero/hero.webp",
+  width: 1200,
+  height: 1600,
+  alt: "Tommy Petersen tocando en vivo en la cabina, frente a los equipos Pioneer DJ",
+};
 
 export function Hero({ countries }: { countries: string[] }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -56,7 +69,7 @@ export function Hero({ countries }: { countries: string[] }) {
 
   return (
     <section
-      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[var(--bg)] px-6 py-24 md:px-10"
+      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[var(--bg)] px-6 pt-24 pb-32 md:px-10 md:pb-24"
       aria-label="Hero - Tommy Petersen DJ"
     >
       {/* Shader background */}
@@ -194,12 +207,8 @@ export function Hero({ countries }: { countries: string[] }) {
           </div>
         </div>
 
-        {/* Image with organic mask + duotone + RGB-split */}
-        <div
-          className="relative hidden md:block"
-          role="img"
-          aria-label="Composición de marca de Tommy Petersen"
-        >
+        {/* Hero photo with organic mask + brand grade + RGB-split */}
+        <div className="relative">
           <div ref={entranceRef}>
             <div
               ref={imageRef}
@@ -212,8 +221,21 @@ export function Hero({ countries }: { countries: string[] }) {
                     : "scale(calc(1 + var(--bass) * 0.05 + var(--beat) * 0.03))",
               }}
             >
+              {/* LCP en desktop: carga inmediata y prioridad alta */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getMediaUrl(HERO_PHOTO.src) ?? undefined}
+                alt={HERO_PHOTO.alt}
+                width={HERO_PHOTO.width}
+                height={HERO_PHOTO.height}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-[50%_70%]"
+              />
+              {/* Grade de marca sutil (fuego → magenta) sobre la foto */}
               <div
-                className="absolute inset-0 bg-gradient-to-br from-[var(--accent-fire)] via-[var(--bg-2)] to-[var(--accent-magenta)]"
+                className="absolute inset-0 bg-gradient-to-br from-[var(--accent-fire)]/35 via-transparent to-[var(--accent-magenta)]/35 mix-blend-soft-light"
                 aria-hidden="true"
               />
               <div
@@ -245,7 +267,10 @@ export function Hero({ countries }: { countries: string[] }) {
                 </>
               )}
 
-              <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6">
+              <div
+                className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6"
+                aria-hidden="true"
+              >
                 <div className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
                   Tribal House / House / Latin grooves
                 </div>
@@ -262,13 +287,13 @@ export function Hero({ countries }: { countries: string[] }) {
           </div>
 
           <div
-            className="absolute top-10 -right-6 rotate-3 rounded-full bg-[var(--accent-lime)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase"
+            className="absolute top-10 -right-3 rotate-3 rounded-full bg-[var(--accent-lime)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase md:-right-6"
             aria-hidden="true"
           >
             Tribal House
           </div>
           <div
-            className="absolute bottom-20 -left-6 -rotate-2 rounded-full bg-[var(--accent-fire)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase"
+            className="absolute bottom-32 -left-3 -rotate-2 rounded-full bg-[var(--accent-fire)] px-4 py-1 font-mono text-[10px] font-bold tracking-widest text-black uppercase md:-left-6"
             aria-hidden="true"
           >
             Buenos Aires → Berlín

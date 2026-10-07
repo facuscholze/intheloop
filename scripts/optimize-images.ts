@@ -31,12 +31,16 @@ async function optimizeDir(srcDir: string, destDir: string, options: { width?: n
     const destThumb = path.join(destDir, `${name}-thumb.webp`);
 
     try {
+      // .rotate() sin argumentos = aplicar la orientación EXIF. Las fotos de
+      // celular suelen venir guardadas "acostadas" + flag EXIF (ej. la foto
+      // del hero: 4000×3000 con orientation 8); sin esto el WebP sale de costado.
       await sharp(srcPath)
+        .rotate()
         .resize(options.width || 1280, options.height || undefined, { fit: "inside", withoutEnlargement: true })
         .webp({ quality: 80 })
         .toFile(destWebP);
 
-      await sharp(srcPath).resize(400, 400, { fit: "cover" }).webp({ quality: 70 }).toFile(destThumb);
+      await sharp(srcPath).rotate().resize(400, 400, { fit: "cover" }).webp({ quality: 70 }).toFile(destThumb);
 
       console.log(`✅ ${srcPath} -> ${destWebP} + thumb`);
     } catch (e) {

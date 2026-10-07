@@ -71,6 +71,24 @@ pnpm add:show
 - Editá `content/shows.json` directo (array). Campos: id, venue, city, country, date YYYY-MM-DD, instagram, galleryUrl, photo, featured, needsReview
 - Foto original en `media-src/images/shows/fecha-venue.jpg` (ej: `2025-09-12-le-fleurus.jpg`)
 
+## 4) Foto del hero
+
+La tarjeta del hero (al lado de "TOMMY PETERSEN" en desktop, debajo de los
+botones en mobile) muestra `public/media/images/hero/hero.webp`: una versión
+liviana (WebP 1200×1600, ~70 KB) del original `public/media/images/hero.jpg`
+(4000×3000, 1,8 MB). El original pesado no se carga en la página.
+
+Para cambiarla:
+1. Poné la foto nueva en `media-src/images/hero/hero.jpg` (tiene que llamarse
+   `hero`; ideal vertical 3:4 o 4:5, con la persona sin pegarse al borde
+   izquierdo: la tarjeta recorta las esquinas en diagonal).
+2. `pnpm optimize:images` → regenera `public/media/images/hero/hero.webp`
+   (respeta la rotación EXIF de las fotos de celular).
+3. Commit y push.
+
+El texto alternativo (accesibilidad/SEO) está en `HERO_PHOTO.alt`, en
+`src/components/hero/Hero.tsx`.
+
 ## Scripts útiles
 
 ```bash
