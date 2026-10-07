@@ -119,8 +119,9 @@ function generatePeaks(samples: Float32Array, numPeaks = 100): number[] {
   return peaks;
 }
 
-const outputDir = path.join(process.cwd(), "public/media/audio");
-fs.mkdirSync(outputDir, { recursive: true });
+// Cada tema vive en su carpeta: content/songs/<id>/ (audio + song.json).
+const songsDir = path.join(process.cwd(), "content/songs");
+fs.mkdirSync(songsDir, { recursive: true });
 
 const tracks = [
   { id: "tribal-sunset-124", title: "Tribal Sunset", bpm: 124, root: 55, var: 0.3 }, // A1
@@ -131,23 +132,21 @@ const tracks = [
 for (const track of tracks) {
   console.log(`Generating ${track.id} - ${track.bpm} BPM...`);
   const samples = generateTribalTrack(track.bpm, track.root, track.var);
-  const wavPath = path.join(outputDir, `${track.id}.wav`);
+  const itemDir = path.join(songsDir, track.id);
+  fs.mkdirSync(itemDir, { recursive: true });
+  const wavPath = path.join(itemDir, `${track.id}.wav`);
   writeWavFile(wavPath, samples);
 
   const peaks = generatePeaks(samples, 120);
   console.log(`  -> ${wavPath} (${(fs.statSync(wavPath).size / 1024).toFixed(1)} KB)`);
   console.log(`  -> Peaks: [${peaks.slice(0, 5).join(", ")}...]`);
 
-  // Also write peaks to content file later
-  const contentDir = path.join(process.cwd(), "content/tracks");
-  fs.mkdirSync(contentDir, { recursive: true });
-  const jsonPath = path.join(contentDir, `${track.id}.json`);
+  const jsonPath = path.join(itemDir, "song.json");
   const json = {
-    id: track.id,
     title: track.title,
     artist: "Tommy Petersen",
     type: "track",
-    audioSrc: `audio/${track.id}.wav`,
+    audio: `${track.id}.wav`,
     cover: null,
     bpm: track.bpm,
     key: track.id === "tribal-sunset-124" ? "Am" : track.id === "beach-groove-126" ? "Fm" : "Gm",
@@ -158,9 +157,9 @@ for (const track of tracks) {
     links: { soundcloud: null, spotify: null, beatport: null },
     waveformPeaks: peaks,
   };
-  fs.writeFileSync(jsonPath, JSON.stringify(json, null, 2));
+  fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`);
   console.log(`  -> ${jsonPath}`);
 }
 
-console.log("\n✅ 3 demo tracks generated in public/media/audio/ + content/tracks/");
+console.log("\n✅ 3 demo tracks generados en content/songs/<id>/ (audio + song.json)");
 console.log("Note: WAV files are small (mono 22kHz 8s ~ 350KB each) for dev. In production, convert to MP3/AAC and upload to bucket.");

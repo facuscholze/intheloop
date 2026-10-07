@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
   output: "export",
   reactStrictMode: true,
   poweredByHeader: false,
+  // Dev server detrás de un proxy (preview remota, ngrok, Codespaces…): sin
+  // esto Next bloquea los requests cross-origin a /_next/* en modo dev.
+  // No afecta al build estático.
+  allowedDevOrigins: ["*.e2b.app", "*.arena.ai", "*.ngrok-free.app", "*.trycloudflare.com"],
   // GitHub Pages sirve rutas con trailing slash (`/es/` -> `es/index.html`)
   trailingSlash: true,
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),

@@ -1,93 +1,89 @@
 #!/usr/bin/env tsx
 /**
  * pnpm add:show
- * CLI para agregar show a shows.json + foto
+ * CLI para agregar un show: crea su carpeta en `content/shows/<id>/` con el
+ * `show.json` y la imagen hero (la que aparece al pasar el mouse).
+ *
+ * También podés hacerlo a mano: copiá `content/shows/_TEMPLATE/` a
+ * `content/shows/<id>/` y soltá ahí la foto.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { ShowSchema } from "../src/lib/content";
-import { prompt, slugify, logSuccess, logWarn } from "../src/lib/cli";
+import path from "node:path"
+import { ShowSchema } from "../src/lib/content"
+import {
+  copyIntoContentFolder,
+  findFirstExisting,
+  logStep,
+  logSuccess,
+  logWarn,
+  prompt,
+  slugify
+} from "../src/lib/cli"
 
 async function main() {
-  console.log("📍 In The Loop — Agregar Show\n");
+  console.log("📍 In The Loop — Agregar Show\n")
 
-  const venue = await prompt("Venue", "Nombre del venue");
-  const city = await prompt("Ciudad", "CABA");
-  const country = await prompt("País (ISO2 ej: AR, ES, BR, FR, DE, CZ)", "AR");
-  const date = await prompt("Fecha (YYYY-MM-DD)", new Date().toISOString().slice(0, 10));
-  const instagram = await prompt("Instagram del venue (url)", "");
-  const galleryUrl = await prompt("Gallery URL OneDrive (opcional)", "");
-  const featured = (await prompt("Featured? (y/n)", "n")).toLowerCase() === "y";
-  const id = slugify(await prompt("ID", `${date}-${slugify(venue)}`));
+  const venue = await prompt("Venue", "Nombre del venue")
+  const city = await prompt("Ciudad", "CABA")
+  const country = await prompt("País (ISO2 ej: AR, ES, BR, FR, DE, CZ)", "AR")
+  const date = await prompt("Fecha (YYYY-MM-DD)", new Date().toISOString().slice(0, 10))
+  const id = slugify(await prompt("ID (nombre de la carpeta)", `${date}-${slugify(venue)}`))
+  const instagram = await prompt("Instagram del venue (url, opcional)", "")
+  const galleryUrl = await prompt("Gallery URL OneDrive (opcional)", "")
+  const featured = (await prompt("Featured? (y/n)", "n")).toLowerCase() === "y"
 
-  // Foto
-  const photoInput = await prompt("Ruta foto en media-src/images/shows/ (opcional)", "");
-  let finalPhoto: string | null = null;
+  // Imagen hero: la foto que aparece en el hover de la fila.
+  logStep("Imagen hero (opcional)")
+  const heroInput = await prompt(
+    "Ruta de la imagen (Enter para buscar sola en media-src/images/shows/)",
+    ""
+  )
+  const heroSource =
+    heroInput ||
+    findFirstExisting([
+      `media-src/images/shows/${id}.jpg`,
+      `media-src/images/shows/${id}.jpeg`,
+      `media-src/images/shows/${id}.png`,
+      `media-src/images/shows/${id}.webp`,
+      `media-src/images/shows/${date}-${slugify(venue)}.jpg`
+    ])
 
-  const publicShowDir = "public/media/images/shows";
-  fs.mkdirSync(publicShowDir, { recursive: true });
-
-  const candidates = [photoInput, `media-src/images/shows/${id}.jpg`, `media-src/images/shows/${date}-${slugify(venue)}.jpg`].filter(Boolean) as string[];
-
-  for (const c of candidates) {
-    if (fs.existsSync(c)) {
-      try {
-        const sharp = (await import("sharp")).default;
-        const dest = path.join(publicShowDir, `${id}.webp`);
-        await sharp(c).resize(800, 600, { fit: "cover" }).webp({ quality: 80 }).toFile(dest);
-        finalPhoto = `images/shows/${id}.webp`;
-        logSuccess(`Foto optimizada ${dest}`);
-        break;
-      } catch {
-        const ext = path.extname(c);
-        const dest = path.join(publicShowDir, `${id}${ext}`);
-        fs.copyFileSync(c, dest);
-        finalPhoto = `images/shows/${id}${ext}`;
-        logSuccess(`Foto copiada ${dest}`);
-        break;
-      }
-    }
-  }
-
-  if (!finalPhoto) logWarn("Sin foto, se usará placeholder gradient en UI");
+  const itemDir = path.join("content", "shows", id)
+  const hero = heroSource ? copyIntoContentFolder(heroSource, itemDir, "hero") : null
+  if (!hero) logWarn("Sin foto hero: la fila usa el degradado de marca. Podés soltarla después.")
 
   const showData = {
-    id,
     venue,
     city,
     country: country.toUpperCase(),
     date,
     instagram: instagram || null,
     galleryUrl: galleryUrl || null,
-    photo: finalPhoto,
+    hero,
     featured,
-    needsReview: null,
-  };
-
-  const parsed = ShowSchema.safeParse(showData);
-  if (!parsed.success) {
-    console.error("Zod error", parsed.error.flatten());
-    process.exit(1);
+    needsReview: null
   }
 
-  const showsPath = "content/shows.json";
-  const raw = fs.existsSync(showsPath) ? JSON.parse(fs.readFileSync(showsPath, "utf-8")) : [];
-  raw.push(parsed.data);
+  const parsed = ShowSchema.safeParse(showData)
+  if (!parsed.success) {
+    console.error("❌ Validación Zod falló:", parsed.error.flatten())
+    process.exit(1)
+  }
 
-  // Sort recent first
-  raw.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const jsonPath = path.join(itemDir, "show.json")
+  const { writeFileSync, mkdirSync } = await import("node:fs")
+  mkdirSync(itemDir, { recursive: true })
+  writeFileSync(jsonPath, `${JSON.stringify(parsed.data, null, 2)}\n`)
+  logSuccess(`JSON escrito en ${jsonPath}`)
 
-  fs.writeFileSync(showsPath, JSON.stringify(raw, null, 2));
-  logSuccess(`Show agregado a ${showsPath} (${raw.length} total)`);
-
-  console.log("\n✅ Show agregado!");
-  console.log(`   - ${venue} - ${city} ${country} ${date}`);
-  console.log(`   - Foto: ${finalPhoto || "placeholder"}`);
-  console.log("\nProbá en /es#shows + filtros + mapa");
+  console.log("\n✅ Show agregado!")
+  console.log(`   - ${venue} — ${city} ${country.toUpperCase()} ${date}`)
+  console.log(`   - Carpeta: ${itemDir}`)
+  console.log(`   - Hero: ${hero ?? "sin imagen (soltá una en la carpeta)"}`)
+  console.log("\nSiguiente: `pnpm sync:media` (o `pnpm dev`, que ya lo hace solo) y mirá /es#shows")
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})

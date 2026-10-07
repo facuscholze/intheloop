@@ -1,61 +1,67 @@
 #!/usr/bin/env tsx
 /**
  * pnpm gen:waveform
- * Genera waveform peaks para todos los tracks que no tengan o regenera
- * Lee WAV (PCM 16-bit) y calcula max por bloque
+ *
+ * Genera los peaks de la waveform para los temas que no los tengan.
+ * Ojo: ya no hace falta correrlo — si el audio es WAV, `content.ts` los calcula
+ * solo en build. Este script sirve para dejarlos escritos en el `song.json`.
+ *
+ * Uso: pnpm gen:waveform [--force]
  */
+import fs from "node:fs"
+import path from "node:path"
+import { contentItemDirs, listContentFiles, PUBLIC_MEDIA_DIR } from "../src/lib/content-fs"
+import { analyzeWav } from "../src/lib/wav"
+import { extname, slugifySegment, sortContentFiles, isAudioFile } from "../src/lib/content-media"
 
-import fs from "node:fs";
-import path from "node:path";
+const force = process.argv.includes("--force")
 
-const tracksDir = "content/tracks";
-
-function genPeaksFromWav(wavPath: string, numPeaks = 120): number[] {
-  const buffer = fs.readFileSync(wavPath);
-  const data = buffer.slice(44); // skip header
-  const blockSize = Math.floor(data.length / 2 / numPeaks);
-  const peaks: number[] = [];
-  for (let i = 0; i < numPeaks; i++) {
-    let max = 0;
-    for (let j = 0; j < blockSize; j++) {
-      const idx = i * blockSize * 2 + j * 2;
-      if (idx + 1 < data.length) {
-        const sample = Math.abs(data.readInt16LE(idx) / 32768);
-        max = Math.max(max, sample);
-      }
-    }
-    peaks.push(Math.round(max * 100) / 100);
-  }
-  return peaks;
+/** Ruta local del audio: primero la carpeta del tema, después el formato viejo. */
+function resolveAudioPath(value: string | null | undefined, itemDir: string, files: string[]) {
+  if (!value || /^(https?:)?\/\//i.test(value)) return null
+  const rel = value.trim().replace(/^\.\//, "").replace(/^\/+/, "")
+  const wanted = slugifySegment(rel)
+  const inFolder = files.find(
+    (f) => f.toLowerCase() === rel.toLowerCase() || slugifySegment(f) === wanted
+  )
+  if (inFolder) return path.join(itemDir, inFolder)
+  const legacy = path.join(PUBLIC_MEDIA_DIR, rel.replace(/^media\//, ""))
+  return fs.existsSync(legacy) ? legacy : null
 }
 
-const files = fs.readdirSync(tracksDir).filter((f) => f.endsWith(".json") && !f.startsWith("_"));
+let updated = 0
+for (const { slug, dir } of contentItemDirs("songs")) {
+  const jsonPath = path.join(dir, "song.json")
+  if (!fs.existsSync(jsonPath)) {
+    console.log(`⏭️  content/songs/${slug}/ sin song.json`)
+    continue
+  }
+  const json = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
 
-for (const file of files) {
-  const filePath = path.join(tracksDir, file);
-  const json = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
-  if (json.waveformPeaks && json.waveformPeaks.length > 0) {
-    console.log(`⏭️  ${file} ya tiene peaks (${json.waveformPeaks.length})`);
-    continue;
+  if (!force && Array.isArray(json.waveformPeaks) && json.waveformPeaks.length > 0) {
+    console.log(`⏭️  ${slug}: ya tiene peaks (${json.waveformPeaks.length})`)
+    continue
   }
 
-  const audioSrc = json.audioSrc;
-  if (!audioSrc) {
-    console.log(`⚠️  ${file} sin audioSrc, usando random`);
-    json.waveformPeaks = Array.from({ length: 120 }, () => Math.round((0.2 + Math.random() * 0.8) * 100) / 100);
-  } else {
-    const wavPath = path.join("public/media", audioSrc);
-    if (fs.existsSync(wavPath) && wavPath.endsWith(".wav")) {
-      json.waveformPeaks = genPeaksFromWav(wavPath);
-      console.log(`✅ ${file} peaks generados desde ${wavPath}`);
-    } else {
-      console.log(`⚠️  ${file} audio no es WAV o no existe (${wavPath}), random`);
-      json.waveformPeaks = Array.from({ length: 120 }, () => Math.round((0.2 + Math.random() * 0.8) * 100) / 100);
+  const files = sortContentFiles(listContentFiles(dir))
+  const audioValue = json.audio ?? json.audioSrc ?? files.filter(isAudioFile)[0] ?? null
+  const audioPath = resolveAudioPath(audioValue, dir, files)
+
+  if (audioPath && extname(audioPath) === ".wav") {
+    const analysis = analyzeWav(audioPath)
+    if (analysis) {
+      json.waveformPeaks = analysis.peaks
+      if (!json.duration && analysis.duration) json.duration = Math.round(analysis.duration)
+      fs.writeFileSync(jsonPath, `${JSON.stringify(json, null, 2)}\n`)
+      console.log(`✅ ${slug}: ${analysis.peaks.length} peaks desde ${path.basename(audioPath)}`)
+      updated++
+      continue
     }
   }
 
-  fs.writeFileSync(filePath, JSON.stringify(json, null, 2));
+  // Sin WAV no se pueden calcular peaks reales (no decodeamos MP3 acá). El
+  // JSON queda sin peaks y la UI usa su waveform decorativa estable.
+  console.log(`⚠️  ${slug}: audio no WAV (o inexistente) → se queda sin peaks`)
 }
 
-console.log("\n✅ Waveform peaks actualizados");
+console.log(`\n✅ ${updated} tema(s) actualizados`)

@@ -5,6 +5,9 @@ dist/
 .env
 .env.local
 .DS_Store
+# Derivados de content/ (los genera `pnpm sync:media` / `pnpm dev` / `pnpm build`)
+public/media/content/
+
 # Originales pesados: NO se suben a git
 media-src/**/*
 !media-src/**/.gitkeep
