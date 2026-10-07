@@ -68,7 +68,6 @@ fs.mkdirSync(contentDir, { recursive: true });
 
 for (const v of videos) {
   const json = {
-    id: v.id,
     title: v.title,
     src: v.src,
     youtubeId: v.youtubeId,
@@ -78,12 +77,14 @@ for (const v of videos) {
     venue: v.venue,
     colorAccent: v.colorAccent,
   };
-  const filePath = path.join(contentDir, `${v.id}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(json, null, 2));
+  const itemDir = path.join(contentDir, v.id);
+  fs.mkdirSync(itemDir, { recursive: true });
+  const filePath = path.join(itemDir, "video.json");
+  fs.writeFileSync(filePath, `${JSON.stringify(json, null, 2)}\n`);
   console.log(`✅ ${filePath}`);
 }
 
-console.log("\n4 demo videos JSON generados. Para videos reales:");
+console.log("\n4 demo videos generados en content/videos/<id>/video.json. Para videos reales:");
 console.log("- Poné MP4 en media-src/video/live/");
 console.log("- Posters en media-src/images/posters/");
 console.log("- Previews 3-6s en media-src/video/previews/ o se generan automático con ffmpeg");

@@ -3,6 +3,8 @@
  * Simple prompts via readline, no external deps
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import readline from "node:readline";
 
 export function prompt(question: string, defaultValue?: string): Promise<string> {
@@ -42,4 +44,37 @@ export function logSuccess(msg: string) {
 
 export function logWarn(msg: string) {
   console.log(`⚠️  ${msg}`);
+}
+
+/**
+ * Copia un archivo (de `media-src/`, del Escritorio, donde sea) a la carpeta
+ * del item en `content/`, conservando la extensión. Devuelve el nombre final
+ * del archivo dentro de la carpeta (lo que va en el JSON) o null si no hay
+ * nada para copiar.
+ */
+export function copyIntoContentFolder(
+  sourcePath: string,
+  itemDir: string,
+  destBaseName: string
+): string | null {
+  const source = sourcePath.trim();
+  if (!source) return null;
+  if (!fs.existsSync(source)) {
+    logWarn(`No encontré ${source}`);
+    return null;
+  }
+  const ext = path.extname(source).toLowerCase();
+  const fileName = `${destBaseName}${ext}`;
+  fs.mkdirSync(itemDir, { recursive: true });
+  fs.copyFileSync(source, path.join(itemDir, fileName));
+  logSuccess(`${source} → ${path.join(itemDir, fileName)}`);
+  return fileName;
+}
+
+/** Primer archivo existente de una lista de candidatos. */
+export function findFirstExisting(candidates: string[]): string | null {
+  for (const candidate of candidates) {
+    if (candidate && fs.existsSync(candidate)) return candidate;
+  }
+  return null;
 }

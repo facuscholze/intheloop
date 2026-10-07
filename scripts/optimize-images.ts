@@ -1,8 +1,11 @@
 #!/usr/bin/env tsx
 /**
  * pnpm optimize:images
- * Optimiza imágenes de media-src/ a public/media/ con sharp
- * Convierte a WebP/AVIF y genera thumbs
+ * Optimiza imágenes de media-src/ (hero, about, press, brand, covers legacy) a
+ * public/media/ con sharp: WebP + thumbs.
+ *
+ * Ojo: las imágenes del CONTENIDO (galerías, shows, temas, videos) NO pasan por
+ * acá — cada una vive en su carpeta de content/ y las procesa `pnpm sync:media`.
  */
 
 import fs from "node:fs";

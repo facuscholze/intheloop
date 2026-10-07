@@ -5,6 +5,17 @@ dist/
 .env
 .env.local
 .DS_Store
+# Derivados de content/ (los genera `pnpm sync:media` / `pnpm dev` / `pnpm build`)
+public/media/content/
+
+# Audios propios pesados dentro de content/: por defecto sí se versionan (el
+# build los necesita). Si preferís servirlos desde un bucket/CDN
+# (NEXT_PUBLIC_MEDIA_BASE_URL) o con git-lfs, descomentá lo que corresponda.
+# content/songs/**/*.wav
+# content/songs/**/*.mp3
+# content/songs/**/*.m4a
+# content/songs/**/*.flac
+
 # Originales pesados: NO se suben a git
 media-src/**/*
 !media-src/**/.gitkeep

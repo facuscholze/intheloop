@@ -23,7 +23,8 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
   const scrubRaf = useRef(0);
   const pendingX = useRef<number | null>(null);
 
-  const posterUrl = getMediaUrl(video.poster);
+  // Mini para la card; el poster grande lo usa CineMode.
+  const posterUrl = getMediaUrl(video.posterThumb ?? video.poster);
   const previewSrc = getMediaUrl(video.previewSrc) || getMediaUrl(video.src);
   const isYoutube = !!video.youtubeId;
 

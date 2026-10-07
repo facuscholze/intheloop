@@ -11,14 +11,16 @@ import { BookingForm } from "@/components/booking/BookingForm";
 import { Newsletter } from "@/components/booking/Newsletter";
 import { PressKit } from "@/components/booking/PressKit";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
+import { loadGalleries, loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
 
 export default function HomePage() {
   const site = loadSite();
   const shows = loadShows();
   const tracks = loadTracks();
   const videos = loadVideos();
-  // Stats calculadas desde content/shows.json (nada hardcodeado)
+  // Galerías: una carpeta por ciudad en content/gallery/ (las fotos se listan solas)
+  const galleries = loadGalleries();
+  // Stats calculadas desde content/shows/<show>/show.json (nada hardcodeado)
   const countries = Array.from(new Set(shows.map((s) => s.country))).sort();
 
   const COUNTRY_META: Record<string, { name: string }> = {
@@ -132,9 +134,11 @@ export default function HomePage() {
             <h2 className="font-display text-[clamp(44px,11vw,132px)] font-bold leading-none tracking-tight">
               GALLERY<span className="text-[var(--accent-gold)]" aria-hidden="true">.</span>
             </h2>
-            <p className="mt-2 font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">Arrastrá para recorrer • Tocá una foto para ampliarla</p>
+            <p className="mt-2 font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
+              Fotos por ciudad • Tocá una ciudad para abrir el carrete completo
+            </p>
             <div className="mt-12">
-              <GalleryCarousel />
+              <GalleryCarousel galleries={galleries} />
             </div>
           </div>
         </section>

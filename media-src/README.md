@@ -1,8 +1,13 @@
-# media-src/ — ACÁ CARGÁS VOS
+# media-src/ — ORIGINALES PESADOS (hero, brand, press)
 
-Soltá acá los archivos ORIGINALES (los mejores que tengas). No hace falta
-optimizarlos ni renombrarlos perfecto: Claude Code los procesa y los copia a
-`public/media/`. Esta carpeta NO se sube a git (ver .gitignore).
+⚠️ **El contenido de las secciones (galería, shows, temas, videos) ya no va acá:
+cada cosa vive en su carpeta de `content/`.** Ver `content/README.md`.
+Esta carpeta queda para lo que no es contenido — la foto del hero, el logo y el
+material de prensa.
+
+Soltá acá los ORIGINALES (los mejores que tengas): no hace falta optimizarlos ni
+renombrarlos perfecto, los scripts los procesan y los copian a `public/media/`.
+Esta carpeta NO se sube a git (ver .gitignore).
 
 ## Dónde va cada cosa
 | Carpeta | Qué poner | Formato ideal |

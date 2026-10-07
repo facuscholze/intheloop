@@ -1,0 +1,18 @@
+UNA CIUDAD = UNA CARPETA (con las fotos adentro)
+================================================
+
+content/gallery/tandil/
+  foto-01.jpg
+  foto-02.jpg
+  ...
+
+Eso es todo: se ordenan por nombre de archivo (01, 02, 03…) y aparecen solas
+en la sección GALLERY. La primera es la tapa de la ciudad.
+
+Opcional: city.json si querés forzar el nombre, la bandera o el orden:
+  { "city": "París", "country": "FR", "order": 1, "cover": "03.jpg" }
+
+Si no hay city.json, se usa el nombre de la carpeta y (si algún show es de esa
+ciudad) se hereda el país para mostrar la bandera.
+
+Formatos: jpg, jpeg, png, webp, avif. Las fotos se optimizan solas a WebP.

@@ -13,7 +13,7 @@ interface PressKitProps {
 export function PressKit({ className = "", showsCount, countriesCount }: PressKitProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Bio y stats: los totales llegan calculados desde content/shows.json
+  // Bio y stats: los totales llegan calculados desde content/shows/<show>/show.json
   const pressKitData = {
     bio: {
       es: `Tommy Petersen es DJ y productor de Buenos Aires, Argentina, especializado en Tribal House, House y Latin grooves con texturas melódicas. Con 3 años de carrera desde los 14, ha tocado en ${showsCount} shows en ${countriesCount} países.`,

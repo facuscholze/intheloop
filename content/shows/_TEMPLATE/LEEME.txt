@@ -1,0 +1,12 @@
+UN SHOW = UNA CARPETA
+=====================
+
+content/shows/mi-show/
+  show.json     ← los datos (copiá este ejemplo)
+  hero.jpg      ← la foto que aparece al pasar el mouse por la fila
+
+La carpeta se llama como quieras (ej: temple-caba). El id del show es ese nombre.
+Si no ponés "hero" en el JSON, se usa la primera imagen de la carpeta.
+Formatos de imagen: jpg, jpeg, png, webp, avif.
+
+Las carpetas que empiezan con "_" (como _TEMPLATE) se ignoran.

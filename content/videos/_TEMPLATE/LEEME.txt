@@ -1,0 +1,25 @@
+UN VIDEO = UNA CARPETA
+======================
+
+content/videos/mi-video/
+  video.json        ← los datos (copiá este ejemplo)
+  mi-video.mp4      ← el video CON su audio adentro (un solo archivo)
+  poster.jpg        ← la miniatura (opcional: si no está, se usa la 1ª imagen)
+  preview.mp4       ← opcional: loop de 3-6 s sin audio para el hover
+
+¿VIDEO Y AUDIO POR SEPARADO? Se unen ANTES de subir, en un solo MP4:
+
+  ffmpeg -i video.mp4 -i audio.wav -map 0:v:0 -map 1:a:0 \
+    -c:v copy -c:a aac -b:a 256k -shortest mi-video.mp4
+
+El sitio reproduce el archivo con su propio sonido (no hay campo para una pista
+de audio aparte). En el modo cine, el player del sitio se baja solo.
+
+RECOMENDADO: MP4 (H.264 + AAC), 1080p, menos de 100 MB.
+Si pesa más, subilo a un bucket y poné la URL en "src".
+Si es un video largo, HLS también funciona: "src": "stream.m3u8" con los
+segmentos .ts en la misma carpeta (nombres en minúsculas, sin espacios).
+
+Si usás YouTube: dejá "src" en null, poné "youtubeId" y no hace falta el archivo.
+
+Las carpetas que empiezan con "_" (como _TEMPLATE) se ignoran.

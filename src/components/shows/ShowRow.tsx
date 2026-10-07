@@ -68,7 +68,8 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
 
 export function FloatingPhoto({ show }: { show: Show | null }) {
   const ref = useRef<HTMLDivElement>(null);
-  const photoUrl = show ? getMediaUrl(show.photo) : null;
+  // Imagen hero del show (content/shows/<show>/hero.jpg) — la mini si existe.
+  const photoUrl = show ? getMediaUrl(show.heroThumb ?? show.hero) : null;
 
   // Track the pointer locally (rAF-throttled) instead of pushing every
   // mousemove through React state in the parent list.
