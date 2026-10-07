@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { Providers } from "../providers";
 import { Grain } from "@/components/effects/Grain";
 import { EnterScreen } from "@/components/enter/EnterScreen";
+import { Preloader } from "@/components/enter/Preloader";
 import { Header } from "@/components/ui/Header";
 import { Menu } from "@/components/ui/Menu";
 import { Player } from "@/components/player/Player";
@@ -103,6 +104,7 @@ export default async function LocaleLayout({
             <ScreenShake />
             <KonamiCode />
             <Screensaver />
+            <Preloader />
             <EnterScreen />
             <Header />
             <Menu />

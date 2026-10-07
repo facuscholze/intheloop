@@ -15,7 +15,11 @@ export function ScreenShake() {
 
   useEffect(() => {
     if (tier === "low" || reducedMotion) return;
-    const el = document.documentElement;
+    // IMPORTANTE: nunca transformar <html>/<body>. Un `transform` en un ancestro
+    // (incluso translate(0,0)) lo convierte en containing block de los
+    // `position: fixed`, y el Player/Header dejan de quedar fijos al viewport
+    // (el reproductor terminaba al final del documento). Sacudimos solo <main>.
+    const el = document.getElementById("main-content");
     if (!el) return;
 
     let lastShake = 0;
@@ -32,7 +36,7 @@ export function ScreenShake() {
         el.style.transform = `translate(${x}px, ${y}px)`;
         if (timeout) window.clearTimeout(timeout);
         timeout = window.setTimeout(() => {
-          el.style.transform = "translate(0,0)";
+          el.style.transform = "";
         }, 80);
       }
     });
@@ -40,7 +44,7 @@ export function ScreenShake() {
     return () => {
       unsub?.();
       if (timeout) window.clearTimeout(timeout);
-      el.style.transform = "translate(0,0)";
+      el.style.transform = "";
     };
   }, [tier, reducedMotion]);
 
