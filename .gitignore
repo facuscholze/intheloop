@@ -22,3 +22,4 @@ media-src/**/*
 !media-src/README.md
 tsconfig.tsbuildinfo
 .husky/_
+content/songs/*/song.mp3
