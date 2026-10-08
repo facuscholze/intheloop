@@ -114,15 +114,15 @@ export function PlayerBar() {
         {/* ── Izquierda: tapa + pista ── */}
         <div className="flex min-w-0 items-center gap-3">
           <Vinyl size={44} cover={coverUrl} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div
-              className="font-display truncate text-sm leading-tight uppercase"
+              className="font-display min-w-0 truncate text-sm leading-tight uppercase"
               aria-live="polite"
               aria-atomic="true"
             >
               {currentTrack.title}
             </div>
-            <div className="truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
+            <div className="min-w-0 truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
               {currentTrack.artist}
               {currentTrack.bpm ? ` • ${currentTrack.bpm} BPM` : ""}
             </div>
