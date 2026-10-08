@@ -26,10 +26,21 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
     const el = ref.current;
     if (!el) return;
 
+    // Keep the disc spinning on touch/small screens, but remove the rapid beat-scale pulse.
+    const motionQuery = window.matchMedia(
+      "(max-width: 767px), (pointer: coarse), (prefers-reduced-motion: reduce)"
+    );
+    let reduceBeatMotion = motionQuery.matches;
+    const handleMotionPreferenceChange = (event: MediaQueryListEvent) => {
+      reduceBeatMotion = event.matches;
+    };
+    motionQuery.addEventListener("change", handleMotionPreferenceChange);
+
     const unsub = audioEngine?.subscribe((a) => {
       audioRef.current = a;
     });
     if (audioEngine) audioRef.current = { ...audioEngine.analysis };
+    let lastTransform = "";
 
     const animate = () => {
       if (!isDraggingRef.current) {
@@ -40,7 +51,12 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
         }
         // Add progress-based rotation too
         const progressRotation = progress * 360 * 2; // 2 full rotations per track
-        el.style.transform = `rotate(${rotationRef.current + progressRotation}deg) scale(${1 + beat * 0.05})`;
+        const beatScale = reduceBeatMotion ? 1 : 1 + beat * 0.05;
+        const transform = `rotate(${rotationRef.current + progressRotation}deg) scale(${beatScale})`;
+        if (transform !== lastTransform) {
+          el.style.transform = transform;
+          lastTransform = transform;
+        }
       }
       rafRef.current = requestAnimationFrame(animate);
     };
@@ -49,6 +65,7 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
     return () => {
       cancelAnimationFrame(rafRef.current);
       unsub?.();
+      motionQuery.removeEventListener("change", handleMotionPreferenceChange);
     };
   }, []);
 
@@ -174,7 +191,7 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
 
         {/* Bass reactive glow — CSS-var driven */}
         <div
-          className="absolute inset-0 rounded-full transition-opacity"
+          className="absolute inset-0 hidden rounded-full transition-opacity md:block"
           style={{
             background: `radial-gradient(circle, rgba(255,90,31, calc(var(--bass) * 0.3)) 0%, transparent 70%)`,
             opacity: isPlaying ? 1 : 0,
@@ -185,7 +202,7 @@ export function Vinyl({ size = 48, interactive = true, cover }: VinylProps) {
 
       {/* Beat pulse ring — CSS-var driven (only while playing) */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-full border border-[var(--accent-fire)]"
+        className="pointer-events-none absolute inset-0 hidden rounded-full border border-[var(--accent-fire)] md:block"
         style={{
           transform: "scale(calc(1 + var(--beat) * 0.3))",
           opacity: isPlaying ? "calc(var(--beat) * 0.6)" : 0,

@@ -102,11 +102,7 @@ export function PlayerBar() {
 
   return (
     <div
-      className="fixed right-0 bottom-0 left-0 z-30 border-t border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur-xl"
-      style={{
-        boxShadow: `0 0 calc(10px + var(--bass) * 30px) rgba(255,90,31, calc(0.1 + var(--bass) * 0.2))`,
-        borderTopColor: `rgba(255,90,31, calc(0.2 + var(--bass) * 0.3))`,
-      }}
+      className="player-bar-shell fixed right-0 bottom-0 left-0 z-30 border-t border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur-xl"
       role="region"
       aria-label="Reproductor de música"
     >
