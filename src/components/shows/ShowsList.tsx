@@ -42,51 +42,65 @@ export function ShowsList({ shows }: ShowsListProps) {
 
   return (
     <div>
-      {/* Filters */}
-      <div className="mb-8 flex flex-wrap gap-3">
-        <div className="flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
-          <span className="px-3 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
+      {/* Filters — Mobile: cada grupo apilado (etiqueta arriba + chips en una
+          sola fila con scroll horizontal). Desktop (md:): idéntico a antes
+          (cápsulas con wrap). La lógica de filtrado no cambia. */}
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:gap-3">
+        <div className="flex flex-col gap-2 md:max-w-full md:flex-row md:items-center md:gap-2 md:rounded-full md:border md:border-[var(--border)] md:bg-[var(--bg)] md:p-1">
+          <span className="px-1 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase md:px-3">
             País:
           </span>
-          <button
-            onClick={() => setFilterCountry("all")}
-            className={`rounded-full px-3 py-1 font-mono text-xs uppercase ${filterCountry === "all" ? "bg-[var(--fg)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
-          >
-            Todos
-          </button>
-          {countries.map((c) => (
+          <div className="shows-filter-chips flex flex-nowrap items-center gap-2 overflow-x-auto md:flex-wrap md:overflow-visible">
             <button
-              key={c}
-              onClick={() => setFilterCountry(c)}
-              className={`rounded-full px-3 py-1 font-mono text-xs uppercase ${filterCountry === c ? "bg-[var(--accent-fire)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
+              onClick={() => setFilterCountry("all")}
+              data-active={filterCountry === "all"}
+              aria-pressed={filterCountry === "all"}
+              className={`shrink-0 rounded-full px-4 py-1 font-mono text-xs whitespace-nowrap uppercase md:px-3 ${filterCountry === "all" ? "bg-[var(--fg)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
             >
-              {c}
+              Todos
             </button>
-          ))}
+            {countries.map((c) => (
+              <button
+                key={c}
+                onClick={() => setFilterCountry(c)}
+                data-active={filterCountry === c}
+                aria-pressed={filterCountry === c}
+                className={`shrink-0 rounded-full px-4 py-1 font-mono text-xs whitespace-nowrap uppercase md:px-3 ${filterCountry === c ? "bg-[var(--accent-fire)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-1">
-          <span className="px-3 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
+        <div className="flex flex-col gap-2 md:max-w-full md:flex-row md:items-center md:gap-2 md:rounded-full md:border md:border-[var(--border)] md:bg-[var(--bg)] md:p-1">
+          <span className="px-1 font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase md:px-3">
             Año:
           </span>
-          <button
-            onClick={() => setFilterYear("all")}
-            className={`rounded-full px-3 py-1 font-mono text-xs uppercase ${filterYear === "all" ? "bg-[var(--fg)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
-          >
-            Todos
-          </button>
-          {years.map((y) => (
+          <div className="shows-filter-chips flex flex-nowrap items-center gap-2 overflow-x-auto md:flex-wrap md:overflow-visible">
             <button
-              key={y}
-              onClick={() => setFilterYear(y)}
-              className={`rounded-full px-3 py-1 font-mono text-xs uppercase ${filterYear === y ? "bg-[var(--accent-gold)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
+              onClick={() => setFilterYear("all")}
+              data-active={filterYear === "all"}
+              aria-pressed={filterYear === "all"}
+              className={`shrink-0 rounded-full px-4 py-1 font-mono text-xs whitespace-nowrap uppercase md:px-3 ${filterYear === "all" ? "bg-[var(--fg)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
             >
-              {y}
+              Todos
             </button>
-          ))}
+            {years.map((y) => (
+              <button
+                key={y}
+                onClick={() => setFilterYear(y)}
+                data-active={filterYear === y}
+                aria-pressed={filterYear === y}
+                className={`shrink-0 rounded-full px-4 py-1 font-mono text-xs whitespace-nowrap uppercase md:px-3 ${filterYear === y ? "bg-[var(--accent-gold)] text-black" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"}`}
+              >
+                {y}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3 font-mono text-xs text-[var(--fg-dim)] uppercase">
+        <div className="flex items-center gap-2 px-1 font-mono text-xs text-[var(--fg-dim)] uppercase md:px-3">
           {filtered.length} / {shows.length} shows
         </div>
       </div>

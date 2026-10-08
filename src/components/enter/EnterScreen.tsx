@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Play } from "lucide-react";
 import { useUIStore } from "@/stores/uiStore";
 import { useQualityStore } from "@/stores/qualityStore";
 import { audioEngine } from "@/lib/audio-engine";
@@ -213,7 +214,8 @@ export function EnterScreen() {
             aria-label="Entrar con sonido - el sitio arranca con música, podés silenciarlo cuando quieras"
           >
             <span className="relative z-10 flex items-center gap-2">
-              <span aria-hidden="true">▶</span> ENTRAR
+              {/* SVG sólido (el triángulo U+25B6 puede renderizarse como emoji) */}
+              <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> ENTRAR
             </span>
             <div
               className="absolute inset-0 -translate-x-full bg-[var(--accent-gold)] transition-transform duration-700 group-hover:translate-x-0"
