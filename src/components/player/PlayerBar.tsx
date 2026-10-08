@@ -102,11 +102,7 @@ export function PlayerBar() {
 
   return (
     <div
-      className="fixed right-0 bottom-0 left-0 z-30 border-t border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur-xl"
-      style={{
-        boxShadow: `0 0 calc(10px + var(--bass) * 30px) rgba(255,90,31, calc(0.1 + var(--bass) * 0.2))`,
-        borderTopColor: `rgba(255,90,31, calc(0.2 + var(--bass) * 0.3))`,
-      }}
+      className="player-bar-shell fixed right-0 bottom-0 left-0 z-30 border-t border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur-xl"
       role="region"
       aria-label="Reproductor de música"
     >
@@ -114,15 +110,15 @@ export function PlayerBar() {
         {/* ── Izquierda: tapa + pista ── */}
         <div className="flex min-w-0 items-center gap-3">
           <Vinyl size={44} cover={coverUrl} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div
-              className="font-display truncate text-sm leading-tight uppercase"
+              className="font-display min-w-0 truncate text-sm leading-tight uppercase"
               aria-live="polite"
               aria-atomic="true"
             >
               {currentTrack.title}
             </div>
-            <div className="truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
+            <div className="min-w-0 truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
               {currentTrack.artist}
               {currentTrack.bpm ? ` • ${currentTrack.bpm} BPM` : ""}
             </div>

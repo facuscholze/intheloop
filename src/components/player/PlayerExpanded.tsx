@@ -1,12 +1,46 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Heart, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Vinyl } from "./Vinyl";
 import { Waveform } from "./Waveform";
 import { getMediaUrl } from "@/lib/media";
-import { useAudioReactive } from "@/hooks/useAudioReactive";
+import { audioEngine } from "@/lib/audio-engine";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+
+function AudioReactiveReadout() {
+  const [analysis, setAnalysis] = useState(() => ({
+    bass: audioEngine?.analysis.bass ?? 0,
+    mid: audioEngine?.analysis.mid ?? 0,
+    high: audioEngine?.analysis.high ?? 0,
+  }));
+
+  useEffect(() => {
+    if (!audioEngine) return;
+
+    const update = () => {
+      const { bass, mid, high } = audioEngine.analysis;
+      setAnalysis((current) =>
+        current.bass === bass && current.mid === mid && current.high === high
+          ? current
+          : { bass, mid, high }
+      );
+    };
+
+    update();
+    const interval = window.setInterval(update, 250);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <div>
+      Audio reactivo: bass {analysis.bass.toFixed(2)} • mid {analysis.mid.toFixed(2)} • high{" "}
+      {analysis.high.toFixed(2)}
+    </div>
+  );
+}
 
 export function PlayerExpanded() {
   const isExpanded = useUIStore((s) => s.isPlayerExpanded);
@@ -27,7 +61,13 @@ export function PlayerExpanded() {
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat);
   const toggleFavorite = usePlayerStore((s) => s.toggleFavorite);
-  const { bass, mid, high } = useAudioReactive();
+  const hasTrack = Boolean(currentTrack);
+
+  useEffect(() => {
+    if (!isExpanded || !hasTrack) return;
+    const lock = lockScroll();
+    return () => unlockScroll(lock);
+  }, [isExpanded, hasTrack]);
 
   if (!isExpanded || !currentTrack) return null;
 
@@ -50,39 +90,45 @@ export function PlayerExpanded() {
   };
 
   return (
-    <div className="fixed inset-0 z-[35] flex flex-col bg-[var(--bg)]">
-      {/* Background reactive */}
+    <div
+      className="fixed inset-0 z-[45] flex flex-col overflow-hidden bg-[var(--bg)]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reproductor expandido"
+    >
+      {/* Desktop-only reactive glow: keep it off low-power mobile repaints. */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 hidden opacity-30 md:block"
         style={{
-          background: `radial-gradient(ellipse at 30% 20%, rgba(255,90,31,${0.15 + bass * 0.2}) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(255,46,147,${0.12 + mid * 0.15}) 0%, transparent 60%), radial-gradient(ellipse at 50% 50%, rgba(200,255,0,${0.05 + high * 0.1}) 0%, transparent 70%)`,
+          background:
+            "radial-gradient(ellipse at 30% 20%, rgba(255,90,31, calc(0.15 + var(--bass) * 0.2)) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(255,46,147, calc(0.12 + var(--mid) * 0.15)) 0%, transparent 60%), radial-gradient(ellipse at 50% 50%, rgba(200,255,0, calc(0.05 + var(--high) * 0.1)) 0%, transparent 70%)",
         }}
       />
 
-      <div className="relative flex h-full flex-col">
-        <div className="flex items-center justify-between border-b border-[var(--border)] p-6">
+      <div className="relative flex h-full min-h-0 flex-col">
+        <div className="z-10 flex shrink-0 items-center justify-between border-b border-[var(--border)] p-6">
           <div className="font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
             Player • {queue.length} tracks • {favorites.length} favs
           </div>
           <button
             onClick={() => setExpanded(false)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
             aria-label="Cerrar reproductor expandido"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-8 overflow-auto p-6 md:flex-row md:p-10">
+        <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto overscroll-contain p-6 md:flex-row md:p-10">
           {/* Left: vinyl + info */}
-          <div className="flex flex-col items-center gap-8 md:w-[45%]">
+          <div className="flex min-w-0 flex-col items-center gap-8 md:w-[45%] md:flex-none">
             <Vinyl size={280} cover={coverUrl} />
 
             <div className="w-full text-center">
-              <h2 className="font-display text-3xl leading-tight font-bold">
+              <h2 className="max-w-full break-words font-display text-3xl leading-tight font-bold">
                 {currentTrack.title}
               </h2>
-              <p className="mt-2 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
+              <p className="mt-2 max-w-full break-words font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
                 {[
                   currentTrack.artist,
                   currentTrack.bpm != null ? `${currentTrack.bpm} BPM` : null,
@@ -124,10 +170,10 @@ export function PlayerExpanded() {
                 </button>
               </div>
 
-              <div className="mt-4 flex items-center justify-center gap-4">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:gap-4">
                 <button
                   onClick={() => toggleFavorite(currentTrack.id)}
-                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 font-mono text-xs uppercase ${favorites.includes(currentTrack.id) ? "border-[var(--accent-fire)] bg-[var(--accent-fire)] text-black" : "border-[var(--border)] text-[var(--fg-muted)]"}`}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 font-mono text-xs uppercase ${favorites.includes(currentTrack.id) ? "border-[var(--accent-fire)] bg-[var(--accent-fire)] text-black" : "border-[var(--border)] text-[var(--fg-muted)]"}`}
                   aria-pressed={favorites.includes(currentTrack.id)}
                 >
                   {/* Icono SVG: U+2665/U+2661 pueden verse como emoji en mobile */}
@@ -139,13 +185,15 @@ export function PlayerExpanded() {
                 </button>
                 <button
                   onClick={toggleShuffle}
-                  className={`rounded-full border px-4 py-2 font-mono text-xs uppercase ${shuffle ? "border-[var(--accent-lime)] bg-[var(--accent-lime)] text-black" : "border-[var(--border)]"}`}
+                  aria-pressed={shuffle}
+                  className={`shrink-0 rounded-full border px-4 py-2 font-mono text-xs uppercase ${shuffle ? "border-[var(--accent-lime)] bg-[var(--accent-lime)] text-black" : "border-[var(--border)]"}`}
                 >
                   Shuffle {shuffle ? "ON" : "OFF"}
                 </button>
                 <button
                   onClick={toggleRepeat}
-                  className={`rounded-full border px-4 py-2 font-mono text-xs uppercase ${repeat !== "off" ? "border-[var(--accent-magenta)] bg-[var(--accent-magenta)] text-black" : "border-[var(--border)]"}`}
+                  aria-pressed={repeat !== "off"}
+                  className={`shrink-0 rounded-full border px-4 py-2 font-mono text-xs uppercase ${repeat !== "off" ? "border-[var(--accent-magenta)] bg-[var(--accent-magenta)] text-black" : "border-[var(--border)]"}`}
                 >
                   Repeat {repeat}
                 </button>
@@ -168,22 +216,22 @@ export function PlayerExpanded() {
           </div>
 
           {/* Right: queue */}
-          <div className="flex flex-1 flex-col">
+          <div className="flex min-w-0 flex-col md:min-h-0 md:flex-1">
             <h3 className="font-display text-xl font-bold">Cola</h3>
-            <div className="mt-4 flex-1 divide-y divide-[var(--border)] overflow-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-2)]">
+            <div className="mt-4 min-h-0 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] md:flex-1 md:overflow-auto">
               {queue.map((track, idx) => {
                 const isCurrent = currentTrack.id === track.id;
                 return (
                   <button
                     key={track.id}
                     onClick={() => playTrack(track)}
-                    className={`flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-[var(--bg)] ${isCurrent ? "bg-[var(--bg)] text-[var(--accent-fire)]" : ""}`}
+                    className={`flex w-full min-w-0 items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-[var(--bg)] ${isCurrent ? "bg-[var(--bg)] text-[var(--accent-fire)]" : ""}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="font-mono text-xs text-[var(--fg-dim)]">{idx + 1}</div>
-                      <div>
-                        <div className="font-display text-sm font-bold">{track.title}</div>
-                        <div className="font-mono text-[10px] text-[var(--fg-muted)] uppercase">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="shrink-0 font-mono text-xs text-[var(--fg-dim)]">{idx + 1}</div>
+                      <div className="min-w-0">
+                        <div className="truncate font-display text-sm font-bold">{track.title}</div>
+                        <div className="min-w-0 truncate font-mono text-[10px] text-[var(--fg-muted)] uppercase">
                           {[
                             track.bpm != null ? `${track.bpm} BPM` : null,
                             track.key,
@@ -193,7 +241,7 @@ export function PlayerExpanded() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       {isCurrent && isPlaying && (
                         <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent-fire)]" />
                       )}
@@ -210,10 +258,7 @@ export function PlayerExpanded() {
             </div>
 
             <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-4 font-mono text-[10px] leading-relaxed text-[var(--fg-muted)] uppercase">
-              <div>
-                Audio reactivo: bass {bass.toFixed(2)} • mid {mid.toFixed(2)} • high{" "}
-                {high.toFixed(2)}
-              </div>
+              <AudioReactiveReadout />
               <div className="mt-1 text-[var(--fg-dim)]">
                 Todo el sitio late con la música. Efectos siempre en MAX.
               </div>
