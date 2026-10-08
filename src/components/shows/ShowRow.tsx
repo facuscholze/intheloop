@@ -22,6 +22,9 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
   // La fila entera es un link: a la galería del show si tiene, y si no al
   // Instagram del venue (el mismo orden que ya muestra la etiqueta "IG →").
   // Sin ninguno de los dos, la fila queda como antes: informativa, no clickeable.
+  // Foto del show (la mini alcanza para el ancho mobile) — en mobile se
+  // muestra inline porque no hay hover; si no hay foto no se renderiza nada.
+  const photoUrl = getMediaUrl(show.heroThumb ?? show.hero);
   const href = show.galleryUrl ?? show.instagram;
   const linkLabel = show.galleryUrl
     ? `Ver la galería de ${show.venue}`
@@ -30,43 +33,63 @@ export const ShowRow = memo(function ShowRow({ show, onHover }: ShowRowProps) {
   const row = (
     <div
       ref={rowRef}
-      className="group relative flex items-center justify-between border-b border-[var(--border)] py-6 transition-all duration-300 hover:bg-[var(--bg)] hover:px-4 md:py-8"
+      className="group relative border-b border-[var(--border)] py-6 transition-all duration-300 hover:bg-[var(--bg)] hover:px-4 md:py-8"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-6">
-        <div className="flex items-center gap-3">
-          {/* Sin pulso al beat: todas las filas "saltaban" a la vez en cada
-              golpe y la lista entera parecía parpadear */}
-          <div className="font-display text-2xl font-bold tracking-tight uppercase transition-colors group-hover:text-[var(--accent-fire)] md:text-3xl">
-            {show.venue}
+      {/* Fila de texto: en desktop se ve igual que antes (flex row); en
+          mobile la foto va debajo, a todo el ancho. */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:gap-6">
+          <div className="flex items-center gap-3">
+            {/* Sin pulso al beat: todas las filas "saltaban" a la vez en cada
+                golpe y la lista entera parecía parpadear */}
+            <div className="font-display text-2xl font-bold tracking-tight uppercase transition-colors group-hover:text-[var(--accent-fire)] md:text-3xl">
+              {show.venue}
+            </div>
+            {show.featured && (
+              <span className="shrink-0 rounded-full bg-[var(--accent-fire)] px-2 py-0.5 font-mono text-[9px] font-bold text-black uppercase">
+                Featured
+              </span>
+            )}
           </div>
-          {show.featured && (
-            <span className="rounded-full bg-[var(--accent-fire)] px-2 py-0.5 font-mono text-[9px] font-bold text-black uppercase">
-              Featured
+
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase">
+            {/* needsReview es interno: nunca se renderiza en la UI pública */}
+            <span className="text-[var(--fg-muted)]">
+              {[show.city, show.country].filter(Boolean).join(" ")} • {show.date}
             </span>
-          )}
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase">
-          {/* needsReview es interno: nunca se renderiza en la UI pública */}
-          <span className="text-[var(--fg-muted)]">
-            {[show.city, show.country].filter(Boolean).join(" ")} • {show.date}
-          </span>
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="hidden font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase group-hover:text-[var(--accent-fire)] md:block">
+            {show.galleryUrl ? "Gallery →" : show.instagram ? "IG →" : "→"}
+          </div>
+          <div
+            className="h-2 w-2 rounded-full bg-[var(--border)] transition-colors group-hover:bg-[var(--accent-fire)]"
+            style={{
+              boxShadow: `0 0 calc(var(--bass) * 10px) var(--accent-fire)`,
+            }}
+          />
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase group-hover:text-[var(--accent-fire)] md:block">
-          {show.galleryUrl ? "Gallery →" : show.instagram ? "IG →" : "→"}
+      {/* Foto inline SOLO mobile/touch (en desktop la foto es el flotante del
+          hover). aspect-ratio fijo + fondo oscuro = sin saltos de layout;
+          lazy para no cargar las 19 fotos de golpe. */}
+      {photoUrl && (
+        <div className="show-photo mt-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoUrl}
+            alt={`${show.venue} en vivo`}
+            loading="lazy"
+            decoding="async"
+            className="aspect-video w-full rounded-xl bg-[var(--bg-2)] object-cover"
+          />
         </div>
-        <div
-          className="h-2 w-2 rounded-full bg-[var(--border)] transition-colors group-hover:bg-[var(--accent-fire)]"
-          style={{
-            boxShadow: `0 0 calc(var(--bass) * 10px) var(--accent-fire)`,
-          }}
-        />
-      </div>
+      )}
 
       {/* Hover accent line */}
       <div className="absolute bottom-0 left-0 h-px w-0 bg-[var(--accent-fire)] transition-all duration-500 group-hover:w-full" />

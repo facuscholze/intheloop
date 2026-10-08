@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useEffect, useMemo, useState } from "react"
-import { Disc3, ExternalLink, Headphones, Music2 } from "lucide-react"
+import { Disc3, ExternalLink, Headphones, Music2, Pause, Play } from "lucide-react"
 import { usePlayerStore } from "@/stores/playerStore"
 import { getMediaUrl } from "@/lib/media"
 import type { Track } from "@/lib/content"
@@ -71,7 +71,7 @@ const TrackCard = memo(function TrackCard({ track, playable }: CardProps) {
 
   const handleToggle = () => {
     // FIX: the old button ALWAYS called playTrack (isPlaying: true + progress
-    // reset), so the ⏸ icon could never actually pause anything.
+    // reset), so the pause icon could never actually pause anything.
     if (isCurrentPlaying) pause()
     else playTrack(track, playable)
   }
@@ -144,7 +144,14 @@ const TrackCard = memo(function TrackCard({ track, playable }: CardProps) {
             aria-label={isCurrentPlaying ? `Pausar ${track.title}` : `Reproducir ${track.title}`}
             aria-pressed={isCurrentPlaying}
           >
-            {isCurrentPlaying ? "⏸" : "▶"}
+            {/* SVG (Lucide), nunca caracteres Unicode: en Android/Chrome
+                U+23F8/U+25B6 se renderizan como emoji a color y tapan el
+                diseño. Mismo estilo que el botón del reproductor inferior. */}
+            {isCurrentPlaying ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="ml-0.5 h-4 w-4" aria-hidden="true" />
+            )}
           </button>
         ) : (
           <div

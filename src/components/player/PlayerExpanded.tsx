@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { Heart, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Vinyl } from "./Vinyl";
@@ -67,8 +67,9 @@ export function PlayerExpanded() {
           <button
             onClick={() => setExpanded(false)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)]"
+            aria-label="Cerrar reproductor expandido"
           >
-            ✕
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -126,9 +127,15 @@ export function PlayerExpanded() {
               <div className="mt-4 flex items-center justify-center gap-4">
                 <button
                   onClick={() => toggleFavorite(currentTrack.id)}
-                  className={`rounded-full border px-4 py-2 font-mono text-xs uppercase ${favorites.includes(currentTrack.id) ? "border-[var(--accent-fire)] bg-[var(--accent-fire)] text-black" : "border-[var(--border)] text-[var(--fg-muted)]"}`}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 font-mono text-xs uppercase ${favorites.includes(currentTrack.id) ? "border-[var(--accent-fire)] bg-[var(--accent-fire)] text-black" : "border-[var(--border)] text-[var(--fg-muted)]"}`}
+                  aria-pressed={favorites.includes(currentTrack.id)}
                 >
-                  {favorites.includes(currentTrack.id) ? "♥ Favorito" : "♡ Fav"}
+                  {/* Icono SVG: U+2665/U+2661 pueden verse como emoji en mobile */}
+                  <Heart
+                    className={`h-3.5 w-3.5 ${favorites.includes(currentTrack.id) ? "fill-current" : ""}`}
+                    aria-hidden="true"
+                  />
+                  {favorites.includes(currentTrack.id) ? "Favorito" : "Fav"}
                 </button>
                 <button
                   onClick={toggleShuffle}
@@ -190,9 +197,12 @@ export function PlayerExpanded() {
                       {isCurrent && isPlaying && (
                         <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent-fire)]" />
                       )}
-                      <span className="font-mono text-[10px] text-[var(--fg-dim)] uppercase">
-                        {favorites.includes(track.id) ? "♥" : ""}
-                      </span>
+                      {favorites.includes(track.id) && (
+                        <Heart
+                          className="h-3.5 w-3.5 fill-current text-[var(--accent-fire)]"
+                          aria-label="Favorito"
+                        />
+                      )}
                     </div>
                   </button>
                 );

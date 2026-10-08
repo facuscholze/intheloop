@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Play } from "lucide-react";
 import { gsap } from "@/lib/motion";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { HeroShader } from "./HeroShader";
@@ -184,7 +185,8 @@ export function Hero({ countries }: { countries: string[] }) {
                 className="cta inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-8 py-4 font-mono text-xs tracking-widest text-[var(--fg)] uppercase transition-colors hover:border-[var(--fg)] hover:bg-[var(--fg)] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
                 aria-label="Ir a sección de música y reproducir tracks"
               >
-                <span aria-hidden="true">▶</span> Escuchar
+                {/* SVG sólido (el triángulo U+25B6 puede renderizarse como emoji) */}
+                <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> Escuchar
               </a>
             </div>
 
@@ -203,8 +205,16 @@ export function Hero({ countries }: { countries: string[] }) {
               </div>
               <div>
                 <dt className="text-[var(--fg)]">124 BPM</dt>
-                <dd className="text-[var(--accent-fire)]" aria-label="En vivo">
-                  ● LIVE
+                <dd
+                  className="flex items-center gap-1.5 text-[var(--accent-fire)]"
+                  aria-label="En vivo"
+                >
+                  {/* Punto CSS en vez del carácter ● (independiente de la fuente) */}
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-[var(--accent-fire)]"
+                    aria-hidden="true"
+                  />
+                  LIVE
                 </dd>
               </div>
             </dl>

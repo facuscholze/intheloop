@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Pause, Play, X } from "lucide-react";
 
 interface VideoControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -125,7 +126,7 @@ export function VideoControls({ videoRef, onClose, title }: VideoControlsProps) 
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur hover:bg-white/20"
           aria-label="Cerrar y volver"
         >
-          ✕
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -152,8 +153,14 @@ export function VideoControls({ videoRef, onClose, title }: VideoControlsProps) 
             onClick={togglePlay}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-fire)] text-black hover:scale-105"
             aria-label={isPlaying ? "Pause" : "Play"}
+            aria-pressed={isPlaying}
           >
-            {isPlaying ? "⏸" : "▶"}
+            {/* SVG (Lucide): U+23F8/U+25B6 se ven como emoji en Android */}
+            {isPlaying ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="ml-0.5 h-4 w-4" aria-hidden="true" />
+            )}
           </button>
 
           <div className="hidden items-center gap-2 md:flex">

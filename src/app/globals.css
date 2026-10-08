@@ -153,6 +153,57 @@
   }
 }
 
+/* ── Glyphs siempre como texto, nunca como emoji ──────────────────────
+   Defensa en profundidad: los iconos de play/pausa/cerrar/favorito ya son
+   SVG (Lucide), pero cualquier carácter que quede en un botón se fuerza a
+   presentación de texto (sin efecto en navegadores que no lo soporten). */
+button,
+[role="button"],
+a.cta {
+  font-variant-emoji: text;
+}
+
+/* ── SHOWS en mobile ───────────────────────────────────────────────── */
+
+/* Fila de chips con scroll horizontal (una sola fila, sin wrap) */
+.shows-filter-chips {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.shows-filter-chips::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+.shows-filter-chips > * {
+  scroll-snap-align: start;
+}
+
+/* Foto inline del show: oculta por defecto (desktop la muestra en el
+   flotante del hover) y visible en mobile o en cualquier pantalla táctil */
+.show-photo {
+  display: none;
+}
+@media (max-width: 767px), (hover: none), (pointer: coarse) {
+  .show-photo {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  /* En mobile los chips inactivos son pastillas con borde sutil (en desktop
+     son texto plano dentro de la cápsula). El área táctil de 44px ya la da
+     la regla de touch targets de más arriba. data-active evita pisar el
+     fondo de Tailwind del chip activo (mayor especificidad). */
+  .shows-filter-chips button[data-active="false"] {
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .shows-filter-chips button[data-active="true"] {
+    border: 1px solid transparent; /* misma altura que los inactivos */
+  }
+}
+
 /* Reduced motion - pause controls */
 @media (prefers-reduced-motion: reduce) {
   .grain {

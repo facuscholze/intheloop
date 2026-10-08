@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { z } from "zod";
 
 const Schema = z.object({
@@ -54,8 +55,10 @@ export function Newsletter() {
 
   if (status === "success") {
     return (
-      <div className="rounded-2xl border border-[var(--accent-lime)] bg-[var(--accent-lime)]/10 p-4 text-center font-mono text-xs uppercase text-[var(--accent-lime)]">
-        ¡Suscripto! Gracias ♥
+      <div className="flex items-center justify-center gap-1.5 rounded-2xl border border-[var(--accent-lime)] bg-[var(--accent-lime)]/10 p-4 text-center font-mono text-xs uppercase text-[var(--accent-lime)]">
+        ¡Suscripto! Gracias
+        {/* Icono SVG: U+2665 puede renderizarse como emoji en mobile */}
+        <Heart className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
       </div>
     );
   }
