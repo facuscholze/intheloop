@@ -1,8 +1,8 @@
 # In The Loop Agency — Tommy Petersen
 
-Sitio web del DJ y productor **Tommy Petersen** (Tribal House / House / Latin grooves, Argentina). Reemplazo de https://www.intheloop.agency/ — experiencia flashera, audio-reactiva, con player global persistente, modo cine para videos, mapa de shows, pads sampler y física tribal.
+Sitio web del DJ y productor **Tommy Petersen** (Tribal House / House / Latin grooves, Argentina). Reemplazo de https://www.intheloop.agency/ — experiencia flashera, audio-reactiva, con player global persistente, modo cine para videos, mapa de shows y física tribal.
 
-> **Stack:** Next.js 15 App Router + React 19 + TypeScript + Tailwind v4 + next-intl (ES/EN) + Zustand + GSAP + Motion + Lenis + Three.js/R3F + Tone.js + Matter.js + Zod + Radix + Lucide.
+> **Stack:** Next.js 15 App Router + React 19 + TypeScript + Tailwind v4 + next-intl (ES/EN) + Zustand + GSAP + Motion + Lenis + Three.js/R3F + Matter.js + Zod + Radix + Lucide.
 
 ---
 
@@ -47,7 +47,7 @@ media-src/            # ORIGINALES pesados para hero/brand/press (no va a git)
 src/
   app/                # Next App Router, layout, page, globals.css, API routes
   components/
-    enter/ hero/ player/ audio/ video/ shows/ gallery/ pads/ physics/ effects/ ui/
+    enter/ hero/ player/ audio/ video/ shows/ gallery/ physics/ effects/ ui/
   lib/                # audio-engine, content (Zod), quality, media, motion
   stores/             # Zustand: player, quality, ui
   hooks/ i18n/ shaders/ styles/
@@ -118,7 +118,6 @@ NEXT_PUBLIC_MEDIA_BASE_URL=       # bucket CDN para audio/video en prod (vacío 
 NEXT_PUBLIC_BASE_PATH=            # prefijo de ruta si va en subdirectorio (ej. "/intheloop" en GitHub Pages)
 NEXT_PUBLIC_SITE_URL=             # URL canónica para sitemap/OG (default https://www.intheloop.agency)
 NEXT_PUBLIC_BOOKING_WEBHOOK_URL=  # webhook n8n para booking (fetch directo desde el browser)
-NEXT_PUBLIC_NEWSLETTER_ENDPOINT=  # endpoint MailerLite / newsletter
 ```
 
 Nunca commitear secretos. `.env` está en `.gitignore`.

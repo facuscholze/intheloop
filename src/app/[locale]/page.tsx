@@ -5,10 +5,8 @@ import { VideoGrid } from "@/components/video/VideoGrid";
 import { ShowsList } from "@/components/shows/ShowsList";
 import { CountriesGrid } from "@/components/shows/CountriesGrid";
 import { GalleryCarousel } from "@/components/gallery/Gallery";
-import { PadsSection } from "@/components/pads/PadsSection";
 import { Counters } from "@/components/effects/EasterEggs";
 import { BookingForm } from "@/components/booking/BookingForm";
-import { Newsletter } from "@/components/booking/Newsletter";
 import { PressKit } from "@/components/booking/PressKit";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { loadGalleries, loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
@@ -143,22 +141,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Pads / Sampler - Fase 4 */}
-        <section id="pads" className="border-t border-[var(--border)] bg-[var(--bg-2)] px-6 py-24 md:px-10" aria-label="Laboratorio de sonido - Sampler tribal">
-          <div className="mx-auto max-w-[var(--content-max)]">
-            <h2 className="font-display text-[clamp(44px,11vw,132px)] font-bold leading-none tracking-tight">
-              LAB<span className="text-[var(--accent-lime)]" aria-hidden="true">.</span>
-            </h2>
-            <p className="mt-2 max-w-xl font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
-              Sampler tribal interactivo • Tocá los pads o usá el teclado
-            </p>
-            <div className="mt-12">
-              <PadsSection />
-            </div>
-          </div>
-        </section>
-
-        {/* Physics - Fase 4 */}
         <Marquee text="BOOK TOMMY • EVENTS@INTHELOOP.AGENCY • WHATSAPP • INSTAGRAM • SOUNDCLOUD • YOUTUBE • BOOK TOMMY • EVERY DANCEFLOOR HAS ITS OWN STORY •" />
 
         {/* Booking - Fase 5 & 6 */}
@@ -211,11 +193,7 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                <div className="mt-12 grid gap-6">
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                    <Newsletter />
-                  </div>
-
+                <div className="mt-12">
                   <PressKit showsCount={shows.length} countriesCount={countries.length} />
                 </div>
               </div>
