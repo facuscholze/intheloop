@@ -31,7 +31,6 @@ Sitio "bien loco, flashero" para DJ Tommy Petersen. Reemplaza builder MailerLite
 | lottie-react | Loaders, micro iconos | dynamic |
 | Web Audio API nativa | AudioEngine base Analyser | nativa singleton |
 | WaveSurfer.js / peaks precalc | Waveform visual | dynamic o canvas custom con peaks JSON |
-| Tone.js | Sampler pads interactivos | dynamic PadsSection |
 | hls.js | HLS adaptive video | dynamic Video player |
 | Radix UI dialog/tooltip/tabs | A11y primitives CineMode | core |
 | Lucide | Iconos | core |
@@ -69,7 +68,7 @@ pnpm optimize:images  # solo hero/press/brand de media-src/
 ## Estructura carpetas
 
 ```
-src/app/            layout, page, globals.css, providers, api/booking, api/newsletter
+src/app/            layout, page, globals.css, providers
 src/components/
   enter/ EnterScreen (EQ, AudioContext unlock, reduce-motion toggle)
   hero/ Hero (SplitText, shader placeholder)
@@ -78,7 +77,6 @@ src/components/
   video/ (Fase 3) VideoCard, CineMode Flip, Ambilight
   shows/ ShowsList foto flotante, MapRoute SVG
   gallery/ Carousel, Lightbox
-  pads/ PadsSection Tone.js
   physics/ TribalPhysics Matter.js
   effects/ CursorBlob, Grain, Marquee
   ui/ magnetic-button, etc
@@ -194,7 +192,7 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
 
 - next.config.ts export estático (`out/`), trailingSlash, basePath via `NEXT_PUBLIC_BASE_PATH`, optimizePackageImports, images unoptimized.
 - GitHub Pages: .github/workflows/deploy.yml (build estático + actions/deploy-pages, setea NEXT_PUBLIC_BASE_PATH=/<repo> y NEXT_PUBLIC_SITE_URL). Requiere Settings → Pages → Source: GitHub Actions.
-- Sin API routes: booking POSTea directo a `NEXT_PUBLIC_BOOKING_WEBHOOK_URL` + fallback mailto; newsletter a `NEXT_PUBLIC_NEWSLETTER_ENDPOINT`; press kit txt generado en el cliente.
+- Sin API routes: booking POSTea directo a `NEXT_PUBLIC_BOOKING_WEBHOOK_URL` + fallback mailto; press kit txt generado en el cliente.
 - Dockerfile multi-stage histórico (época standalone); hoy el sitio es estático.
 - Vercel/Netlify: framework Next.js, output `out/`, deploy auto.
 - CI: .github/workflows/ci.yml pnpm lint+typecheck+build.
@@ -235,7 +233,7 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - ShowRow: bass/beat reactive scale+glow, accent line w-0->100% hover
   - MapRoute: SVG 1000x400 grid, route Q curved, strokeDasharray animate 1.5s stagger, dots scale back.out, beat reactive scale, plane animateMotion 12s loop, progress 85% gradient
   - GalleryCarousel: drag inercia velocity deltaTime RAF *=0.95, tilt 3D GSAP rotateY/X perspective 1000, 8 mock galleries, lightbox z70 backdrop-blur, scrollbar-hide
-  - PadsSection: 8 pads QWERA SDF Web Audio API osc+filter per pad (kick, shaker noise highpass, conga bandpass, vocal sawtooth), crossfader Track A/B, visualizer 24 bars bass+beat, active ping
+  - ~~PadsSection~~ eliminada (sección LAB / sampler): el artista no la quiere en el sitio. Se quitó también la dep `tone` (nunca se llegó a importar; los pads usaban Web Audio nativa)
   - TribalPhysics: canvas physics gravity 0.15+bass*0.1, bounce bottom -0.6-bass*0.2, mouse repel/drag, words bold 24+bass*10 display shadowBlur beat*20, Matter.js dynamic import High tier
   - EasterEggs: Konami ↑↑↓↓←→←→BA rave-mode hue-rotate 0.1s infinite + confetti 50 GSAP, Screensaver 30s inactivity canvas 64 bars visualizer, Counters 20 shows/5 países/3 años datos reales
   - 404 interactiva: canvas visualizer 80 bars + glitch 404 random hue, GSAP notfound-char SplitText club stagger 0.1s
@@ -248,7 +246,7 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - icon.tsx: edge 32x32 T fire borderRadius 6
   - JsonLd.tsx: MusicGroup JSON-LD (artist, agency, genres Tribal House/House/Latin, sameAs IG/YT/SC/WA, contactPoint events@intheloop.agency booking) + 5 MusicRecording from tracks
   - BookingForm: Zod name min2/event min2/date min4/city min2/message min10/email optional/honeypot hidden left -5000px, status idle/sending/success/error, fetch /api/booking POST + webhook BOOKING_WEBHOOK_URL env, error fallback mailto subject Booking: {event} - {city} - {date} body multiline, success UI lime border + thanks + open mailto delayed 500ms, bass reactive boxShadow --bass, aria-invalid, disabled sending
-  - Newsletter: Zod email honeypot, POST /api/newsletter NEWSLETTER_ENDPOINT env (MailerLite/docs), success UI
+  - ~~Newsletter~~ eliminado: el artista no tiene newsletter. Se quitó el componente y la env `NEXT_PUBLIC_NEWSLETTER_ENDPOINT`
   - /api/booking: Zod same + email optional, honeypot bot ok, webhook fetch catch warn, always ok
   - /api/newsletter: Zod email honeypot, endpoint fetch, note no endpoint
   - cli.ts: prompt readline, promptNumber, slugify NFD remove diacritics, logStep/Success/Warn chalk-like emojis
