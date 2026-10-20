@@ -162,8 +162,13 @@ async function syncItem(
       stats.bytesIn += fs.statSync(srcAbs).size
       stats.bytesOut += fs.statSync(fullAbs).size + fs.statSync(thumbAbs).size
     } catch (error) {
+      const relativePath = path.relative(CONTENT_DIR, srcAbs)
+      const errorMessage = String(error)
       stats.failures.push(
-        `${path.relative(CONTENT_DIR, srcAbs)}: no se pudo optimizar (${String(error)}) — probá con JPG/PNG/WebP`
+        `${relativePath}: Sharp no pudo optimizar la imagen (${errorMessage}). ` +
+          `Es probable que sea HEIC aunque tenga extensión .jpg. Convertí el archivo a un JPEG real ` +
+          `(por ejemplo, con ImageMagick: convert origen.heic -auto-orient -quality 88 destino.jpg); ` +
+          `no alcanza con cambiarle la extensión.`
       )
     }
   }
@@ -321,7 +326,15 @@ async function main() {
   const watch = args.includes("--watch") || args.includes("-w")
 
   console.log("🔄 sync:media — content/ → public/media/content/")
-  await syncMedia({ force })
+  const stats = await syncMedia({ force })
+  if (stats.failures.length > 0 && !watch) {
+    console.error(
+      `❌ sync:media no pudo procesar ${stats.failures.length} archivo(s) de imagen; ` +
+        "se cancela antes de ejecutar Next.js. Corregí o convertí las imágenes y volvé a correr pnpm build."
+    )
+    process.exitCode = 1
+    return
+  }
 
   if (!watch) return
 
