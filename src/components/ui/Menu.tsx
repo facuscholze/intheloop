@@ -18,11 +18,13 @@ const links = [
 export function Menu() {
   const isOpen = useUIStore((s) => s.isMenuOpen)
   const setOpen = useUIStore((s) => s.setMenuOpen)
+  const reducedMotion = useUIStore((s) => s.reducedMotion)
   const containerRef = useRef<HTMLDivElement>(null)
   const linksRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const pendingHashRef = useRef<string | null>(null)
+  const tlRef = useRef<gsap.core.Timeline | null>(null)
 
   /**
    * Navegación con animación: el link no salta al ancla. Cerramos el menú
@@ -84,49 +86,117 @@ export function Menu() {
     }
   }, [isOpen, setOpen])
 
+  // Open/close animation — without gsap.context revert that was killing the close transition
   useEffect(() => {
-    if (!containerRef.current) return
-    const ctx = gsap.context(() => {
-      if (isOpen) {
-        gsap.set(containerRef.current, { display: "flex" })
-        gsap.fromTo(
-          containerRef.current,
-          { clipPath: "inset(0 0 100% 0)" },
-          { clipPath: "inset(0 0 0% 0)", duration: 0.8, ease: "club" }
-        )
-        gsap.fromTo(
-          linksRef.current?.querySelectorAll(".menu-link") || [],
-          { y: 100, opacity: 0, rotateX: -30 },
-          {
-            y: 0,
-            opacity: 1,
-            rotateX: 0,
-            duration: 0.8,
-            stagger: 0.06,
-            ease: "power3.out",
-            delay: 0.2
-          }
-        )
-      } else {
+    const container = containerRef.current
+    if (!container) return
+    const linksEls = linksRef.current?.querySelectorAll(".menu-link") ?? []
+
+    // Kill any previous timeline so open/close don't fight
+    tlRef.current?.kill()
+    tlRef.current = null
+
+    // Reduced motion: instant toggle, no animation
+    if (reducedMotion) {
+      gsap.set(container, { display: isOpen ? "flex" : "none", clipPath: "inset(0 0 0% 0)" })
+      gsap.set(linksEls, { clearProps: "all", opacity: 1, y: 0, rotateX: 0 })
+      if (!isOpen) {
         const hash = pendingHashRef.current
         pendingHashRef.current = null
-        gsap.to(containerRef.current, {
+        if (hash) window.setTimeout(() => scrollToSection(hash), 50)
+      }
+      return
+    }
+
+    if (isOpen) {
+      gsap.set(container, { display: "flex" })
+      // Reset links to starting state for entrance
+      gsap.set(linksEls, { y: 100, opacity: 0, rotateX: -30 })
+
+      const tl = gsap.timeline()
+      tlRef.current = tl
+      tl.fromTo(
+        container,
+        { clipPath: "inset(0 0 100% 0)" },
+        { clipPath: "inset(0 0 0% 0)", duration: 0.8, ease: "club" },
+        0
+      )
+      tl.fromTo(
+        linksEls,
+        { y: 100, opacity: 0, rotateX: -30 },
+        {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.8,
+          stagger: 0.06,
+          ease: "power3.out",
+          delay: 0.2
+        },
+        0.2
+      )
+    } else {
+      const hash = pendingHashRef.current
+      pendingHashRef.current = null
+
+      const tl = gsap.timeline({
+        onStart: () => {
+          if (hash) window.setTimeout(() => scrollToSection(hash), 120)
+        },
+        onComplete: () => {
+          if (containerRef.current) gsap.set(containerRef.current, { display: "none" })
+          // reset links so next open starts from hidden correctly; clear inline styles but keep opacity 0 until next open's set
+          if (linksEls.length) gsap.set(linksEls, { clearProps: "transform,opacity" })
+        }
+      })
+      tlRef.current = tl
+
+      // Reverse stagger for links — same easing family, slightly shorter duration, inverted order
+      if (linksEls.length) {
+        tl.to(
+          Array.from(linksEls),
+          {
+            y: -24,
+            opacity: 0,
+            rotateX: 15,
+            duration: 0.35,
+            stagger: { each: 0.04, from: "end" },
+            ease: "power2.in"
+          },
+          0
+        )
+      }
+
+      // Container slides up (clipPath) — slightly delayed so links start fading before the curtain closes
+      tl.to(
+        container,
+        {
           clipPath: "inset(0 0 100% 0)",
           duration: 0.6,
-          ease: "club",
-          onStart: () => {
-            // El scroll empieza mientras la cortina sube: la página ya se ve
-            // deslizándose debajo, igual que la transición de CineMode.
-            if (hash) window.setTimeout(() => scrollToSection(hash), 120)
-          },
-          onComplete: () => {
-            if (containerRef.current) gsap.set(containerRef.current, { display: "none" })
-          }
-        })
-      }
-    })
-    return () => ctx.revert()
-  }, [isOpen])
+          ease: "club"
+        },
+        linksEls.length ? 0.1 : 0
+      )
+
+      // Safety: if onComplete never fires, ensure display none
+      const safety = window.setTimeout(() => {
+        if (containerRef.current && !useUIStore.getState().isMenuOpen) {
+          gsap.set(containerRef.current, { display: "none" })
+        }
+      }, 1200)
+      const prevComplete = tl.eventCallback("onComplete")
+      tl.eventCallback("onComplete", () => {
+        window.clearTimeout(safety)
+        if (typeof prevComplete === "function") prevComplete.call(tl)
+        else if (containerRef.current) gsap.set(containerRef.current, { display: "none" })
+      })
+    }
+
+    return () => {
+      // Only kill the timeline, don't revert — revert was resetting display:none before the close could animate
+      tlRef.current?.kill()
+    }
+  }, [isOpen, reducedMotion])
 
   useEffect(() => {
     if (!isOpen) return
@@ -134,16 +204,25 @@ export function Menu() {
     return () => unlockScroll(token)
   }, [isOpen])
 
+  // Click en el fondo (fuera de los links) cierra con la misma animación de salida
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement
+    // No cerrar si se tocó un link o un botón (ya tienen su propio handler)
+    if (target.closest("a[href]") || target.closest("button")) return
+    setOpen(false)
+  }
+
   return (
     <div
       ref={containerRef}
       id="main-menu"
-      className="fixed inset-0 z-50 hidden h-[100svh] w-full flex-col bg-[var(--bg)]"
+      className="fixed inset-0 z-50 flex h-[100svh] w-full flex-col bg-[var(--bg)]"
       style={{ display: "none" }}
       role="dialog"
       aria-modal="true"
       aria-label="Menú principal"
       aria-hidden={!isOpen}
+      onClick={handleContainerClick}
     >
       {/* Background shader */}
       <div

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Heart, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -42,9 +42,28 @@ function AudioReactiveReadout() {
   );
 }
 
+function useDebugFlag() {
+  const [isDebug, setIsDebug] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        setIsDebug(params.get("debug") === "1");
+      } catch {
+        setIsDebug(false);
+      }
+    };
+    check();
+    window.addEventListener("popstate", check);
+    return () => window.removeEventListener("popstate", check);
+  }, []);
+  return isDebug;
+}
+
 export function PlayerExpanded() {
   const isExpanded = useUIStore((s) => s.isPlayerExpanded);
   const setExpanded = useUIStore((s) => s.setPlayerExpanded);
+  const reducedMotion = useUIStore((s) => s.reducedMotion);
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const queue = usePlayerStore((s) => s.queue);
   const progress = usePlayerStore((s) => s.progress);
@@ -62,14 +81,68 @@ export function PlayerExpanded() {
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat);
   const toggleFavorite = usePlayerStore((s) => s.toggleFavorite);
   const hasTrack = Boolean(currentTrack);
+  const isDebug = useDebugFlag();
 
+  // Animation state: keep mounted until exit transition finishes
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Sync mounted/visible with isExpanded
   useEffect(() => {
-    if (!isExpanded || !hasTrack) return;
+    if (isExpanded && hasTrack) {
+      setMounted(true);
+      // double rAF to ensure the browser registers the initial hidden state before transitioning to visible
+      let raf1 = 0;
+      let raf2 = 0;
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    if (!isExpanded && mounted) {
+      setVisible(false);
+      if (reducedMotion) {
+        setMounted(false);
+      }
+      // otherwise wait for transitionend / timeout
+    }
+    if (!hasTrack) {
+      setVisible(false);
+      setMounted(false);
+    }
+  }, [isExpanded, hasTrack, mounted, reducedMotion]);
+
+  // Fallback timeout for unmount if transitionend doesn't fire
+  useEffect(() => {
+    if (!mounted || visible || reducedMotion) return;
+    const t = window.setTimeout(() => setMounted(false), 450);
+    return () => window.clearTimeout(t);
+  }, [mounted, visible, reducedMotion]);
+
+  const handleTransitionEnd = useCallback(
+    (e: React.TransitionEvent<HTMLDivElement>) => {
+      if (e.target !== panelRef.current) return;
+      // Only handle transform/opacity transitions of the panel itself
+      if (e.propertyName !== "transform" && e.propertyName !== "opacity") return;
+      if (!isExpanded) {
+        setMounted(false);
+      }
+    },
+    [isExpanded]
+  );
+
+  // Scroll lock while mounted (covers both open and closing animation)
+  useEffect(() => {
+    if (!mounted || !hasTrack) return;
     const lock = lockScroll();
     return () => unlockScroll(lock);
-  }, [isExpanded, hasTrack]);
+  }, [mounted, hasTrack]);
 
-  if (!isExpanded || !currentTrack) return null;
+  if (!mounted || !currentTrack) return null;
 
   const coverUrl = getMediaUrl(currentTrack.cover);
   const audioEl =
@@ -91,7 +164,16 @@ export function PlayerExpanded() {
 
   return (
     <div
-      className="fixed inset-0 z-[45] flex flex-col overflow-hidden bg-[var(--bg)]"
+      ref={panelRef}
+      onTransitionEnd={handleTransitionEnd}
+      className="fixed inset-0 z-[45] flex flex-col overflow-hidden bg-[var(--bg)] will-change-transform"
+      style={{
+        transform: visible ? "translateY(0)" : "translateY(100%)",
+        opacity: visible ? 1 : 0,
+        transition: reducedMotion
+          ? "none"
+          : "transform 400ms cubic-bezier(.22,1,.36,1), opacity 400ms cubic-bezier(.22,1,.36,1)",
+      }}
       role="dialog"
       aria-modal="true"
       aria-label="Reproductor expandido"
@@ -257,15 +339,11 @@ export function PlayerExpanded() {
               })}
             </div>
 
-            <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-4 font-mono text-[10px] leading-relaxed text-[var(--fg-muted)] uppercase">
-              <AudioReactiveReadout />
-              <div className="mt-1 text-[var(--fg-dim)]">
-                Todo el sitio late con la música. Efectos siempre en MAX.
+            {isDebug && (
+              <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-2)] p-4 font-mono text-[10px] leading-relaxed text-[var(--fg-muted)] uppercase">
+                <AudioReactiveReadout />
               </div>
-              <div className="mt-2 text-[9px]">
-                Atajos: Space play/pause, Cmd+→ next, Cmd+← prev. Media Session API activo.
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

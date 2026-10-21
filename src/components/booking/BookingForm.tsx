@@ -371,7 +371,7 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
       </button>
 
       <div className="mt-3 text-center font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
-        Respuesta en 24h • Webhook n8n + mailto fallback • No spam • Datos protegidos
+        Te respondemos en menos de 24 h.
       </div>
     </form>
   );
