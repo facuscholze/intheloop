@@ -6,7 +6,6 @@ import {
   SkipForward,
   Pause,
   Play,
-  ChevronDown,
   ChevronUp,
   Shuffle,
   Repeat,
@@ -50,6 +49,7 @@ export function PlayerBar() {
   const toggleFavorite = usePlayerStore((s) => s.toggleFavorite);
   const isExpanded = useUIStore((s) => s.isPlayerExpanded);
   const setExpanded = useUIStore((s) => s.setPlayerExpanded);
+  const reducedMotion = useUIStore((s) => s.reducedMotion);
   const seekBarRef = useRef<HTMLDivElement>(null);
 
   const seekFromEvent = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -304,11 +304,16 @@ export function PlayerBar() {
             aria-label={isExpanded ? "Colapsar reproductor" : "Expandir reproductor"}
             aria-expanded={isExpanded}
           >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <ChevronUp className="h-4 w-4" aria-hidden="true" />
-            )}
+            <ChevronUp
+              className="h-4 w-4 will-change-transform"
+              style={{
+                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transition: reducedMotion
+                  ? "none"
+                  : "transform 400ms cubic-bezier(.22,1,.36,1)",
+              }}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>

@@ -132,10 +132,7 @@ export default function HomePage() {
             <h2 className="font-display text-[clamp(44px,11vw,132px)] font-bold leading-none tracking-tight">
               GALLERY<span className="text-[var(--accent-gold)]" aria-hidden="true">.</span>
             </h2>
-            <p className="mt-2 font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
-              Fotos por ciudad • Tocá una ciudad para abrir el carrete completo
-            </p>
-            <div className="mt-12">
+            <div className="mt-8">
               <GalleryCarousel galleries={galleries} />
             </div>
           </div>

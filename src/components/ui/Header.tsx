@@ -10,6 +10,7 @@ import { MagneticButton } from "./magnetic-button";
 export function Header() {
   const isMenuOpen = useUIStore((s) => s.isMenuOpen);
   const setMenuOpen = useUIStore((s) => s.setMenuOpen);
+  const reducedMotion = useUIStore((s) => s.reducedMotion);
   const muted = usePlayerStore((s) => s.muted);
   const toggleMute = usePlayerStore((s) => s.toggleMute);
   const [scrolled, setScrolled] = useState(false);
@@ -76,17 +77,30 @@ export function Header() {
         {/* Menu toggle */}
         <button
           onClick={() => setMenuOpen(!isMenuOpen)}
-          className="relative flex h-11 w-11 flex-col items-center justify-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-9 md:w-9"
+          className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[var(--border)] bg-[var(--bg-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-9 md:w-9"
           aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={isMenuOpen}
           aria-controls="main-menu"
           aria-haspopup="true"
         >
-          {isMenuOpen ? (
-            <X className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <MenuIcon className="h-4 w-4" aria-hidden="true" />
-          )}
+          <span className="relative block h-4 w-4" aria-hidden="true">
+            <MenuIcon
+              className="absolute inset-0 h-4 w-4"
+              style={{
+                opacity: isMenuOpen ? 0 : 1,
+                transform: isMenuOpen ? "rotate(90deg) scale(0.6)" : "rotate(0deg) scale(1)",
+                transition: reducedMotion ? "none" : "opacity 300ms ease, transform 300ms cubic-bezier(.22,1,.36,1)",
+              }}
+            />
+            <X
+              className="absolute inset-0 h-4 w-4"
+              style={{
+                opacity: isMenuOpen ? 1 : 0,
+                transform: isMenuOpen ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.6)",
+                transition: reducedMotion ? "none" : "opacity 300ms ease, transform 300ms cubic-bezier(.22,1,.36,1)",
+              }}
+            />
+          </span>
         </button>
       </div>
     </header>

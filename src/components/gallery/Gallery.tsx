@@ -232,9 +232,6 @@ export function GalleryCarousel({ galleries }: Props) {
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <h3 className="font-display text-2xl uppercase md:text-3xl">Galerías por ciudad</h3>
-          <p className="mt-1 font-mono text-xs tracking-widest text-[var(--fg-muted)] uppercase">
-            Elegí una ciudad • Swipe o flechas
-          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -281,7 +278,7 @@ export function GalleryCarousel({ galleries }: Props) {
             <article
               key={gallery.id}
               data-gallery-id={gallery.id}
-              className="absolute inset-x-0 top-1/2 mx-auto block h-[340px] w-[min(78vw,320px)] -translate-y-1/2 overflow-hidden rounded-[1.75rem] border bg-[var(--bg-2)] transition-[transform,opacity,filter,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-[400px]"
+              className="absolute inset-x-0 top-1/2 mx-auto block h-[340px] w-[min(78vw,320px)] -translate-y-1/2 cursor-pointer overflow-hidden rounded-[1.75rem] border bg-[var(--bg-2)] transition-[transform,opacity,filter,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[var(--accent-gold)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] md:h-[400px]"
               style={{
                 borderColor: isActive ? "var(--accent-gold)" : "var(--border)",
                 zIndex: 20 - abs,
