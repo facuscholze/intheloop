@@ -3,6 +3,7 @@
  *
  *   content/gallery/<ciudad>/…imágenes + city.json (opcional)
  *   content/shows/<show>/show.json + hero.jpg      (la foto del hover)
+ *   content/show-photos/<foto-única>.jpg           (hero elegido desde el CMS)
  *   content/songs/<tema>/track.json + cover.jpg + tema.wav|mp3
  *   content/videos/<video>/video.json + poster.jpg
  *
@@ -22,10 +23,12 @@ import {
   extname,
   isAudioFile,
   isImageFile,
+  isShowPhotoPath,
   KIND_JSON,
   pickPrimaryFile,
   PRIMARY_IMAGE_NAMES,
   resolveMediaValue,
+  SHOW_PHOTOS_DIR,
   slugifySegment,
   sortContentFiles,
   titleFromSlug,
@@ -282,6 +285,9 @@ export function loadSite(): Site {
 
 export function loadShows(): Show[] {
   const shows: Show[] = []
+  const showPhotoFiles = folderImages(
+    listContentFiles(path.join(CONTENT_DIR, SHOW_PHOTOS_DIR))
+  )
 
   for (const { slug, dir: itemDir } of contentItemDirs("shows")) {
     const json = readFolderJson(itemDir, KIND_JSON.shows)
@@ -298,16 +304,21 @@ export function loadShows(): Show[] {
     }
     const raw = parsed.data
     const files = listContentFiles(itemDir)
-    const ctx = { kind: "shows" as const, slug, files }
+    const ctx = { kind: "shows" as const, slug, files, showPhotoFiles }
     const images = folderImages(files)
-    const heroValue =
-      declaredMedia(
-        raw.hero ?? raw.photo,
-        images,
-        itemDir,
-        files,
-        `content/shows/${slug}/${json.file}`
-      ) ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.shows)
+    const declaredHero = raw.hero ?? raw.photo
+    // Un hero de la carpeta común no debe pasar por el fallback por nombre de
+    // la carpeta del show. Los demás valores conservan el comportamiento de
+    // siempre y, si no hay hero declarado, sigue el auto-pick local.
+    const heroValue = isShowPhotoPath(declaredHero)
+      ? declaredHero
+      : (declaredMedia(
+          declaredHero,
+          images,
+          itemDir,
+          files,
+          `content/shows/${slug}/${json.file}`
+        ) ?? pickPrimaryFile(images, PRIMARY_IMAGE_NAMES.shows))
 
     if (raw.draft) continue
     shows.push({

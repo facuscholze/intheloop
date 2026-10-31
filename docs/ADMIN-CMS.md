@@ -32,10 +32,11 @@ En el menú vas a ver:
 
 | Sección | Para qué sirve |
 |---|---|
-| **Shows** | Crear y editar los datos de cada show. |
+| **Shows** | Crear y editar los datos y la foto principal de cada show. |
 | **Galerías por ciudad** | Datos de cada ciudad (país, fecha, orden y descripción). |
 | **Sitio** | Artista, agencia, frase principal, contacto y géneros. |
-| **Media → Fotos de shows** | Subir la foto de cada show dentro de su carpeta. |
+| **Media → Fotos principales de shows** | Carpeta común donde quedan las fotos subidas desde el formulario del show. Normalmente no hace falta entrar acá. |
+| **Media → Fotos de shows** | Carpetas individuales de los shows. Es el respaldo/compatibilidad manual, no el flujo normal para la foto principal. |
 | **Media → Fotos de galería** | Subir las fotos de cada ciudad dentro de su carpeta. |
 
 ---
@@ -55,50 +56,40 @@ En el menú vas a ver:
      (ej. "Argen…"). Se guarda el código ISO (`AR`, `FR`, `JP`…) y el sitio
      calcula solo el nombre, la bandera y los contadores — un país nuevo no
      requiere ningún cambio de código.
+   - **Foto principal**: tocá **Upload**, elegí una sola foto y esperá a que
+     aparezca su miniatura. También podés usar **Select** para reutilizar una
+     foto que ya esté en la carpeta común.
    - **Instagram** y **Link a la galería**: opcionales; si cargás algo, que
      sea la URL completa (`https://…`).
    - **Destacado**: resalta el show en el sitio.
    - **Borrador**: si está activado, el show no aparece en el sitio. Usalo
      para preparar shows o para ocultar uno sin borrarlo.
-3. **Guardá** el show **sin foto todavía**. La carpeta del show se crea con
-   fecha y venue (ej. `2026-03-14-club-ejemplo/`).
+3. Revisá que en **Foto principal** se vea la miniatura correcta y tocá
+   **Guardar**. No hace falta ir a Media ni hacer un segundo guardado.
 
-### Agregar la foto del show
+### Cómo queda guardada la foto del show
 
-El formulario del show ya no tiene campo de foto. El flujo oficial es subirla
-desde **Media**, dentro de la carpeta que se creó al guardar el show:
+La foto principal **no queda dentro de la carpeta individual del show**. El
+campo la guarda en una carpeta común (`content/show-photos/`) y el show
+conserva una referencia a ese archivo. Es intencional: Pages CMS solo puede
+apuntar el campo de imagen a una carpeta fija, no a la carpeta de cada show.
 
-4. Andá a **Media → Fotos de shows**.
-5. Entrá a la **carpeta de este show** (la que empieza con su fecha; por
-   ejemplo, `2026-03-14-club-ejemplo/`).
-6. Recién con esa carpeta abierta, tocá **Upload** —o arrastrá el archivo a
-   la ventana— y subí la foto.
-7. Esperá a que termine la subida. **No hace falta volver a abrir ni guardar
-   el show**: al compilar, el sitio toma automáticamente la foto que está en
-   su carpeta.
+Al subir, Pages CMS está configurado con **nombres aleatorios únicos**
+(`rename: random`): el nombre original se reemplaza por uno generado, así
+dos archivos llamados igual —por ejemplo, dos `IMG_0001.jpg`— no se pisan.
+Además, si alguna vez hubiera un conflicto de nombre al guardar en GitHub,
+Pages CMS intenta automáticamente un sufijo `-1`, `-2`, etc. La miniatura del
+formulario es la referencia visual para saber qué foto usa cada show.
 
-Si la carpeta tiene una sola foto, esa será la principal. Si tiene más de
-una y querés elegir una en particular, dejala con un nombre que empiece con
-`hero` conservando su extensión original (`hero.jpg` para un JPG,
-`hero.png` para un PNG, etc.). Podés hacerlo antes de subirla o desde Media:
+> La subida crea el archivo en GitHub apenas termina, incluso antes de que
+> guardes el show. Si subís una foto y después salís sin guardar, el archivo
+> puede quedar huérfano en la carpeta común. No rompe el sitio, pero conviene
+> guardar el show o avisar a desarrollo para limpiarlo.
 
-1. En la carpeta del show, tocá el botón **⋮** que está junto al nombre de la
-   foto elegida.
-2. Elegí **Rename**.
-3. El cuadro muestra la ruta dentro de `content/shows/`. Conservá la parte de
-   la carpeta y cambiá solo el nombre final por `hero` + la misma extensión.
-   Por ejemplo: `2026-03-14-club-ejemplo/foto.png` →
-   `2026-03-14-club-ejemplo/hero.png`.
-4. Confirmá con **Rename**. Dejá una sola foto `hero.*` por show.
-
-Si ninguna empieza con `hero`, `foto`, `photo` o `show`, el sitio usa la
-primera por orden natural (por ejemplo, `01.jpg` antes que `02.jpg`).
-
-> ⚠️ No subas la foto en la raíz de **Fotos de shows**: cada show solo usa
-> los archivos que están **dentro de su propia carpeta**. Si quedó en la raíz
-> por error, abrila con **⋮ → Rename** y agregale al principio la carpeta del
-> show (`<carpeta-del-show>/hero.<extensión>`), o borrala y subila de nuevo
-> desde la carpeta correcta.
+Los shows viejos que ya tienen su foto dentro de su propia carpeta siguen
+funcionando: si **Foto principal** está vacío, el sitio conserva el
+auto-pick por carpeta como respaldo. Para los shows nuevos, usá siempre el
+campo **Foto principal** del formulario.
 
 Al compilar, el sitio convierte automáticamente la foto a WebP (versión
 grande y miniatura) aplicando la orientación del celular. No hace falta
@@ -110,10 +101,21 @@ el original).
 - Desde **Shows**, abrí la entrada, cambiá lo que quieras y guardá.
 - Cambiar la fecha o el venue **no renombra la carpeta** ya creada; es solo
   un detalle interno y no se ve en el sitio.
-- Para sacar un show del sitio, activá **Borrador**. Evitá borrar la
-  entrada: borrar el `show.json` deja la carpeta huérfana y puede romper la
-  compilación. Si realmente hay que eliminar un show, pedilo a desarrollo
-  para borrar también su carpeta.
+- Para sacar un show del sitio, activá **Borrador**. Eso solo lo oculta: no
+  borra ni el show ni su foto. Evitá borrar la entrada: borrar el `show.json`
+  deja la carpeta huérfana y puede romper la compilación. Si realmente hay
+  que eliminar un show, pedilo a desarrollo para borrar también su carpeta.
+- **La foto subida desde el formulario no se borra con el show.** Vive en la
+  carpeta común `content/show-photos/`; quitarla o reemplazarla en **Foto
+  principal** solo cambia la referencia del show, y borrar el show tampoco
+  elimina automáticamente ese archivo. Para una limpieza completa, primero
+  hay que quitar/reemplazar la referencia y guardar, o eliminar el show con
+  ayuda de desarrollo; recién después se puede borrar el archivo desde
+  **Media → Fotos principales de shows**, confirmando que ningún otro show
+  lo reutilice. Nunca borres primero un archivo que un show guardado todavía
+  esté usando: la siguiente compilación puede fallar. Las fotos viejas que
+  estén dentro de la carpeta individual de un show sí se van si desarrollo
+  elimina esa carpeta completa.
 - El campo **Revisión interna** (`needsReview`) es de solo lectura: es una
   marca interna de datos a revisar y no se edita desde el CMS.
 - Ojo con duplicados: dos shows con la **misma fecha y el mismo venue**
@@ -219,11 +221,16 @@ comunes) o avisá a desarrollo con el link de la acción fallida.
 
 ## 7) Errores comunes
 
-- **"Subí la foto y no aparece en el show/la ciudad"** → casi seguro quedó
-  en la raíz de la biblioteca. En Media, usá **⋮ → Rename** para moverla a
-  `<carpeta-del-show>/hero.<extensión>` o `<carpeta-de-la-ciudad>/cover.<extensión>`,
-  según corresponda; o borrala y subila de nuevo **dentro de la carpeta**
-  correcta (ver §2 y §3).
+- **"Subí la foto y no aparece en el show"** → abrí el show y verificá que
+  **Foto principal** muestre la miniatura y que hayas tocado **Guardar**
+  después de subirla o elegirla. Si la subiste desde **Media → Fotos
+  principales de shows** pero no la elegiste en el formulario, abrí el show,
+  tocá **Select** en **Foto principal**, elegila y guardá. No la borres de la
+  carpeta común mientras el show la esté usando.
+- **"Subí la foto y no aparece en la ciudad"** → casi seguro quedó en la raíz
+  de **Fotos de galería**. En Media, usá **⋮ → Rename** para moverla a
+  `<carpeta-de-la-ciudad>/cover.<extensión>` o borrala y subila de nuevo
+  **dentro de la carpeta** correcta (ver §3).
 - **"El CMS no muestra las colecciones"** → estás en una rama sin
   `.pages.yml`. Cambiá a `main` (o a la rama de prueba indicada).
 - **"No encuentro un país en la lista"** → la lista tiene los 249 códigos
@@ -231,31 +238,35 @@ comunes) o avisá a desarrollo con el link de la acción fallida.
   no es un código ISO oficial y no está: si hace falta, pedilo a desarrollo.
 - **"Quiero borrar un show"** → activalo como **Borrador**. No borres
   `show.json`/`city.json` ni renombres carpetas desde el CMS: puede dejar
-  carpetas huérfanas y romper la compilación.
+  carpetas huérfanas y romper la compilación. Además, la foto principal
+  subida desde el formulario quedaría en la carpeta común hasta que se
+  limpie por separado (ver §2).
 - **"La imagen hero de la portada del sitio no cambia"** → no se administra
   desde el CMS; hay que hacer el reemplazo manual de §4 y esperar el
   **Deploy**. No confundirla con la foto principal de un show, que sí se
-  gestiona desde Media según §2.
+  gestiona desde el formulario del show según §2.
 
 ---
 
 ## 8) Referencia técnica (para desarrollo)
 
 - Configuración del CMS: `.pages.yml` en la raíz (colecciones `shows`,
-  `galerias`, `sitio`; medias `shows` y `galeria`; componente reutilizable
-  `pais` con los 249 códigos ISO, ordenados por nombre en español).
-  `settings.content.merge: true` preserva claves JSON no expuestas en el
-  formulario (ej. `id`, `hero`, `photo` o `cover` heredados).
-- Los formularios no exponen campos de imagen para la foto del show ni para
-  la portada de galería: las fotos se suben desde Media a la carpeta del
-  ítem y los loaders eligen la principal por nombre (`hero.*` en shows,
-  `cover.*` en galerías) o por orden natural. Si un JSON heredado declara
-  una ruta pública (`/media/content/shows/<slug>/foto.jpg`),
-  `resolveMediaValue` (`src/lib/content-media.ts`) y `findLocalFile`
-  (`src/lib/content.ts`) todavía pueden resolverla al archivo de la carpeta
-  cuando el nombre coincide con un único archivo, así pasa por la
-  derivación WebP normal de `scripts/sync-media.ts` y respeta
-  `NEXT_PUBLIC_MEDIA_BASE_URL`.
+  `galerias`, `sitio`; medias `shows`, `show-photos` y `galeria`; componente
+  reutilizable `pais` con los 249 códigos ISO, ordenados por nombre en
+  español). `settings.content.merge: true` preserva claves JSON no expuestas
+  en el formulario (ej. `id`, `photo` o `cover` heredados).
+- El formulario de shows expone `hero` como campo de imagen respaldado por la
+  media `show-photos`: Pages CMS guarda
+  `/media/content/show-photos/<foto>` y `resolveShowPhotoValue`
+  (`src/lib/content-media.ts`) lo resuelve al WebP que
+  `scripts/sync-media.ts` genera desde `content/show-photos/`. Esa media usa
+  `rename: random` para que los nombres subidos sean únicos. Si `hero` está
+  vacío, `loadShows` conserva el auto-pick de la carpeta individual del show
+  como respaldo. Galerías sigue sin campo de portada: las fotos se suben
+  desde Media a la carpeta de la ciudad y el loader elige `cover.*` o la
+  primera por orden natural. Las rutas públicas heredadas que apuntan a la
+  carpeta de un ítem todavía pueden resolverse cuando el nombre coincide con
+  un único archivo, y todo el flujo respeta `NEXT_PUBLIC_MEDIA_BASE_URL`.
 - Países sin listas a mano: `src/lib/countries.ts` deriva nombre
   (`Intl.DisplayNames`), bandera (regional indicators) y normalización del
   código; los loaders y la UI excluyen el país vacío de contadores y

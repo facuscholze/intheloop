@@ -18,6 +18,12 @@ media:
     output: /media/content/shows
     extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
     rename: safe
+  - name: show-photos
+    label: "Fotos principales de shows"
+    input: content/show-photos
+    output: /media/content/show-photos
+    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+    rename: random
   - name: galeria
     label: "Fotos de galería"
     input: content/gallery
@@ -573,6 +579,14 @@ content:
       - name: country
         component: pais
         required: true
+      - name: hero
+        label: "Foto principal"
+        description: "Subí o elegí una sola foto. Se guarda en la carpeta común de fotos principales y Pages CMS le asigna un nombre único al subirla."
+        type: image
+        options:
+          media: show-photos
+          path: content/show-photos
+          rename: random
       - name: instagram
         label: "Instagram"
         description: "URL completa del venue o del evento. Podés dejarlo vacío."

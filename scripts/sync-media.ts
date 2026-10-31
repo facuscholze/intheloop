@@ -7,6 +7,7 @@
  *
  *   content/gallery/<ciudad>/foto.jpg  → public/media/content/gallery/<ciudad>/foto.webp (+ -thumb.webp)
  *   content/shows/<show>/hero.jpg      → public/media/content/shows/<show>/hero.webp (+ -thumb.webp)
+ *   content/show-photos/<foto>.jpg      → public/media/content/show-photos/<foto>.webp (+ -thumb.webp)
  *   content/songs/<tema>/cover.jpg     → public/media/content/songs/<tema>/cover.webp (+ -thumb.webp)
  *   content/songs/<tema>/tema.wav      → public/media/content/songs/<tema>/tema.wav  (copiado tal cual)
  *   content/videos/<video>/poster.jpg  → public/media/content/videos/<video>/poster.webp (+ -thumb.webp)
@@ -29,8 +30,11 @@ import {
   isImageFile,
   isPassthroughFile,
   KIND_DIR,
+  showPhotoMediaPath,
+  SHOW_PHOTOS_DIR,
   sortContentFiles,
-  type ContentKind
+  type ContentKind,
+  type MediaVariant
 } from "../src/lib/content-media"
 import {
   contentItemDirs,
@@ -127,18 +131,22 @@ async function syncItem(
   itemDir: string,
   options: { force: boolean },
   stats: Stats,
-  expected: Set<string>
+  expected: Set<string>,
+  pathFor = (rel: string, variant: MediaVariant = "full") =>
+    derivedMediaPath(kind, slug, rel, variant),
+  includeCopies = true
 ) {
   const files = sortContentFiles(listContentFiles(itemDir))
   // La carpeta puede haber sido borrada mientras corría el sync
   if (files.length === 0 && !fs.existsSync(itemDir)) return
   const images = dedupeByDerived(files.filter(isImageFile))
   // Audio, video y segmentos de HLS: se copian tal cual (no se reconvierten).
-  const copies = files.filter((f) => isPassthroughFile(f))
+  // La carpeta común de shows solo admite imágenes, así que no copia otros.
+  const copies = includeCopies ? files.filter((f) => isPassthroughFile(f)) : []
 
   for (const rel of images) {
-    const fullRel = derivedMediaPath(kind, slug, rel)
-    const thumbRel = derivedMediaPath(kind, slug, rel, "thumb")
+    const fullRel = pathFor(rel)
+    const thumbRel = pathFor(rel, "thumb")
     expected.add(path.resolve(PUBLIC_MEDIA_DIR, fullRel))
     expected.add(path.resolve(PUBLIC_MEDIA_DIR, thumbRel))
 
@@ -241,6 +249,19 @@ async function syncMedia(options: SyncOptions = {}): Promise<Stats & { changed: 
       await syncItem(kind, slug, dir, { force: options.force ?? false }, stats, expected)
     }
   }
+
+  // Fotos principales de shows subidas desde el formulario del CMS: viven en
+  // una carpeta común y se optimizan con las mismas medidas que un show.
+  await syncItem(
+    "shows",
+    SHOW_PHOTOS_DIR,
+    path.join(CONTENT_DIR, SHOW_PHOTOS_DIR),
+    { force: options.force ?? false },
+    stats,
+    expected,
+    (rel, variant) => showPhotoMediaPath(rel, variant),
+    false
+  )
   prune(OUT_ROOT, expected, stats)
 
   const changed = stats.images > 0 || stats.copies > 0 || stats.pruned > 0
@@ -304,6 +325,10 @@ function watchContent(onChange: () => void): () => void {
     for (const kind of Object.keys(KIND_DIR)) {
       const dir = path.join(CONTENT_DIR, kind)
       if (fs.existsSync(dir)) closers.push(fs.watch(dir, { recursive: true }, onChange))
+    }
+    const showPhotosDir = path.join(CONTENT_DIR, SHOW_PHOTOS_DIR)
+    if (fs.existsSync(showPhotosDir)) {
+      closers.push(fs.watch(showPhotosDir, { recursive: true }, onChange))
     }
     if (closers.length > 0) return () => closers.forEach((c) => c.close())
   } catch {
