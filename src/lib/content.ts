@@ -43,6 +43,7 @@ import {
   warnOnce
 } from "./content-fs"
 import { analyzeAudioFile } from "./audio-analysis"
+import { normalizeCountryCode } from "./countries"
 
 // ---------------------------------------------------------------- schemas
 // Estos schemas describen el JSON **tal cual lo escribe el artista** dentro de
@@ -128,7 +129,13 @@ export const GalleryCitySchema = z.object({
 export const SiteSchema = z.object({
   artist: z.string(),
   agency: z.string(),
-  tagline: z.object({ en: z.string().nullable(), es: z.string().nullable() }),
+  // Los CMS basados en formularios suelen omitir claves vacías al guardar.
+  // El default mantiene el tipo público (`string | null`) y evita que borrar
+  // una traducción opcional invalide todo `site.json`.
+  tagline: z.object({
+    en: z.string().nullable().default(null),
+    es: z.string().nullable().default(null)
+  }),
   contact: z.object({
     email: z.string(),
     whatsapp: z.string(),
@@ -307,7 +314,7 @@ export function loadShows(): Show[] {
       id: raw.id ?? slug,
       venue: raw.venue,
       city: raw.city,
-      country: raw.country,
+      country: normalizeCountryCode(raw.country),
       date: raw.date,
       instagram: raw.instagram ?? null,
       galleryUrl: raw.galleryUrl ?? null,
@@ -440,9 +447,21 @@ function findLocalFile(
   const rel = value.trim().replace(/^\.\//, "").replace(/^\/+/, "")
   if (!rel) return null
   const wanted = slugifySegment(rel)
-  const inFolder = files.find(
+  let inFolder = files.find(
     (f) => f.toLowerCase() === rel.toLowerCase() || slugifySegment(f) === wanted
   )
+  // Match por nombre de archivo: el CMS guarda la ruta pública completa
+  // ("/media/content/songs/<slug>/tema.mp3"); el archivo es el de la carpeta.
+  if (!inFolder) {
+    const base = basename(rel)
+    const wantedBase = slugifySegment(base)
+    const byName = files.filter(
+      (f) =>
+        basename(f).toLowerCase() === base.toLowerCase() ||
+        slugifySegment(basename(f)) === wantedBase
+    )
+    if (byName.length === 1) inFolder = byName[0]
+  }
   if (inFolder) return path.join(itemDir, inFolder)
   const legacy = path.join(PUBLIC_MEDIA_DIR, rel.replace(/^media\//, ""))
   return fs.existsSync(legacy) ? legacy : null
@@ -547,7 +566,10 @@ export function loadGalleries(): GalleryCity[] {
       city: {
         id: slugifySegment(slug),
         city,
-        country: meta.country ?? countryByCity.get(slugifySegment(city)) ?? "",
+        country:
+          normalizeCountryCode(meta.country) ||
+          countryByCity.get(slugifySegment(city)) ||
+          "",
         date: meta.date ?? null,
         description: meta.description ?? null,
         count: photos.length,

@@ -10,6 +10,7 @@ import { BookingForm } from "@/components/booking/BookingForm";
 import { PressKit } from "@/components/booking/PressKit";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { loadGalleries, loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
+import { countryName } from "@/lib/countries";
 
 export default function HomePage() {
   const site = loadSite();
@@ -18,24 +19,17 @@ export default function HomePage() {
   const videos = loadVideos();
   // Galerías: una carpeta por ciudad en content/gallery/ (las fotos se listan solas)
   const galleries = loadGalleries();
-  // Stats calculadas desde content/shows/<show>/show.json (nada hardcodeado)
-  const countries = Array.from(new Set(shows.map((s) => s.country))).sort();
+  // Stats calculadas desde content/shows/<show>/show.json (nada hardcodeado).
+  // Un show sin país no debe contar como un país vacío.
+  const countries = Array.from(new Set(shows.map((s) => s.country).filter(Boolean))).sort();
 
-  const COUNTRY_META: Record<string, { name: string }> = {
-    AR: { name: "Argentina" },
-    BR: { name: "Brasil" },
-    CZ: { name: "Chequia" },
-    DE: { name: "Alemania" },
-    ES: { name: "España" },
-    FR: { name: "Francia" },
-  };
-
-  // Grilla de países: legible al primer vistazo (reemplaza la ruta animada)
+  // Grilla de países: legible al primer vistazo (reemplaza la ruta animada).
+  // El nombre visible se deriva del código ISO; no hay lista que mantener.
   const countryStats = countries.map((code) => {
     const list = shows.filter((s) => s.country === code);
     return {
       code,
-      name: COUNTRY_META[code]?.name ?? code,
+      name: countryName(code),
       shows: list.length,
       cities: Array.from(
         new Set(list.map((s) => s.city).filter((c): c is string => Boolean(c)))

@@ -1,0 +1,748 @@
+# Pages CMS — administración de contenido de In The Loop / Tommy Petersen
+#
+# Fase A: shows, galerías por ciudad y datos del sitio.
+# La estructura reproduce las carpetas reales que leen los loaders de
+# src/lib/content.ts: content/shows/<show>/show.json,
+# content/gallery/<ciudad>/city.json y content/site.json.
+#
+# settings.content.merge conserva claves JSON que no están expuestas en los
+# formularios (por ejemplo, id/photo heredados) al guardar una entrada.
+settings:
+  content:
+    merge: true
+
+media:
+  - name: shows
+    label: "Fotos de shows"
+    input: content/shows
+    output: /media/content/shows
+    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+    rename: safe
+  - name: galeria
+    label: "Fotos de galería"
+    input: content/gallery
+    output: /media/content/gallery
+    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+    rename: safe
+components:
+  pais:
+    label: "País"
+    description: "Escribí parte del nombre para buscarlo. Se guarda el código ISO de dos letras."
+    type: select
+    options:
+      values:
+        - name: AF
+          label: "Afganistán (AF)"
+        - name: AL
+          label: "Albania (AL)"
+        - name: DE
+          label: "Alemania (DE)"
+        - name: AD
+          label: "Andorra (AD)"
+        - name: AO
+          label: "Angola (AO)"
+        - name: AI
+          label: "Anguila (AI)"
+        - name: AQ
+          label: "Antártida (AQ)"
+        - name: AG
+          label: "Antigua y Barbuda (AG)"
+        - name: SA
+          label: "Arabia Saudí (SA)"
+        - name: DZ
+          label: "Argelia (DZ)"
+        - name: AR
+          label: "Argentina (AR)"
+        - name: AM
+          label: "Armenia (AM)"
+        - name: AW
+          label: "Aruba (AW)"
+        - name: AU
+          label: "Australia (AU)"
+        - name: AT
+          label: "Austria (AT)"
+        - name: AZ
+          label: "Azerbaiyán (AZ)"
+        - name: BS
+          label: "Bahamas (BS)"
+        - name: BD
+          label: "Bangladés (BD)"
+        - name: BB
+          label: "Barbados (BB)"
+        - name: BH
+          label: "Baréin (BH)"
+        - name: BE
+          label: "Bélgica (BE)"
+        - name: BZ
+          label: "Belice (BZ)"
+        - name: BJ
+          label: "Benín (BJ)"
+        - name: BM
+          label: "Bermudas (BM)"
+        - name: BY
+          label: "Bielorrusia (BY)"
+        - name: BO
+          label: "Bolivia (BO)"
+        - name: BA
+          label: "Bosnia y Herzegovina (BA)"
+        - name: BW
+          label: "Botsuana (BW)"
+        - name: BR
+          label: "Brasil (BR)"
+        - name: BN
+          label: "Brunéi (BN)"
+        - name: BG
+          label: "Bulgaria (BG)"
+        - name: BF
+          label: "Burkina Faso (BF)"
+        - name: BI
+          label: "Burundi (BI)"
+        - name: BT
+          label: "Bután (BT)"
+        - name: CV
+          label: "Cabo Verde (CV)"
+        - name: KH
+          label: "Camboya (KH)"
+        - name: CM
+          label: "Camerún (CM)"
+        - name: CA
+          label: "Canadá (CA)"
+        - name: BQ
+          label: "Caribe neerlandés (BQ)"
+        - name: QA
+          label: "Catar (QA)"
+        - name: TD
+          label: "Chad (TD)"
+        - name: CZ
+          label: "Chequia (CZ)"
+        - name: CL
+          label: "Chile (CL)"
+        - name: CN
+          label: "China (CN)"
+        - name: CY
+          label: "Chipre (CY)"
+        - name: VA
+          label: "Ciudad del Vaticano (VA)"
+        - name: CO
+          label: "Colombia (CO)"
+        - name: KM
+          label: "Comoras (KM)"
+        - name: CG
+          label: "Congo (CG)"
+        - name: KP
+          label: "Corea del Norte (KP)"
+        - name: KR
+          label: "Corea del Sur (KR)"
+        - name: CR
+          label: "Costa Rica (CR)"
+        - name: CI
+          label: "Côte d’Ivoire (CI)"
+        - name: HR
+          label: "Croacia (HR)"
+        - name: CU
+          label: "Cuba (CU)"
+        - name: CW
+          label: "Curazao (CW)"
+        - name: DK
+          label: "Dinamarca (DK)"
+        - name: DM
+          label: "Dominica (DM)"
+        - name: EC
+          label: "Ecuador (EC)"
+        - name: EG
+          label: "Egipto (EG)"
+        - name: SV
+          label: "El Salvador (SV)"
+        - name: AE
+          label: "Emiratos Árabes Unidos (AE)"
+        - name: ER
+          label: "Eritrea (ER)"
+        - name: SK
+          label: "Eslovaquia (SK)"
+        - name: SI
+          label: "Eslovenia (SI)"
+        - name: ES
+          label: "España (ES)"
+        - name: US
+          label: "Estados Unidos (US)"
+        - name: EE
+          label: "Estonia (EE)"
+        - name: SZ
+          label: "Esuatini (SZ)"
+        - name: ET
+          label: "Etiopía (ET)"
+        - name: PH
+          label: "Filipinas (PH)"
+        - name: FI
+          label: "Finlandia (FI)"
+        - name: FJ
+          label: "Fiyi (FJ)"
+        - name: FR
+          label: "Francia (FR)"
+        - name: GA
+          label: "Gabón (GA)"
+        - name: GM
+          label: "Gambia (GM)"
+        - name: GE
+          label: "Georgia (GE)"
+        - name: GH
+          label: "Ghana (GH)"
+        - name: GI
+          label: "Gibraltar (GI)"
+        - name: GD
+          label: "Granada (GD)"
+        - name: GR
+          label: "Grecia (GR)"
+        - name: GL
+          label: "Groenlandia (GL)"
+        - name: GP
+          label: "Guadalupe (GP)"
+        - name: GU
+          label: "Guam (GU)"
+        - name: GT
+          label: "Guatemala (GT)"
+        - name: GF
+          label: "Guayana Francesa (GF)"
+        - name: GG
+          label: "Guernesey (GG)"
+        - name: GN
+          label: "Guinea (GN)"
+        - name: GQ
+          label: "Guinea Ecuatorial (GQ)"
+        - name: GW
+          label: "Guinea-Bisáu (GW)"
+        - name: GY
+          label: "Guyana (GY)"
+        - name: HT
+          label: "Haití (HT)"
+        - name: HN
+          label: "Honduras (HN)"
+        - name: HU
+          label: "Hungría (HU)"
+        - name: IN
+          label: "India (IN)"
+        - name: ID
+          label: "Indonesia (ID)"
+        - name: IQ
+          label: "Irak (IQ)"
+        - name: IR
+          label: "Irán (IR)"
+        - name: IE
+          label: "Irlanda (IE)"
+        - name: BV
+          label: "Isla Bouvet (BV)"
+        - name: IM
+          label: "Isla de Man (IM)"
+        - name: CX
+          label: "Isla de Navidad (CX)"
+        - name: NF
+          label: "Isla Norfolk (NF)"
+        - name: IS
+          label: "Islandia (IS)"
+        - name: AX
+          label: "Islas Aland (AX)"
+        - name: KY
+          label: "Islas Caimán (KY)"
+        - name: CC
+          label: "Islas Cocos (CC)"
+        - name: CK
+          label: "Islas Cook (CK)"
+        - name: FO
+          label: "Islas Feroe (FO)"
+        - name: GS
+          label: "Islas Georgia del Sur y Sandwich del Sur (GS)"
+        - name: HM
+          label: "Islas Heard y McDonald (HM)"
+        - name: FK
+          label: "Islas Malvinas (FK)"
+        - name: MP
+          label: "Islas Marianas del Norte (MP)"
+        - name: MH
+          label: "Islas Marshall (MH)"
+        - name: UM
+          label: "Islas menores alejadas de EE. UU. (UM)"
+        - name: PN
+          label: "Islas Pitcairn (PN)"
+        - name: SB
+          label: "Islas Salomón (SB)"
+        - name: TC
+          label: "Islas Turcas y Caicos (TC)"
+        - name: VG
+          label: "Islas Vírgenes Británicas (VG)"
+        - name: VI
+          label: "Islas Vírgenes de EE. UU. (VI)"
+        - name: IL
+          label: "Israel (IL)"
+        - name: IT
+          label: "Italia (IT)"
+        - name: JM
+          label: "Jamaica (JM)"
+        - name: JP
+          label: "Japón (JP)"
+        - name: JE
+          label: "Jersey (JE)"
+        - name: JO
+          label: "Jordania (JO)"
+        - name: KZ
+          label: "Kazajistán (KZ)"
+        - name: KE
+          label: "Kenia (KE)"
+        - name: KG
+          label: "Kirguistán (KG)"
+        - name: KI
+          label: "Kiribati (KI)"
+        - name: KW
+          label: "Kuwait (KW)"
+        - name: LA
+          label: "Laos (LA)"
+        - name: LS
+          label: "Lesoto (LS)"
+        - name: LV
+          label: "Letonia (LV)"
+        - name: LB
+          label: "Líbano (LB)"
+        - name: LR
+          label: "Liberia (LR)"
+        - name: LY
+          label: "Libia (LY)"
+        - name: LI
+          label: "Liechtenstein (LI)"
+        - name: LT
+          label: "Lituania (LT)"
+        - name: LU
+          label: "Luxemburgo (LU)"
+        - name: MK
+          label: "Macedonia del Norte (MK)"
+        - name: MG
+          label: "Madagascar (MG)"
+        - name: MY
+          label: "Malasia (MY)"
+        - name: MW
+          label: "Malaui (MW)"
+        - name: MV
+          label: "Maldivas (MV)"
+        - name: ML
+          label: "Mali (ML)"
+        - name: MT
+          label: "Malta (MT)"
+        - name: MA
+          label: "Marruecos (MA)"
+        - name: MQ
+          label: "Martinica (MQ)"
+        - name: MU
+          label: "Mauricio (MU)"
+        - name: MR
+          label: "Mauritania (MR)"
+        - name: YT
+          label: "Mayotte (YT)"
+        - name: MX
+          label: "México (MX)"
+        - name: FM
+          label: "Micronesia (FM)"
+        - name: MD
+          label: "Moldavia (MD)"
+        - name: MC
+          label: "Mónaco (MC)"
+        - name: MN
+          label: "Mongolia (MN)"
+        - name: ME
+          label: "Montenegro (ME)"
+        - name: MS
+          label: "Montserrat (MS)"
+        - name: MZ
+          label: "Mozambique (MZ)"
+        - name: MM
+          label: "Myanmar (Birmania) (MM)"
+        - name: NA
+          label: "Namibia (NA)"
+        - name: NR
+          label: "Nauru (NR)"
+        - name: NP
+          label: "Nepal (NP)"
+        - name: NI
+          label: "Nicaragua (NI)"
+        - name: NE
+          label: "Níger (NE)"
+        - name: NG
+          label: "Nigeria (NG)"
+        - name: NU
+          label: "Niue (NU)"
+        - name: NO
+          label: "Noruega (NO)"
+        - name: NC
+          label: "Nueva Caledonia (NC)"
+        - name: NZ
+          label: "Nueva Zelanda (NZ)"
+        - name: OM
+          label: "Omán (OM)"
+        - name: NL
+          label: "Países Bajos (NL)"
+        - name: PK
+          label: "Pakistán (PK)"
+        - name: PW
+          label: "Palaos (PW)"
+        - name: PA
+          label: "Panamá (PA)"
+        - name: PG
+          label: "Papúa Nueva Guinea (PG)"
+        - name: PY
+          label: "Paraguay (PY)"
+        - name: PE
+          label: "Perú (PE)"
+        - name: PF
+          label: "Polinesia Francesa (PF)"
+        - name: PL
+          label: "Polonia (PL)"
+        - name: PT
+          label: "Portugal (PT)"
+        - name: PR
+          label: "Puerto Rico (PR)"
+        - name: HK
+          label: "RAE de Hong Kong (China) (HK)"
+        - name: MO
+          label: "RAE de Macao (China) (MO)"
+        - name: GB
+          label: "Reino Unido (GB)"
+        - name: CF
+          label: "República Centroafricana (CF)"
+        - name: CD
+          label: "República Democrática del Congo (CD)"
+        - name: DO
+          label: "República Dominicana (DO)"
+        - name: RE
+          label: "Reunión (RE)"
+        - name: RW
+          label: "Ruanda (RW)"
+        - name: RO
+          label: "Rumanía (RO)"
+        - name: RU
+          label: "Rusia (RU)"
+        - name: EH
+          label: "Sáhara Occidental (EH)"
+        - name: WS
+          label: "Samoa (WS)"
+        - name: AS
+          label: "Samoa Americana (AS)"
+        - name: BL
+          label: "San Bartolomé (BL)"
+        - name: KN
+          label: "San Cristóbal y Nieves (KN)"
+        - name: SM
+          label: "San Marino (SM)"
+        - name: MF
+          label: "San Martín (MF)"
+        - name: PM
+          label: "San Pedro y Miquelón (PM)"
+        - name: VC
+          label: "San Vicente y las Granadinas (VC)"
+        - name: SH
+          label: "Santa Elena (SH)"
+        - name: LC
+          label: "Santa Lucía (LC)"
+        - name: ST
+          label: "Santo Tomé y Príncipe (ST)"
+        - name: SN
+          label: "Senegal (SN)"
+        - name: RS
+          label: "Serbia (RS)"
+        - name: SC
+          label: "Seychelles (SC)"
+        - name: SL
+          label: "Sierra Leona (SL)"
+        - name: SG
+          label: "Singapur (SG)"
+        - name: SX
+          label: "Sint Maarten (SX)"
+        - name: SY
+          label: "Siria (SY)"
+        - name: SO
+          label: "Somalia (SO)"
+        - name: LK
+          label: "Sri Lanka (LK)"
+        - name: ZA
+          label: "Sudáfrica (ZA)"
+        - name: SD
+          label: "Sudán (SD)"
+        - name: SS
+          label: "Sudán del Sur (SS)"
+        - name: SE
+          label: "Suecia (SE)"
+        - name: CH
+          label: "Suiza (CH)"
+        - name: SR
+          label: "Surinam (SR)"
+        - name: SJ
+          label: "Svalbard y Jan Mayen (SJ)"
+        - name: TH
+          label: "Tailandia (TH)"
+        - name: TW
+          label: "Taiwán (TW)"
+        - name: TZ
+          label: "Tanzania (TZ)"
+        - name: TJ
+          label: "Tayikistán (TJ)"
+        - name: IO
+          label: "Territorio Británico del Océano Índico (IO)"
+        - name: TF
+          label: "Territorios Australes Franceses (TF)"
+        - name: PS
+          label: "Territorios Palestinos (PS)"
+        - name: TL
+          label: "Timor-Leste (TL)"
+        - name: TG
+          label: "Togo (TG)"
+        - name: TK
+          label: "Tokelau (TK)"
+        - name: TO
+          label: "Tonga (TO)"
+        - name: TT
+          label: "Trinidad y Tobago (TT)"
+        - name: TN
+          label: "Túnez (TN)"
+        - name: TM
+          label: "Turkmenistán (TM)"
+        - name: TR
+          label: "Turquía (TR)"
+        - name: TV
+          label: "Tuvalu (TV)"
+        - name: UA
+          label: "Ucrania (UA)"
+        - name: UG
+          label: "Uganda (UG)"
+        - name: UY
+          label: "Uruguay (UY)"
+        - name: UZ
+          label: "Uzbekistán (UZ)"
+        - name: VU
+          label: "Vanuatu (VU)"
+        - name: VE
+          label: "Venezuela (VE)"
+        - name: VN
+          label: "Vietnam (VN)"
+        - name: WF
+          label: "Wallis y Futuna (WF)"
+        - name: YE
+          label: "Yemen (YE)"
+        - name: DJ
+          label: "Yibuti (DJ)"
+        - name: ZM
+          label: "Zambia (ZM)"
+        - name: ZW
+          label: "Zimbabue (ZW)"
+
+content:
+  - name: shows
+    label: "Shows"
+    description: "Cada show es una carpeta con su show.json. Creá los shows desde la raíz de esta colección."
+    type: collection
+    path: content/shows
+    format: json
+    subfolders: true
+    filename: "{fields.date}-{fields.venue}/show.json"
+    exclude: ["_TEMPLATE"]
+    view:
+      layout: tree
+      node: show.json
+      fields: [venue, date, city, country, featured, draft]
+      primary: venue
+      sort: [date, venue, city, country]
+      search: [venue, city, country, date]
+      default:
+        sort: date
+        order: desc
+    operations:
+      rename: false
+    fields:
+      - name: venue
+        label: "Venue / evento"
+        description: "Nombre del lugar o evento, tal como debe aparecer en el sitio."
+        type: string
+        required: true
+      - name: date
+        label: "Fecha"
+        description: "Fecha del show. Se guarda como AAAA-MM-DD."
+        type: date
+        required: true
+        default: ""
+        options:
+          format: "yyyy-MM-dd"
+      - name: city
+        label: "Ciudad"
+        description: "Ciudad donde fue o será el show."
+        type: string
+      - name: country
+        component: pais
+        required: true
+      - name: hero
+        label: "Foto principal"
+        description: "Guardá primero el show y volvé a abrirlo. Usá Select, entrá a la carpeta de este show y subí o elegí la foto ahí; no uses el Upload directo de este campo."
+        type: image
+        options:
+          media: shows
+      - name: instagram
+        label: "Instagram"
+        description: "URL completa del venue o del evento. Podés dejarlo vacío."
+        type: string
+        pattern:
+          regex: '^$|^https?://\S+$'
+          message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+      - name: galleryUrl
+        label: "Link a la galería"
+        description: "URL completa a una galería externa, si existe. Podés dejarlo vacío."
+        type: string
+        pattern:
+          regex: '^$|^https?://\S+$'
+          message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+      - name: featured
+        label: "Destacado"
+        description: "Marcá los shows que deben resaltarse."
+        type: boolean
+        default: false
+      - name: draft
+        label: "Borrador"
+        description: "Si está activado, el show no aparece en el sitio. Usalo en vez de borrar la entrada."
+        type: boolean
+        default: false
+      - name: needsReview
+        label: "Revisión interna"
+        description: "Campo interno de solo lectura."
+        type: string
+        readonly: true
+
+  - name: galerias
+    label: "Galerías por ciudad"
+    description: "Datos opcionales de cada carpeta de fotos. Creá las ciudades desde la raíz de esta colección y subí las fotos desde Media > Fotos de galería, dentro de la carpeta de la ciudad."
+    type: collection
+    path: content/gallery
+    format: json
+    subfolders: true
+    filename: "{fields.city}/city.json"
+    exclude: ["_TEMPLATE"]
+    view:
+      layout: tree
+      node: city.json
+      fields: [city, country, date, order]
+      primary: city
+      sort: [order, city, date, country]
+      search: [city, country, date]
+      default:
+        sort: city
+        order: asc
+    operations:
+      rename: false
+    fields:
+      - name: city
+        label: "Ciudad"
+        description: "Nombre visible de la ciudad. También define el nombre de su carpeta al crearla."
+        type: string
+        required: true
+      - name: country
+        component: pais
+      - name: date
+        label: "Fecha"
+        description: "Fecha representativa de la visita o del show. Podés dejarla vacía."
+        type: date
+        default: ""
+        options:
+          format: "yyyy-MM-dd"
+      - name: order
+        label: "Orden"
+        description: "Número opcional para ordenar las ciudades; menor aparece antes."
+        type: number
+        options:
+          step: 1
+      - name: description
+        label: "Descripción"
+        description: "Texto breve opcional sobre la ciudad o la visita."
+        type: text
+      - name: cover
+        label: "Foto de portada"
+        description: "Guardá primero la ciudad y volvé a abrirla. Usá Select, entrá a la carpeta de esta ciudad y subí o elegí la portada ahí; no uses el Upload directo de este campo."
+        type: image
+        options:
+          media: galeria
+
+  - name: sitio
+    label: "Sitio"
+    description: "Datos generales, contacto y géneros que se usan en todo el sitio."
+    type: file
+    path: content/site.json
+    format: json
+    operations:
+      create: false
+      rename: false
+      delete: false
+    fields:
+      - name: artist
+        label: "Artista"
+        type: string
+        required: true
+      - name: agency
+        label: "Agencia"
+        type: string
+        required: true
+      - name: tagline
+        label: "Frase principal"
+        description: "Podés completar una o ambas traducciones."
+        type: object
+        required: true
+        default:
+          en: ""
+          es: ""
+        fields:
+          - name: en
+            label: "Inglés"
+            type: string
+          - name: es
+            label: "Español"
+            type: string
+      - name: contact
+        label: "Contacto"
+        type: object
+        required: true
+        default: {}
+        fields:
+          - name: email
+            label: "Email"
+            type: string
+            required: true
+            pattern:
+              regex: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+              message: "Ingresá un email válido."
+          - name: whatsapp
+            label: "WhatsApp"
+            description: "URL completa de WhatsApp o de wa.link."
+            type: string
+            required: true
+            pattern:
+              regex: '^https?://\S+$'
+              message: "Pegá una URL completa (https://…)."
+          - name: instagram
+            label: "Perfiles de Instagram"
+            description: "Una URL completa por perfil."
+            type: string
+            required: true
+            list: true
+            pattern:
+              regex: '^https?://\S+$'
+              message: "Cada perfil debe ser una URL completa (https://…)."
+          - name: youtube
+            label: "YouTube"
+            type: string
+            required: true
+            pattern:
+              regex: '^https?://\S+$'
+              message: "Pegá una URL completa (https://…)."
+          - name: soundcloud
+            label: "SoundCloud"
+            type: string
+            required: true
+            pattern:
+              regex: '^https?://\S+$'
+              message: "Pegá una URL completa (https://…)."
+      - name: genres
+        label: "Géneros"
+        description: "Un género por ítem, en el orden en que deben aparecer."
+        type: string
+        required: true
+        list: true
