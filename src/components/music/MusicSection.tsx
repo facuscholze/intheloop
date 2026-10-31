@@ -33,6 +33,43 @@ function soundcloudEmbedSrc(url: string): string {
   return `https://w.soundcloud.com/player/?${params.toString()}`
 }
 
+interface ExternalLinkItem {
+  label: string
+  href: string
+}
+
+function ExternalLinkButtons({
+  trackTitle,
+  links
+}: {
+  trackTitle: string
+  links: ExternalLinkItem[]
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((link) => (
+        <a
+          key={link.label}
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-3 py-1.5 font-mono text-[10px] tracking-widest uppercase transition-colors hover:border-[var(--accent-fire)] hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+          aria-label={`Escuchar ${trackTitle} en ${link.label} (nueva pestaña)`}
+        >
+          {link.label === "SoundCloud" || link.label === "Spotify" ? (
+            <Headphones className="h-3.5 w-3.5" aria-hidden="true" />
+          ) : link.label === "Beatport" ? (
+            <Disc3 className="h-3.5 w-3.5" aria-hidden="true" />
+          ) : (
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+          {link.label}
+        </a>
+      ))}
+    </div>
+  )
+}
+
 interface CardProps {
   track: Track
   /** Solo los temas con audio propio entran a la cola del player. */
@@ -63,7 +100,9 @@ const TrackCard = memo(function TrackCard({ track, playable }: CardProps) {
     .join(" • ")
 
   const externalLinks = [
-    { label: "SoundCloud", href: track.links.soundcloud },
+    // Si solo cargaron la URL para el reproductor embebido, esa misma URL
+    // pública de SoundCloud también sirve como botón para abrirla afuera.
+    { label: "SoundCloud", href: track.links.soundcloud ?? track.embedUrl },
     { label: "Spotify", href: track.links.spotify },
     { label: "Beatport", href: track.links.beatport },
     { label: "YouTube", href: track.links.youtube }
@@ -203,55 +242,47 @@ const TrackCard = memo(function TrackCard({ track, playable }: CardProps) {
               {isCurrent ? "NOW" : "TAP TO PLAY"}
             </span>
           </div>
+
+          {externalLinks.length > 0 && (
+            <div className="mt-3">
+              <ExternalLinkButtons trackTitle={track.title} links={externalLinks} />
+            </div>
+          )}
         </>
       ) : (
         <div className="mt-4">
           {track.embedUrl ? (
-            showEmbed ? (
-              <iframe
-                title={`${track.title} en SoundCloud`}
-                src={soundcloudEmbedSrc(track.embedUrl)}
-                className="h-[120px] w-full rounded-xl border border-[var(--border)]"
-                loading="lazy"
-                allow="autoplay"
-              />
-            ) : (
-              <button
-                onClick={() => setShowEmbed(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] px-4 py-3 font-mono text-[10px] tracking-widest uppercase transition-colors hover:border-[var(--accent-fire)] hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
-              >
-                <Music2 className="h-4 w-4" aria-hidden="true" />
-                Escuchar en SoundCloud
-              </button>
-            )
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {externalLinks.length > 0 ? (
-                externalLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-2)] px-3 py-1.5 font-mono text-[10px] tracking-widest uppercase transition-colors hover:border-[var(--accent-fire)] hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
-                    aria-label={`Escuchar ${track.title} en ${link.label} (nueva pestaña)`}
-                  >
-                    {link.label === "SoundCloud" || link.label === "Spotify" ? (
-                      <Headphones className="h-3.5 w-3.5" aria-hidden="true" />
-                    ) : link.label === "Beatport" ? (
-                      <Disc3 className="h-3.5 w-3.5" aria-hidden="true" />
-                    ) : (
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    )}
-                    {link.label}
-                  </a>
-                ))
+            <>
+              {showEmbed ? (
+                <iframe
+                  title={`${track.title} en SoundCloud`}
+                  src={soundcloudEmbedSrc(track.embedUrl)}
+                  className="h-[120px] w-full rounded-xl border border-[var(--border)]"
+                  loading="lazy"
+                  allow="autoplay"
+                />
               ) : (
-                <p className="font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
-                  Pronto en las plataformas
-                </p>
+                <button
+                  onClick={() => setShowEmbed(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] px-4 py-3 font-mono text-[10px] tracking-widest uppercase transition-colors hover:border-[var(--accent-fire)] hover:text-[var(--accent-fire)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)]"
+                >
+                  <Music2 className="h-4 w-4" aria-hidden="true" />
+                  Escuchar en SoundCloud
+                </button>
               )}
-            </div>
+
+              {externalLinks.length > 0 && (
+                <div className="mt-3">
+                  <ExternalLinkButtons trackTitle={track.title} links={externalLinks} />
+                </div>
+              )}
+            </>
+          ) : externalLinks.length > 0 ? (
+            <ExternalLinkButtons trackTitle={track.title} links={externalLinks} />
+          ) : (
+            <p className="font-mono text-[10px] tracking-widest text-[var(--fg-dim)] uppercase">
+              Pronto en las plataformas
+            </p>
           )}
 
           <div className="mt-3 flex items-center justify-between font-mono text-[10px] text-[var(--fg-dim)] uppercase">

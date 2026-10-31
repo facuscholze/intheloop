@@ -1,9 +1,10 @@
 # Pages CMS — administración de contenido de In The Loop / Tommy Petersen
 #
-# Fase A: shows, galerías por ciudad y datos del sitio.
+# Shows, galerías por ciudad, tracks y datos del sitio.
 # La estructura reproduce las carpetas reales que leen los loaders de
 # src/lib/content.ts: content/shows/<show>/show.json,
-# content/gallery/<ciudad>/city.json y content/site.json.
+# content/gallery/<ciudad>/city.json, content/songs/<track>/track.json
+# y content/site.json.
 #
 # settings.content.merge conserva claves JSON que no están expuestas en los
 # formularios (por ejemplo, id/photo heredados) al guardar una entrada.
@@ -18,17 +19,17 @@ media:
     output: /media/content/shows
     extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
     rename: safe
-  - name: show-photos
-    label: "Fotos principales de shows"
-    input: content/show-photos
-    output: /media/content/show-photos
-    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
-    rename: random
   - name: galeria
     label: "Fotos de galería"
     input: content/gallery
     output: /media/content/gallery
     extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+    rename: safe
+  - name: tracks
+    label: "Audio y portadas de tracks"
+    input: content/songs
+    output: /media/content/songs
+    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff, mp3, wav, m4a, aac, ogg, oga, opus, flac, aiff]
     rename: safe
 components:
   pais:
@@ -581,12 +582,12 @@ content:
         required: true
       - name: hero
         label: "Foto principal"
-        description: "Subí o elegí una sola foto. Se guarda en la carpeta común de fotos principales y Pages CMS le asigna un nombre único al subirla."
+        description: "Guardá primero el show y volvé a abrirlo. Usá Select, entrá a la carpeta de este show y subí o elegí la foto ahí; no uses Upload directo ni arrastrarla en este campo."
         type: image
         options:
-          media: show-photos
-          path: content/show-photos
-          rename: random
+          media: shows
+          path: content/shows
+          rename: safe
       - name: instagram
         label: "Instagram"
         description: "URL completa del venue o del evento. Podés dejarlo vacío."
@@ -619,7 +620,7 @@ content:
 
   - name: galerias
     label: "Galerías por ciudad"
-    description: "Datos opcionales de cada carpeta de fotos. Creá las ciudades desde la raíz de esta colección y subí las fotos desde Media > Fotos de galería, dentro de la carpeta de la ciudad."
+    description: "Datos opcionales de cada carpeta de fotos. Creá las ciudades desde la raíz de esta colección. Para la portada, guardá la ciudad, volvé a abrirla y usá Select dentro de su carpeta; el resto de las fotos se sube desde Media > Fotos de galería, dentro de la carpeta de la ciudad."
     type: collection
     path: content/gallery
     format: json
@@ -653,6 +654,15 @@ content:
         default: ""
         options:
           format: "yyyy-MM-dd"
+      - name: cover
+        label: "Portada"
+        description: "Guardá primero la ciudad y volvé a abrirla. Usá Select, entrá a la carpeta de esta ciudad y subí o elegí la foto ahí; no uses Upload directo ni arrastrarla en este campo. Si lo dejás vacío, el sitio usa una foto cover/portada/hero o la primera de la carpeta."
+        type: image
+        options:
+          media: galeria
+          path: content/gallery
+          rename: safe
+          extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
       - name: order
         label: "Orden"
         description: "Número opcional para ordenar las ciudades; menor aparece antes."
@@ -663,6 +673,149 @@ content:
         label: "Descripción"
         description: "Texto breve opcional sobre la ciudad o la visita."
         type: text
+
+  - name: tracks
+    label: "Tracks"
+    description: "Cada track o set es una carpeta con su track.json, su audio y su portada. Creá los tracks desde la raíz de esta colección; guardá primero el track y volvé a abrirlo para subir el audio y la portada con Select dentro de su carpeta."
+    type: collection
+    path: content/songs
+    format: json
+    subfolders: true
+    filename: "{fields.title}/track.json"
+    exclude: ["_TEMPLATE"]
+    view:
+      layout: tree
+      node: track.json
+      fields: [title, artist, type, date, bpm, draft]
+      primary: title
+      sort: [date, title, artist, type]
+      search: [title, artist, type, date]
+      default:
+        sort: date
+        order: desc
+    operations:
+      rename: false
+    fields:
+      - name: title
+        label: "Título"
+        description: "Nombre del track o set, tal como debe aparecer en el sitio. También define el nombre de su carpeta al crearlo."
+        type: string
+        required: true
+      - name: artist
+        label: "Artista"
+        description: "Nombre del artista tal como debe mostrarse en la tarjeta."
+        type: string
+        required: true
+        default: "Tommy Petersen"
+      - name: type
+        label: "Tipo"
+        description: "Indicá si es un tema individual, un set o un mix."
+        type: select
+        required: true
+        default: "track"
+        options:
+          values:
+            - name: track
+              label: "Track"
+            - name: set
+              label: "Set"
+            - name: mix
+              label: "Mix"
+      - name: audio
+        label: "Archivo de audio"
+        description: "Guardá primero el track y volvé a abrirlo. Usá Select, entrá a la carpeta de este track y subí o elegí el audio ahí; no uses Upload directo ni arrastrarlo en este campo. Si lo dejás vacío, el sitio usa el único/primer audio que encuentre en la carpeta."
+        type: file
+        options:
+          media: tracks
+          path: content/songs
+          rename: safe
+          extensions: [mp3, wav, m4a, aac, ogg, oga, opus, flac, aiff]
+      - name: cover
+        label: "Portada"
+        description: "Guardá primero el track y volvé a abrirlo. Usá Select, entrá a la carpeta de este track y subí o elegí la portada ahí; no uses Upload directo ni arrastrarla en este campo. Si lo dejás vacío, el sitio usa una imagen cover/portada/hero o la primera de la carpeta."
+        type: image
+        options:
+          media: tracks
+          path: content/songs
+          rename: safe
+          extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+      - name: date
+        label: "Fecha"
+        description: "Fecha de publicación o grabación. Se guarda como AAAA-MM-DD y ordena los tracks; podés dejarla vacía."
+        type: date
+        default: ""
+        options:
+          format: "yyyy-MM-dd"
+      - name: bpm
+        label: "BPM"
+        description: "Tempo en pulsos por minuto, entre 60 y 200. Podés dejarlo vacío."
+        type: number
+        options:
+          min: 60
+          max: 200
+          step: 1
+      - name: key
+        label: "Tonalidad"
+        description: "Tonalidad del track, por ejemplo Am, Fm o 8A. Podés dejarla vacía."
+        type: string
+      - name: genres
+        label: "Géneros"
+        description: "Un género por ítem, en el orden en que deben aparecer en la tarjeta."
+        type: string
+        list: true
+      - name: colorAccent
+        label: "Color de acento"
+        description: "Color opcional para el brillo y la onda de la tarjeta, en formato #RRGGBB (ej. #FF5A1F)."
+        type: string
+        pattern:
+          regex: '^$|^#[0-9A-Fa-f]{6}$'
+          message: "Usá un color #RRGGBB (ej. #FF5A1F) o dejá el campo vacío."
+      - name: embedUrl
+        label: "SoundCloud para reproducir en el sitio"
+        description: "URL pública completa del track o set en SoundCloud. Usala cuando no subís el archivo de audio: la tarjeta podrá reproducirlo embebido y también mostrará un botón para abrirlo en SoundCloud."
+        type: string
+        pattern:
+          regex: '^$|^https?://\S+$'
+          message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+      - name: links
+        label: "Links para escuchar afuera"
+        description: "URLs completas donde está publicado el track. El sitio las muestra como botones en la tarjeta, incluso cuando el audio también se reproduce en el sitio."
+        type: object
+        default: {}
+        fields:
+          - name: soundcloud
+            label: "SoundCloud"
+            description: "URL completa del track o set en SoundCloud."
+            type: string
+            pattern:
+              regex: '^$|^https?://\S+$'
+              message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+          - name: spotify
+            label: "Spotify"
+            description: "URL completa del track en Spotify."
+            type: string
+            pattern:
+              regex: '^$|^https?://\S+$'
+              message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+          - name: beatport
+            label: "Beatport"
+            description: "URL completa del track en Beatport."
+            type: string
+            pattern:
+              regex: '^$|^https?://\S+$'
+              message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+          - name: youtube
+            label: "YouTube"
+            description: "URL completa del video o track en YouTube."
+            type: string
+            pattern:
+              regex: '^$|^https?://\S+$'
+              message: "Pegá una URL completa (https://…) o dejá el campo vacío."
+      - name: draft
+        label: "Borrador"
+        description: "Si está activado, el track no aparece en el sitio. Los tracks nuevos quedan publicados salvo que actives esta opción."
+        type: boolean
+        default: false
 
   - name: sitio
     label: "Sitio"

@@ -13,7 +13,6 @@
  *
  *   content/gallery/<ciudad>/01.jpg                galería por ciudad (solo soltar fotos)
  *   content/shows/<show>/show.json + hero.jpg      show + imagen hero (la del hover)
- *   content/show-photos/<foto-única>.jpg           foto principal elegida desde el CMS
  *   content/songs/<tema>/song.json + cover.jpg     tema + portada + audio
  *   content/videos/<video>/video.json + poster.jpg video + poster
  *
@@ -34,10 +33,8 @@
  *   3. `/media/content/shows/<slug>/hero.jpg` → el formato que guarda Pages CMS
  *      (ruta pública completa): si el nombre del archivo coincide con uno de
  *      la carpeta del item, se trata como la regla 2 (pasa por el sync/WebP).
- *   4. `/media/content/show-photos/<foto>` → foto principal de un show en la
- *      carpeta común del CMS; también pasa por sync/WebP.
- *   5. `/algo`          → otra ruta absoluta del sitio (public/), se usa tal cual.
- *   6. `audio/viejo.wav`→ formato viejo: ruta relativa a `public/media/`.
+ *   4. `/algo`          → otra ruta absoluta del sitio (public/), se usa tal cual.
+ *   5. `audio/viejo.wav`→ formato viejo: ruta relativa a `public/media/`.
  */
 
 export type ContentKind = "gallery" | "shows" | "songs" | "videos"
@@ -50,14 +47,6 @@ export const KIND_DIR: Record<ContentKind, string> = {
   songs: "songs",
   videos: "videos"
 }
-
-/**
- * Carpeta común para la foto principal elegida desde el formulario de shows
- * en Pages CMS. No es un `ContentKind`: no contiene ítems, solo archivos de
- * imagen sueltos a los que apunta `show.json`.
- */
-export const SHOW_PHOTOS_DIR = "show-photos"
-export const SHOW_PHOTOS_MEDIA_PREFIX = `content/${SHOW_PHOTOS_DIR}`
 
 /**
  * Nombre del JSON principal de cada item (queda al lado de la imagen).
@@ -245,85 +234,13 @@ export function derivedMediaPath(
   return `content/${KIND_DIR[kind]}/${slugifySegment(slug)}/${derivedName(relPath, variant)}`
 }
 
-/** Ruta pública derivada de una foto de la carpeta común de shows. */
-export function showPhotoMediaPath(
-  relPath: string,
-  variant: MediaVariant = "full"
-): string {
-  return `${SHOW_PHOTOS_MEDIA_PREFIX}/${derivedName(relPath, variant)}`
-}
-
 // ---------------------------------------------------------------- resolver
-
-const SHOW_PHOTO_PATH_PREFIXES = [
-  `media/${SHOW_PHOTOS_MEDIA_PREFIX}/`,
-  `${SHOW_PHOTOS_MEDIA_PREFIX}/`,
-  `${SHOW_PHOTOS_DIR}/`
-]
-
-/**
- * Extrae la ruta relativa dentro de `content/show-photos/` desde los formatos
- * que puede guardar el CMS o una edición manual del JSON. Pages CMS guarda la
- * ruta pública (`/media/content/show-photos/<foto>`); también aceptamos la
- * ruta del repo (`content/show-photos/<foto>`).
- */
-export function showPhotoRelativePath(value: string | null | undefined): string | null {
-  if (!value) return null
-  const raw = value.trim()
-  if (!raw || /^(https?:)?\/\//i.test(raw)) return null
-
-  const clean = raw.replace(/^\.\//, "").replace(/^\/+/, "")
-  const lower = clean.toLowerCase()
-  const prefix = SHOW_PHOTO_PATH_PREFIXES.find((candidate) => lower.startsWith(candidate))
-  if (!prefix) return null
-
-  const rel = clean.slice(prefix.length).replace(/^\/+/, "")
-  return rel || null
-}
-
-export function isShowPhotoPath(value: string | null | undefined): boolean {
-  return showPhotoRelativePath(value) !== null
-}
-
-/**
- * Resuelve una referencia a la carpeta común a su derivado WebP. Si el archivo
- * declarado no está entre `files`, igual devuelve la ruta derivada esperada:
- * `resolveMedia` la chequea contra `public/media/` y en CI convierte la falta
- * en error, en vez de publicar una imagen rota o adivinar otra foto.
- */
-export function resolveShowPhotoValue(
-  value: string | null | undefined,
-  files: string[],
-  variant: MediaVariant = "full"
-): string | null {
-  const rel = showPhotoRelativePath(value)
-  if (!rel) return null
-
-  const wanted = slugifySegment(rel)
-  let hit = files.find(
-    (f) => f.toLowerCase() === rel.toLowerCase() || slugifySegment(f) === wanted
-  )
-  if (!hit) {
-    const base = basename(rel)
-    const wantedBase = slugifySegment(base)
-    const byName = files.filter(
-      (f) =>
-        basename(f).toLowerCase() === base.toLowerCase() ||
-        slugifySegment(basename(f)) === wantedBase
-    )
-    if (byName.length === 1) hit = byName[0]
-  }
-
-  return showPhotoMediaPath(hit ?? rel, variant)
-}
 
 export interface ResolveContext {
   kind: ContentKind
   slug: string
   /** Archivos de la carpeta del item (rutas relativas, POSIX). */
   files: string[]
-  /** Archivos de `content/show-photos/`; solo lo usa el loader de shows. */
-  showPhotoFiles?: string[]
   variant?: MediaVariant
 }
 
@@ -333,20 +250,13 @@ export interface ResolveContext {
  */
 export function resolveMediaValue(
   value: string | null | undefined,
-  { kind, slug, files, showPhotoFiles, variant = "full" }: ResolveContext
+  { kind, slug, files, variant = "full" }: ResolveContext
 ): string | null {
   if (!value) return null
   const raw = value.trim()
   if (!raw) return null
   // 1) externo (bucket, YouTube, SoundCloud…)
   if (/^(https?:)?\/\//i.test(raw)) return raw
-
-  // La carpeta común de shows tiene prioridad sobre el match por nombre en la
-  // carpeta del show: si el JSON apunta ahí, no debe robarla una foto local
-  // que casualmente tenga el mismo nombre.
-  if (kind === "shows" && isShowPhotoPath(raw)) {
-    return resolveShowPhotoValue(raw, showPhotoFiles ?? [], variant)
-  }
 
   const isAbsolute = raw.startsWith("/")
   const rel = raw.replace(/^\.\//, "").replace(/^\/+/, "")
