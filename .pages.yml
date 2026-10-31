@@ -573,12 +573,6 @@ content:
       - name: country
         component: pais
         required: true
-      - name: hero
-        label: "Foto principal"
-        description: "Guardá primero el show y volvé a abrirlo. Usá Select, entrá a la carpeta de este show y subí o elegí la foto ahí; no uses el Upload directo de este campo."
-        type: image
-        options:
-          media: shows
       - name: instagram
         label: "Instagram"
         description: "URL completa del venue o del evento. Podés dejarlo vacío."
@@ -655,12 +649,6 @@ content:
         label: "Descripción"
         description: "Texto breve opcional sobre la ciudad o la visita."
         type: text
-      - name: cover
-        label: "Foto de portada"
-        description: "Guardá primero la ciudad y volvé a abrirla. Usá Select, entrá a la carpeta de esta ciudad y subí o elegí la portada ahí; no uses el Upload directo de este campo."
-        type: image
-        options:
-          media: galeria
 
   - name: sitio
     label: "Sitio"

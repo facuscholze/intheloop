@@ -9,8 +9,8 @@ repositorio; GitHub Actions valida el contenido, compila el sitio y (solo en
 la rama `main`) lo publica en GitHub Pages.
 
 > **Fase A (esta guía):** shows, galerías por ciudad y datos del sitio.
-> La foto principal (hero) no se gestiona desde el CMS; §4 solo resume su
-> reemplazo manual. Los tracks y videos quedan para una segunda fase.
+> La imagen hero de la portada del sitio no se gestiona desde el CMS; §4 solo
+> resume su reemplazo manual. Los tracks y videos quedan para una segunda fase.
 
 ---
 
@@ -32,11 +32,11 @@ En el menú vas a ver:
 
 | Sección | Para qué sirve |
 |---|---|
-| **Shows** | Crear y editar shows (venue, fecha, ciudad, país, foto). |
-| **Galerías por ciudad** | Datos de cada ciudad con fotos (país, portada, orden). |
+| **Shows** | Crear y editar los datos de cada show. |
+| **Galerías por ciudad** | Datos de cada ciudad (país, fecha, orden y descripción). |
 | **Sitio** | Artista, agencia, frase principal, contacto y géneros. |
-| **Media → Fotos de shows** | Archivos de imagen dentro de `content/shows/`. |
-| **Media → Fotos de galería** | Archivos de imagen dentro de `content/gallery/`. |
+| **Media → Fotos de shows** | Subir la foto de cada show dentro de su carpeta. |
+| **Media → Fotos de galería** | Subir las fotos de cada ciudad dentro de su carpeta. |
 
 ---
 
@@ -65,18 +65,40 @@ En el menú vas a ver:
 
 ### Agregar la foto del show
 
-4. Volvé a abrir el show recién creado.
-5. En **Foto principal**, tocá **Select** (no *Upload*).
-6. En la ventana de media, entrá a la **carpeta de este show** (la que
-   empieza con su fecha) y recién ahí usá **Upload** para subir la foto, o
-   elegí una que ya esté en esa carpeta.
-7. Guardá de nuevo.
+El formulario del show ya no tiene campo de foto. El flujo oficial es subirla
+desde **Media**, dentro de la carpeta que se creó al guardar el show:
 
-> ⚠️ ¿Por qué con **Select** y dentro de la carpeta? El botón *Upload* del
-> campo sube el archivo a la **raíz** de la biblioteca, y ahí el sitio no lo
-> encuentra: cada show solo usa las fotos que están **dentro de su propia
-> carpeta**. Si subiste una foto a la raíz por error, borrala y volvé a
-> subirla dentro de la carpeta correcta.
+4. Andá a **Media → Fotos de shows**.
+5. Entrá a la **carpeta de este show** (la que empieza con su fecha; por
+   ejemplo, `2026-03-14-club-ejemplo/`).
+6. Recién con esa carpeta abierta, tocá **Upload** —o arrastrá el archivo a
+   la ventana— y subí la foto.
+7. Esperá a que termine la subida. **No hace falta volver a abrir ni guardar
+   el show**: al compilar, el sitio toma automáticamente la foto que está en
+   su carpeta.
+
+Si la carpeta tiene una sola foto, esa será la principal. Si tiene más de
+una y querés elegir una en particular, dejala con un nombre que empiece con
+`hero` conservando su extensión original (`hero.jpg` para un JPG,
+`hero.png` para un PNG, etc.). Podés hacerlo antes de subirla o desde Media:
+
+1. En la carpeta del show, tocá el botón **⋮** que está junto al nombre de la
+   foto elegida.
+2. Elegí **Rename**.
+3. El cuadro muestra la ruta dentro de `content/shows/`. Conservá la parte de
+   la carpeta y cambiá solo el nombre final por `hero` + la misma extensión.
+   Por ejemplo: `2026-03-14-club-ejemplo/foto.png` →
+   `2026-03-14-club-ejemplo/hero.png`.
+4. Confirmá con **Rename**. Dejá una sola foto `hero.*` por show.
+
+Si ninguna empieza con `hero`, `foto`, `photo` o `show`, el sitio usa la
+primera por orden natural (por ejemplo, `01.jpg` antes que `02.jpg`).
+
+> ⚠️ No subas la foto en la raíz de **Fotos de shows**: cada show solo usa
+> los archivos que están **dentro de su propia carpeta**. Si quedó en la raíz
+> por error, abrila con **⋮ → Rename** y agregale al principio la carpeta del
+> show (`<carpeta-del-show>/hero.<extensión>`), o borrala y subila de nuevo
+> desde la carpeta correcta.
 
 Al compilar, el sitio convierte automáticamente la foto a WebP (versión
 grande y miniatura) aplicando la orientación del celular. No hace falta
@@ -105,7 +127,10 @@ el original).
 
 1. Andá a **Media → Fotos de galería**.
 2. Entrá a la carpeta de la ciudad (ej. `paris`, `tandil`).
-3. Con la carpeta abierta, tocá **Upload** y subí las fotos.
+3. Con la carpeta abierta, tocá **Upload** —o arrastrá los archivos a la
+   ventana— y subí las fotos.
+4. Esperá a que terminen todas las subidas. No hace falta abrir ni guardar la
+   ficha de la ciudad.
 
 Eso es todo: en la próxima compilación, las fotos de la carpeta aparecen en
 la galería de esa ciudad, ya optimizadas a WebP.
@@ -116,21 +141,39 @@ la galería de esa ciudad, ya optimizadas a WebP.
    colección.
 2. Completá **Ciudad** *(obligatoria: también define el nombre de su
    carpeta)* y, si querés, **País**, **Fecha**, **Orden** (menor = aparece
-   antes) y **Descripción**. Guardá.
-3. Andá a **Media → Fotos de galería**, entrá a la carpeta nueva y subí las
-   fotos (si no la ves, recargá la vista).
-4. Para elegir la portada: volvé a abrir la ciudad, y en **Foto de portada**
-   usá **Select**, entrá a la carpeta de esa ciudad y elegí la foto. Guardá.
+   antes) y **Descripción**. **Guardá** la ciudad sin fotos todavía.
+3. Andá a **Media → Fotos de galería**.
+4. Entrá a la carpeta nueva de la ciudad (si no la ves, recargá la vista).
+5. Con esa carpeta abierta, tocá **Upload** y subí las fotos. No hace falta
+   volver a abrir ni guardar la ciudad.
+
+### Elegir la portada de una ciudad
+
+El formulario de la ciudad ya no tiene campo de portada. Para elegir cuál de
+las fotos será la portada, dejala con un nombre que empiece con `cover`
+conservando su extensión original (`cover.jpg` para un JPG, `cover.png` para
+un PNG, etc.). Podés nombrarla así antes de subirla o renombrarla en Media:
+
+1. En **Media → Fotos de galería**, entrá a la carpeta de la ciudad.
+2. Tocá el botón **⋮** junto al nombre de la foto elegida y seleccioná
+   **Rename**.
+3. Conservá la parte de la carpeta y cambiá solo el nombre final. Por
+   ejemplo: `paris/foto.png` → `paris/cover.png`.
+4. Confirmá con **Rename**. Dejá una sola foto `cover.*` por ciudad.
+
+Si ninguna empieza con `cover`, `portada` o `hero`, el sitio usa como portada
+la primera por orden natural.
 
 El país de la ciudad conviene cargarlo aunque ya haya shows en esa ciudad:
 si falta, el sitio intenta deducirlo de los shows, pero lo explícito manda.
 
 ---
 
-## 4) Cambiar la foto principal (hero) — reemplazo manual
+## 4) Cambiar la imagen hero de la portada del sitio — reemplazo manual
 
-El hero **no está en Pages CMS** y no hay ninguna acción automática que lo
-convierta. Cuando haya que cambiarlo, desarrollo debe:
+Esta hero es la imagen grande de la portada del sitio (no la foto principal
+de un show). **No está en Pages CMS** y no hay ninguna acción automática que
+la convierta. Cuando haya que cambiarla, desarrollo debe:
 
 1. Poner la foto vertical nueva como `media-src/images/hero/hero.jpg`.
 2. Correr `pnpm optimize:images` para regenerar
@@ -177,8 +220,10 @@ comunes) o avisá a desarrollo con el link de la acción fallida.
 ## 7) Errores comunes
 
 - **"Subí la foto y no aparece en el show/la ciudad"** → casi seguro quedó
-  en la raíz de la biblioteca. Borrala de ahí y subila de nuevo **dentro de
-  la carpeta** del show/ciudad (con **Select**, ver §2 y §3).
+  en la raíz de la biblioteca. En Media, usá **⋮ → Rename** para moverla a
+  `<carpeta-del-show>/hero.<extensión>` o `<carpeta-de-la-ciudad>/cover.<extensión>`,
+  según corresponda; o borrala y subila de nuevo **dentro de la carpeta**
+  correcta (ver §2 y §3).
 - **"El CMS no muestra las colecciones"** → estás en una rama sin
   `.pages.yml`. Cambiá a `main` (o a la rama de prueba indicada).
 - **"No encuentro un país en la lista"** → la lista tiene los 249 códigos
@@ -187,8 +232,10 @@ comunes) o avisá a desarrollo con el link de la acción fallida.
 - **"Quiero borrar un show"** → activalo como **Borrador**. No borres
   `show.json`/`city.json` ni renombres carpetas desde el CMS: puede dejar
   carpetas huérfanas y romper la compilación.
-- **"La foto del hero no cambia"** → no se administra desde el CMS; hay que
-  hacer el reemplazo manual de §4 y esperar el **Deploy**.
+- **"La imagen hero de la portada del sitio no cambia"** → no se administra
+  desde el CMS; hay que hacer el reemplazo manual de §4 y esperar el
+  **Deploy**. No confundirla con la foto principal de un show, que sí se
+  gestiona desde Media según §2.
 
 ---
 
@@ -198,13 +245,17 @@ comunes) o avisá a desarrollo con el link de la acción fallida.
   `galerias`, `sitio`; medias `shows` y `galeria`; componente reutilizable
   `pais` con los 249 códigos ISO, ordenados por nombre en español).
   `settings.content.merge: true` preserva claves JSON no expuestas en el
-  formulario (ej. `id`, `photo` heredado).
-- Pages CMS guarda las imágenes de `content/` como rutas públicas
-  (`/media/content/shows/<slug>/foto.jpg`). `resolveMediaValue`
-  (`src/lib/content-media.ts`) y `findLocalFile` (`src/lib/content.ts`)
-  las resuelven al archivo de la carpeta cuando el nombre coincide con un
-  único archivo, así pasan por la derivación WebP normal de
-  `scripts/sync-media.ts` y respetan `NEXT_PUBLIC_MEDIA_BASE_URL`.
+  formulario (ej. `id`, `hero`, `photo` o `cover` heredados).
+- Los formularios no exponen campos de imagen para la foto del show ni para
+  la portada de galería: las fotos se suben desde Media a la carpeta del
+  ítem y los loaders eligen la principal por nombre (`hero.*` en shows,
+  `cover.*` en galerías) o por orden natural. Si un JSON heredado declara
+  una ruta pública (`/media/content/shows/<slug>/foto.jpg`),
+  `resolveMediaValue` (`src/lib/content-media.ts`) y `findLocalFile`
+  (`src/lib/content.ts`) todavía pueden resolverla al archivo de la carpeta
+  cuando el nombre coincide con un único archivo, así pasa por la
+  derivación WebP normal de `scripts/sync-media.ts` y respeta
+  `NEXT_PUBLIC_MEDIA_BASE_URL`.
 - Países sin listas a mano: `src/lib/countries.ts` deriva nombre
   (`Intl.DisplayNames`), bandera (regional indicators) y normalización del
   código; los loaders y la UI excluyen el país vacío de contadores y
