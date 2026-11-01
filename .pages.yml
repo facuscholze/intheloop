@@ -582,7 +582,7 @@ content:
         required: true
       - name: hero
         label: "Foto principal"
-        description: "Guardá primero el show y volvé a abrirlo. Usá Select, entrá a la carpeta de este show y subí o elegí la foto ahí; no uses Upload directo ni arrastrarla en este campo."
+        description: "Subí o elegí una sola foto y guardá el show. Si Pages CMS la deja en la raíz de Fotos de shows al crear el ítem, GitHub Actions la mueve automáticamente a la carpeta del show y corrige este campo; esperá ese commit automático antes de seguir editando."
         type: image
         options:
           media: shows
@@ -620,7 +620,7 @@ content:
 
   - name: galerias
     label: "Galerías por ciudad"
-    description: "Datos opcionales de cada carpeta de fotos. Creá las ciudades desde la raíz de esta colección. Para la portada, guardá la ciudad, volvé a abrirla y usá Select dentro de su carpeta; el resto de las fotos se sube desde Media > Fotos de galería, dentro de la carpeta de la ciudad."
+    description: "Datos opcionales de cada carpeta de fotos. Creá las ciudades desde la raíz de esta colección. La portada puede cargarse en la ficha; si queda en la raíz, GitHub Actions la mueve a la carpeta de la ciudad al guardar. El resto de las fotos se sube desde Media > Fotos de galería, dentro de la carpeta de la ciudad."
     type: collection
     path: content/gallery
     format: json
@@ -656,7 +656,7 @@ content:
           format: "yyyy-MM-dd"
       - name: cover
         label: "Portada"
-        description: "Guardá primero la ciudad y volvé a abrirla. Usá Select, entrá a la carpeta de esta ciudad y subí o elegí la foto ahí; no uses Upload directo ni arrastrarla en este campo. Si lo dejás vacío, el sitio usa una foto cover/portada/hero o la primera de la carpeta."
+        description: "Subí o elegí la foto de portada y guardá la ciudad. Si Pages CMS la deja en la raíz de Fotos de galería al crear el ítem, GitHub Actions la mueve automáticamente a la carpeta de la ciudad y corrige este campo; esperá ese commit automático antes de seguir editando. Si lo dejás vacío, el sitio usa una foto cover/portada/hero o la primera de la carpeta."
         type: image
         options:
           media: galeria
@@ -676,7 +676,7 @@ content:
 
   - name: tracks
     label: "Tracks"
-    description: "Cada track o set es una carpeta con su track.json, su audio y su portada. Creá los tracks desde la raíz de esta colección; guardá primero el track y volvé a abrirlo para subir el audio y la portada con Select dentro de su carpeta."
+    description: "Cada track o set es una carpeta con su track.json, su audio y su portada. Creá los tracks desde la raíz de esta colección; cargá el audio y la portada en la ficha y, si Pages CMS los deja en la raíz, GitHub Actions los mueve a la carpeta del track al guardar."
     type: collection
     path: content/songs
     format: json
@@ -723,7 +723,7 @@ content:
               label: "Mix"
       - name: audio
         label: "Archivo de audio"
-        description: "Guardá primero el track y volvé a abrirlo. Usá Select, entrá a la carpeta de este track y subí o elegí el audio ahí; no uses Upload directo ni arrastrarlo en este campo. Si lo dejás vacío, el sitio usa el único/primer audio que encuentre en la carpeta."
+        description: "Subí o elegí el archivo de audio y guardá el track. Si Pages CMS lo deja en la raíz de Audio y portadas de tracks al crear el ítem, GitHub Actions lo mueve automáticamente a la carpeta del track y corrige este campo; esperá ese commit automático antes de seguir editando. Si lo dejás vacío, el sitio usa el único/primer audio que encuentre en la carpeta."
         type: file
         options:
           media: tracks
@@ -732,7 +732,7 @@ content:
           extensions: [mp3, wav, m4a, aac, ogg, oga, opus, flac, aiff]
       - name: cover
         label: "Portada"
-        description: "Guardá primero el track y volvé a abrirlo. Usá Select, entrá a la carpeta de este track y subí o elegí la portada ahí; no uses Upload directo ni arrastrarla en este campo. Si lo dejás vacío, el sitio usa una imagen cover/portada/hero o la primera de la carpeta."
+        description: "Subí o elegí la portada y guardá el track. Si Pages CMS la deja en la raíz de Audio y portadas de tracks al crear el ítem, GitHub Actions la mueve automáticamente a la carpeta del track y corrige este campo; esperá ese commit automático antes de seguir editando. Si lo dejás vacío, el sitio usa una imagen cover/portada/hero o la primera de la carpeta."
         type: image
         options:
           media: tracks

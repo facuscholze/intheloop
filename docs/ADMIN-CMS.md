@@ -37,9 +37,9 @@ En el menú vas a ver:
 | **Galerías por ciudad** | Datos y portada de cada ciudad. |
 | **Tracks** | Crear y editar tracks/sets, su audio, su portada y sus links externos. |
 | **Sitio** | Artista, agencia, frase principal, contacto y géneros. |
-| **Media → Fotos de shows** | Carpetas individuales de los shows. El flujo normal es elegir la foto desde la ficha con **Select**; Media sirve para revisar, mover o limpiar archivos. |
-| **Media → Fotos de galería** | Subir el lote de fotos de cada ciudad dentro de su carpeta. La portada se elige desde la ficha con **Select**. |
-| **Media → Audio y portadas de tracks** | Carpetas individuales de los tracks. El flujo normal es elegir audio y portada desde la ficha con **Select**; Media sirve para revisar, mover o limpiar archivos. |
+| **Media → Fotos de shows** | Carpetas individuales de los shows. El flujo normal es cargar la foto en la ficha del show; Media sirve para revisar o limpiar archivos. |
+| **Media → Fotos de galería** | Subir el lote de fotos de cada ciudad dentro de su carpeta. La portada se carga o elige desde la ficha de la ciudad. |
+| **Media → Audio y portadas de tracks** | Carpetas individuales de los tracks. El flujo normal es cargar el audio y la portada en la ficha del track; Media sirve para revisar o limpiar archivos. |
 
 ### Regla clave: cada archivo en la carpeta de su ítem
 
@@ -51,38 +51,40 @@ Las fotos y audios **no van a una carpeta común**:
 - el audio y la portada de un track quedan en
   `content/songs/<carpeta-del-track>/`.
 
-Para los campos **Foto principal**, **Portada** y **Archivo de audio** usá
-siempre **Select**, navegá hasta entrar a la carpeta del ítem y recién ahí
-subí o elegí el archivo. **No uses el botón Upload directo del campo ni
-arrastres el archivo sobre el campo**: eso lo sube a la raíz de la media
-(`content/shows/`, `content/gallery/` o `content/songs/`), no a la carpeta
-del ítem.
+Podés completar **Foto principal**, **Portada** y **Archivo de audio**
+mientras creás la ficha. Pages CMS sube el archivo apenas lo elegís; si la
+carpeta del ítem todavía no existe, puede caer transitoriamente en la raíz de
+la media (`content/shows/`, `content/gallery/` o `content/songs/`).
 
-Cuando el ítem es nuevo, su carpeta todavía no existe durante la primera
-carga. Por eso el flujo es:
+Al tocar **Guardar**, el JSON de la ficha ya queda referenciando ese archivo.
+GitHub Actions corre entonces **Ubicar media del CMS en su carpeta**, lo mueve
+físicamente a la carpeta del ítem, corrige la referencia y crea un commit
+automático (`Mueve media del CMS a la carpeta de su ítem`). Después relanza la
+validación y, en `main`, el deploy. **Esperá a que aparezca ese commit y
+terminen las acciones antes de volver a editar o borrar ese archivo.**
 
-1. completá los datos y **guardá** el ítem sin el archivo;
-2. **volvé a abrirlo**;
-3. usá **Select** y entrá a la carpeta que se acaba de crear;
-4. subí o elegí el archivo dentro de esa carpeta;
-5. **guardá de nuevo**.
+Si el ítem ya existe, también podés usar **Select** y subir/elegir el archivo
+con su carpeta abierta; así no hace falta la reubicación. Si en cambio usás
+**Upload** directo o arrastrás el archivo sobre el campo, puede caer en la
+raíz, pero al guardar la ficha la misma automatización lo reubica.
 
 Los shows y tracks nuevos nacen **publicados** (la casilla **Borrador** viene
-apagada). Eso significa que, en producción, el primer guardado puede mostrar
-el ítem por unos minutos sin foto o sin audio. Completá el segundo paso
-enseguida. Si no vas a poder terminarlo en el momento, activá **Borrador**
-antes del primer guardado y desactivalo al final.
+apagada). En producción puede haber una versión provisoria durante unos
+minutos, hasta que termina la reubicación y el deploy corregido. Si no querés
+que se vea esa etapa intermedia, activá **Borrador** antes de guardar y
+desactivalo cuando las acciones hayan terminado.
 
 > La subida de un archivo crea el archivo en GitHub apenas termina, incluso
 > antes de guardar la ficha. Si subís algo y salís sin guardar, puede quedar
-> huérfano en la carpeta. No suele romper el sitio, pero conviene completar
-> la ficha o avisar a desarrollo para limpiarlo.
+> huérfano en la raíz o en una carpeta. La automatización **no** mueve ni
+> borra archivos que ningún JSON referencia, porque no puede saber a qué
+> ítem pertenecen; completá la ficha o avisá a desarrollo para limpiarlo.
 
-Si no encontrás la carpeta dentro de **Select**, fijate que la ficha ya esté
-guardada. La carpeta se crea con los datos originales (fecha + venue del
+La carpeta se crea al guardar con los datos originales (fecha + venue del
 show, ciudad de la galería o título del track); cambiar esos datos después
 **no renombra** la carpeta. Podés confirmar el nombre entrando a la Media
-correspondiente y mirando la lista de carpetas.
+correspondiente y mirando la lista de carpetas. Esto solo importa si usás
+**Select** dentro de la carpeta de un ítem ya existente.
 
 ---
 
@@ -91,7 +93,7 @@ correspondiente y mirando la lista de carpetas.
 1. Entrá a **Shows** y creá la entrada con el botón de nuevo ítem **desde la
    raíz de la colección** (no desde el menú contextual de otro show, así la
    carpeta se crea en el lugar correcto).
-2. En esta primera etapa completá:
+2. Completá los datos:
    - **Venue / evento** *(obligatorio)*: el nombre tal como debe verse.
    - **Fecha** *(obligatoria)*: con el selector de fecha; se guarda como
      `AAAA-MM-DD`.
@@ -104,44 +106,42 @@ correspondiente y mirando la lista de carpetas.
    - **Instagram** y **Link a la galería**: opcionales; si cargás algo, que
      sea la URL completa (`https://…`).
    - **Destacado**: resalta el show en el sitio.
-   - **Borrador**: viene apagado, así que el show queda publicado desde el
-     primer guardado. Activalo solo si querés prepararlo u ocultarlo sin
-     borrarlo.
-   - Dejá **Foto principal** vacío todavía.
-3. Tocá **Guardar**. Ese primer guardado crea la carpeta del show.
-4. Volvé a abrir el mismo show desde **Shows**.
-5. En **Foto principal**, tocá **Select** (no **Upload** y no arrastrar el
-   archivo sobre el campo).
-6. En el cuadro que se abre, entrá a la carpeta de este show. Recién con esa
-   carpeta abierta:
-   - si la foto ya está ahí, seleccionala;
-   - si todavía no está, usá el **Upload del propio cuadro Select** para
-     subirla dentro de esa carpeta y después seleccionala.
-7. Confirmá la selección, verificá que el campo muestre la miniatura correcta
-   y tocá **Guardar** otra vez.
+   - **Borrador**: viene apagado, así que el show queda publicado al guardar.
+     Activalo solo si querés prepararlo u ocultarlo sin borrarlo.
+   - **Foto principal**: subí o elegí una sola foto y verificá que el campo
+     muestre la miniatura correcta.
+3. Tocá **Guardar**.
+4. Si Pages CMS dejó la foto en la raíz de **Fotos de shows**, esperá el
+   commit automático **Mueve media del CMS a la carpeta de su ítem** y a que
+   terminen **CI**/Deploy. No vuelvas a editar el show hasta que aparezca ese
+   commit; al reabrirlo, la ficha ya va a apuntar a la foto dentro de su
+   carpeta.
 
 ### Cómo queda guardada la foto del show
 
-La foto queda físicamente en `content/shows/<carpeta-del-show>/` y el
-`show.json` de esa misma carpeta guarda la referencia a ese archivo. Al
-compilar, el sitio la convierte automáticamente a WebP (versión grande y
-miniatura) aplicando la orientación del celular. No hace falta redimensionarla
-antes, pero evitá archivos enormes si podés (el repo guarda el original).
+Terminada la reubicación, la foto queda físicamente en
+`content/shows/<carpeta-del-show>/` y el `show.json` de esa misma carpeta
+guarda la referencia a ese archivo. Si la subiste con **Select** dentro de la
+carpeta, ya nace ahí y no hace falta el commit automático. Al compilar, el
+sitio la convierte automáticamente a WebP (versión grande y miniatura)
+aplicando la orientación del celular. No hace falta redimensionarla antes,
+pero evitá archivos enormes si podés (el repo guarda el original).
 
 Si **Foto principal** queda vacío, el sitio conserva un respaldo: busca una
 imagen prioritaria o la primera imagen dentro de la carpeta del show. Por eso
 los shows viejos con su foto en la propia carpeta siguen funcionando. Para
-los shows nuevos, igual conviene elegirla explícitamente con **Select** para
-que no haya ambigüedad si en el futuro hay más de una imagen en la carpeta.
+los shows nuevos, igual conviene elegirla explícitamente en el campo para que
+no haya ambigüedad si en el futuro hay más de una imagen en la carpeta.
 
 ### Editar u ocultar un show
 
-- Desde **Shows**, abrí la entrada, cambiá lo que quieras y guardá. En un
-  show que ya existe, la carpeta ya está creada: podés usar **Select**
-  directamente.
+- Desde **Shows**, abrí la entrada, cambiá lo que quieras y guardá. Si
+  reemplazás la foto con **Select** dentro de la carpeta, queda ubicada de
+  inmediato; si la subís con **Upload** directo o arrastrándola y cae en la
+  raíz, esperá el commit automático de reubicación antes de seguir editando.
 - Cambiar la fecha o el venue **no renombra la carpeta** ya creada; es solo
-  un detalle interno y no se ve en el sitio. Al buscarla en **Select**, usá
-  el nombre original de creación.
+  un detalle interno y no se ve en el sitio. Si buscás la carpeta en
+  **Select** o Media, usá el nombre original de creación.
 - Para sacar un show del sitio, activá **Borrador**. Eso solo lo oculta: no
   borra ni el show ni su foto.
 - Quitar o reemplazar **Foto principal** cambia la referencia, pero **no
@@ -180,24 +180,28 @@ la ficha de la ciudad, salvo que también quieras elegir/cambiar la portada.
    colección.
 2. Completá **Ciudad** *(obligatoria: también define el nombre de su
    carpeta)* y, si querés, **País**, **Fecha**, **Orden** (menor = aparece
-   antes) y **Descripción**. Dejá **Portada** vacía en esta primera etapa y
-   **guardá** la ciudad.
-3. Andá a **Media → Fotos de galería**.
-4. Entrá a la carpeta nueva de la ciudad (si no la ves, recargá la vista).
-5. Con esa carpeta abierta, tocá **Upload** y subí las fotos.
-6. Si querés fijar una portada específica, seguí los pasos de la sección
-   siguiente. Si te da igual cuál sea, no hace falta volver a abrir la ficha.
+   antes) y **Descripción**. En **Portada** podés subir o elegir ya la foto
+   principal. Después **guardá** la ciudad.
+3. Si la portada quedó en la raíz de **Fotos de galería**, esperá el commit
+   automático de reubicación. La carpeta de la ciudad ya queda creada por el
+   guardado de la ficha.
+4. Andá a **Media → Fotos de galería** y entrá a la carpeta nueva de la
+   ciudad (si no la ves, recargá la vista).
+5. Con esa carpeta abierta, tocá **Upload** y subí el lote de fotos.
+6. Si no cargaste la portada al crearla y querés fijar una específica, seguí
+   los pasos de la sección siguiente. Si te da igual cuál sea, no hace falta
+   volver a abrir la ficha.
 
 ### Elegir la portada de una ciudad
 
-1. Desde **Galerías por ciudad**, abrí la ciudad ya guardada.
-2. En **Portada**, tocá **Select** (no **Upload** y no arrastrar el archivo
-   sobre el campo).
-3. Entrá a la carpeta de esa ciudad. Recién ahí:
-   - elegí una de las fotos ya subidas, o
-   - usá el **Upload del propio cuadro Select** para subir la portada dentro
-     de esa carpeta y después seleccionala.
-4. Confirmá la selección, verificá la miniatura y tocá **Guardar**.
+1. Desde **Galerías por ciudad**, abrí la ciudad.
+2. En **Portada**, subí o elegí la foto y verificá que se vea la miniatura
+   correcta.
+3. Tocá **Guardar**.
+4. Si la subida dejó la foto en la raíz de **Fotos de galería**, esperá el
+   commit automático **Mueve media del CMS a la carpeta de su ítem** antes de
+   seguir editando. Si usás **Select** con la carpeta de la ciudad abierta, la
+   foto queda ubicada directamente y no hace falta esa reubicación.
 
 La foto elegida como portada sigue estando dentro de la carpeta de la ciudad,
 así que también forma parte de la galería. Si **Portada** queda vacío, el
@@ -220,7 +224,7 @@ archivo de audio y la foto de portada.
 ### Crear un track nuevo
 
 1. Entrá a **Tracks** y creá la entrada **desde la raíz** de la colección.
-2. En esta primera etapa completá los datos:
+2. Completá los datos y los archivos:
    - **Título** *(obligatorio)*: nombre del track o set tal como debe verse.
      También define el nombre de su carpeta.
    - **Artista**: viene como `Tommy Petersen`; cambialo solo si hace falta.
@@ -236,27 +240,29 @@ archivo de audio y la foto de portada.
      en SoundCloud.
    - **Links para escuchar afuera**: URLs completas de SoundCloud, Spotify,
      Beatport y/o YouTube donde el track ya está publicado.
-   - **Borrador**: viene apagado, así que el track queda publicado desde el
-     primer guardado.
-   - Dejá **Archivo de audio** y **Portada** vacíos todavía.
-3. Tocá **Guardar**. Ese primer guardado crea la carpeta del track.
-4. Volvé a abrir el mismo track desde **Tracks**.
-5. En **Archivo de audio**, tocá **Select**. Entrá a la carpeta de este track
-   y recién ahí usá el **Upload del cuadro Select** para subir el audio (o
-   elegí uno que ya esté). Confirmá que el campo muestre el archivo correcto.
-6. En **Portada**, tocá **Select**, entrá a la **misma carpeta del track** y
-   subí o elegí la imagen ahí. Confirmá que se vea la miniatura correcta.
-7. Tocá **Guardar** otra vez.
+   - **Borrador**: viene apagado, así que el track queda publicado al guardar.
+   - **Archivo de audio**: subí o elegí el audio y confirmá que el campo
+     muestre el archivo correcto.
+   - **Portada**: subí o elegí la imagen y confirmá que se vea la miniatura
+     correcta.
+3. Tocá **Guardar**.
+4. Si Pages CMS dejó el audio o la portada en la raíz de **Audio y portadas
+   de tracks**, esperá el commit automático **Mueve media del CMS a la
+   carpeta de su ítem** y a que terminen **CI**/Deploy. No vuelvas a editar el
+   track hasta que aparezca ese commit; al reabrirlo, ambos campos ya van a
+   apuntar a archivos dentro de su carpeta.
 
 Formatos de audio aceptados: `mp3`, `wav`, `m4a`, `aac`, `ogg`, `oga`,
 `opus`, `flac` y `aiff`. La portada puede ser `jpg`, `jpeg`, `png`, `webp`,
 `avif`, `gif`, `tif` o `tiff`; el sitio genera su versión WebP y su miniatura
 al compilar.
 
-> No uses **Upload** directo ni arrastrar sobre **Archivo de audio** o
-> **Portada**: el archivo caería en la raíz `content/songs/`, fuera de la
-> carpeta del track. Siempre es **Select → carpeta del track → Upload dentro
-> del cuadro Select/elegir archivo**.
+> Si usás **Upload** directo o arrastrás el archivo sobre **Archivo de
+> audio** o **Portada**, puede quedar primero en la raíz `content/songs/`.
+> No lo muevas a mano: al guardar la ficha, GitHub Actions lo traslada a la
+> carpeta del track y corrige el campo. La automatización solo actúa si el
+> archivo quedó cargado en el campo y tocaste **Guardar**; un archivo subido
+> suelto desde Media a la raíz no tiene una ficha que lo referencie.
 
 ### Duración y onda: no se cargan a mano
 
@@ -271,8 +277,10 @@ esos campos no se vean en el formulario.
 Si **Archivo de audio** queda vacío pero hay un audio en la carpeta, el sitio
 usa el único/primer audio que encuentre. Lo mismo pasa con **Portada**: usa
 una imagen prioritaria (`cover`, `portada`, `hero`, etc.) o la primera de la
-carpeta. De todos modos, elegilos con **Select** para que quede explícito
-cuál es el audio y cuál es la portada si alguna vez hay varios archivos.
+carpeta. De todos modos, cargalos o elegilos en sus campos para que quede
+explícito cuál es el audio y cuál es la portada si alguna vez hay varios
+archivos; además, solo un archivo referenciado por la ficha puede ser
+reubicado automáticamente si la subida lo dejó en la raíz.
 
 ### Links y SoundCloud embebido: cómo se ve en la web
 
@@ -295,11 +303,13 @@ otro link externo) para que la web redirija a donde ya está publicado.
 
 ### Editar u ocultar un track
 
-- Desde **Tracks**, abrí la entrada, cambiá lo que quieras y guardá. En un
-  track existente, la carpeta ya está creada: podés usar **Select**
-  directamente.
-- Cambiar el título **no renombra la carpeta** original. Al elegir archivos
-  con **Select**, entrá a la carpeta creada con el título inicial.
+- Desde **Tracks**, abrí la entrada, cambiá lo que quieras y guardá. Si
+  reemplazás el audio o la portada con **Select** dentro de la carpeta,
+  quedan ubicados de inmediato; si los subís con **Upload** directo o
+  arrastrándolos y caen en la raíz, esperá el commit automático de
+  reubicación antes de seguir editando.
+- Cambiar el título **no renombra la carpeta** original. Si buscás la carpeta
+  en **Select** o Media, usá el nombre creado con el título inicial.
 - Para sacar un track del sitio, activá **Borrador**. No borres solo el
   `track.json`: quedarían el audio y la portada huérfanos y la compilación
   podría fallar por una carpeta sin su JSON. Para una eliminación completa,
@@ -346,52 +356,61 @@ bloqueado a propósito).
 
 ## 7) Publicación: qué pasa después de guardar
 
-1. Pages CMS guarda uno o más commits en GitHub. En el flujo de dos pasos
-   puede haber varios: el primer guardado de la ficha, la subida del archivo
-   dentro de **Select**/Media y el segundo guardado de la ficha.
-2. La acción **CI** valida el contenido y compila el sitio (incluidas la
-   conversión a WebP de las fotos de `content/` y la copia de los audios).
-3. Solo en `main`, la acción **Deploy to GitHub Pages** publica el sitio.
+1. Pages CMS guarda uno o más commits en GitHub: la subida de cada archivo y
+   el guardado de la ficha pueden ser commits separados.
+2. Si un archivo cargado en la ficha quedó en la raíz de su media, la acción
+   **Ubicar media del CMS en su carpeta** lo mueve a la carpeta del ítem,
+   corrige el JSON y agrega el commit automático **Mueve media del CMS a la
+   carpeta de su ítem**.
+3. La acción **CI** valida el contenido ya ubicado y compila el sitio
+   (incluidas la conversión a WebP de las fotos de `content/` y la copia de
+   los audios).
+4. Solo en `main`, la acción **Deploy to GitHub Pages** publica el sitio.
+   Cuando hubo reubicación, se relanza sobre el commit corregido; puede
+   verse también una corrida intermedia correspondiente al guardado original.
 
-El proceso completo puede tardar unos minutos y puede haber corridas
-intermedias mientras completás el segundo paso. Si no ves el cambio, esperá
-a que termine la última acción (pestaña **Actions** del repo) y recargá la
-página con `Ctrl+Shift+R` (o cerrá y abrí la pestaña en el celular).
+El proceso completo puede tardar unos minutos. Si no ves el cambio, esperá a
+que termine la última acción (pestaña **Actions** del repo) y recargá la
+página con `Ctrl+Shift+R` (o cerrá y abrí la pestaña en el celular). No
+vuelvas a editar la misma ficha hasta que haya aparecido el commit
+automático de reubicación, si corresponde.
 
-Si la acción **CI** queda en rojo, el sitio **no** se actualiza pero tampoco
-se rompe el que está online: queda la versión anterior. Revisá el último
-cambio (un dato obligatorio vacío, una URL mal pegada o un archivo elegido
-fuera de la carpeta del ítem son causas comunes) o avisá a desarrollo con el
-link de la acción fallida.
+Si **CI** o **Ubicar media del CMS en su carpeta** quedan en rojo, el sitio
+**no** se actualiza pero tampoco se rompe el que está online: queda la
+versión anterior. Revisá el último cambio o avisá a desarrollo con el link
+de la acción fallida. La reubicación se detiene sin mover nada si el JSON
+apunta a un archivo de raíz que no existe o si el mismo archivo de raíz está
+referenciado por más de un ítem.
 
 ---
 
 ## 8) Errores comunes
 
-- **"No encuentro la carpeta del ítem en Select"** → primero guardá la ficha:
-  la carpeta no existe hasta ese momento. Si el ítem ya existía y le
-  cambiaste fecha/venue, ciudad o título, buscá la carpeta con el nombre
-  original de creación. Podés confirmarlo en la Media correspondiente o
-  recargar la vista si recién la creaste.
-- **"Subí la foto y no aparece en el show"** → abrí el show y verificá que
-  **Foto principal** muestre la miniatura y que hayas tocado **Guardar**
-  después de elegirla. Si usaste **Upload** directo o arrastraste sobre el
-  campo, la foto pudo quedar en la raíz de **Fotos de shows**: quitala del
-  campo, movéla en Media con **⋮ → Rename** a
-  `<carpeta-del-show>/<foto>` —o borrala y repetí el flujo **Select** dentro
-  de la carpeta—, después reabrí el show, seleccionala y guardá.
-- **"Subí la foto y no aparece en la ciudad"** → casi seguro quedó en la raíz
-  de **Fotos de galería**. Movéla en Media con **⋮ → Rename** a
-  `<carpeta-de-la-ciudad>/<foto>` o borrala y subila de nuevo **dentro de la
-  carpeta** correcta (ver §3). Si el problema es solo la portada, abrí la
-  ciudad, volvé a elegirla con **Select** dentro de su carpeta y guardá.
+- **"No encuentro la carpeta del ítem en Select"** → no hace falta crearla a
+  mano: completá la ficha y tocá **Guardar**. Si querés usar **Select** en un
+  ítem ya existente y le cambiaste fecha/venue, ciudad o título, buscá la
+  carpeta con el nombre original de creación. Podés confirmarlo en la Media
+  correspondiente o recargar la vista si recién la creaste.
+- **"Subí la foto y no aparece en el show"** → verificá que **Foto
+  principal** muestre la miniatura y que hayas tocado **Guardar** después de
+  cargarla. Si quedó en la raíz de **Fotos de shows**, no la muevas ni la
+  borres a mano: esperá el commit automático **Mueve media del CMS a la
+  carpeta de su ítem** y el Deploy siguiente. Si la acción **Ubicar media del
+  CMS en su carpeta** terminó en rojo o nunca apareció ese commit, avisá a
+  desarrollo con el link de Actions.
+- **"Subí la foto y no aparece en la ciudad"** → distinguí dos casos. Si era
+  la **Portada** cargada en la ficha, guardá y esperá la reubicación
+  automática. Si era una foto del lote subida desde Media y quedó en la raíz
+  de **Fotos de galería**, la automatización no sabe a qué ciudad pertenece:
+  movéla con **⋮ → Rename** a `<carpeta-de-la-ciudad>/<foto>` o borrala y
+  subila de nuevo **dentro de la carpeta** correcta (ver §3).
 - **"Subí el audio/la portada y el track no suena o no muestra la tapa"** →
-  abrí el track y verificá que **Archivo de audio** y **Portada** apunten a
-  archivos dentro de la carpeta del track y que hayas guardado después de
-  elegirlos. Si quedaron en la raíz de **Audio y portadas de tracks**,
-  movélos/borralos y repetí **Select** dentro de la carpeta. Si no hay audio
-  local, revisá que tenga el embebido de SoundCloud o al menos un link
-  externo.
+  verificá que **Archivo de audio** y **Portada** muestren los archivos
+  correctos y que hayas tocado **Guardar**. Si quedaron en la raíz de
+  **Audio y portadas de tracks**, esperá el commit automático de reubicación
+  y el Deploy corregido; no los muevas a mano mientras la acción está en
+  curso. Si no hay audio local, revisá que tenga el embebido de SoundCloud o
+  al menos un link externo.
 - **"Cargué el link y no se ve el botón en la web"** → verificá que la URL
   esté completa en **Links para escuchar afuera** (o en el campo de
   SoundCloud embebido) y que hayas guardado. Los botones externos se muestran
@@ -422,16 +441,20 @@ link de la acción fallida.
   nombre en español). `settings.content.merge: true` preserva claves JSON no
   expuestas en el formulario (ej. `id`, `photo`, `audioSrc`, `duration` o
   `waveformPeaks` heredados).
-- Los campos de imagen/archivo solo pueden apuntar a la raíz fija de su
-  media (`content/shows`, `content/gallery` o `content/songs`); Pages CMS no
-  interpola la carpeta del ítem en `options.path`. Por eso el flujo oficial
-  es guardar primero el ítem y usar **Select** navegando hasta su carpeta:
-  el Upload/drag directo del campo cae en la raíz de la media, mientras que
-  el Upload dentro del diálogo **Select** usa la carpeta abierta en ese
-  momento. Pages CMS guarda entonces la ruta pública
-  (`/media/content/<tipo>/<carpeta-del-ítem>/<archivo>`) y los loaders la
-  resuelven contra los archivos de esa carpeta. Si el campo queda vacío,
-  sigue el auto-pick local por carpeta como respaldo.
+- Los campos de imagen/archivo suben inicialmente a la raíz fija de su media
+  (`content/shows`, `content/gallery` o `content/songs`); Pages CMS no
+  interpola la carpeta del ítem en `options.path`. Al guardar el JSON que
+  referencia una ruta raíz, `scripts/relocate-content-media.mjs` la mueve a
+  la carpeta del show/ciudad/track y reescribe la ruta pública a
+  `/media/content/<tipo>/<carpeta-del-ítem>/<archivo>`. Lo ejecuta
+  `.github/workflows/relocate-content-media.yml`, que commitea el resultado
+  con `github-actions[bot]`, evita loops por actor/concurrencia y, como los
+  pushes con `GITHUB_TOKEN` no disparan otros workflows, relanza CI mediante
+  `workflow_dispatch` y —solo en `main`— también el Deploy. El script no
+  adivina archivos raíz sin referencias, falla sin mover nada si falta el
+  archivo o si lo comparten varios ítems, reutiliza un destino idéntico y
+  usa sufijos `-1`, `-2`, … ante nombres ocupados con otro contenido. Si el
+  campo queda vacío, sigue el auto-pick local por carpeta como respaldo.
 - Ya no existe una carpeta común de fotos de shows en la configuración ni en
   el sync/loaders: cada archivo nuevo debe vivir en la carpeta de su show,
   ciudad o track. `scripts/sync-media.ts` deriva/copia desde esas carpetas a
@@ -455,4 +478,6 @@ link de la acción fallida.
   código; los loaders y la UI excluyen el país vacío de contadores y
   filtros.
 - `public/media/images` no está expuesto en el CMS y no tiene optimizador
-  ni workflow nuevo: el hero se reemplaza manualmente según §5.
+  ni automatización propia: el hero se reemplaza manualmente según §5. El
+  único workflow nuevo de esta integración es el de reubicación de media de
+  `content/` descripto arriba.

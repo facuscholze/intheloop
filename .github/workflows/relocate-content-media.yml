@@ -1,0 +1,82 @@
+name: Ubicar media del CMS en su carpeta
+
+on:
+  push:
+    paths:
+      - "content/shows/**"
+      - "content/gallery/**"
+      - "content/songs/**"
+      - "scripts/relocate-content-media.mjs"
+      - ".github/workflows/relocate-content-media.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: relocate-content-media-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  relocate:
+    # El commit que hace este mismo workflow no debe volver a dispararlo.
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout de la rama
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Reubicar archivos referenciados desde la raíz
+        run: node scripts/relocate-content-media.mjs
+
+      - name: Detectar cambios
+        id: changes
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain -- content/shows content/gallery content/songs)" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --short -- content/shows content/gallery content/songs
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Sin archivos para reubicar."
+          fi
+
+      - name: Commitear y pushear la reubicación
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- content/shows content/gallery content/songs
+          git commit -m "Mueve media del CMS a la carpeta de su ítem"
+          # Si entró otro commit mientras corría el workflow, rebasamos sobre
+          # la punta actual de la rama antes de pushear. Si ese commit nuevo
+          # también dejó media en la raíz, su propio push ya encoló otra
+          # corrida de este workflow por el grupo de concurrencia.
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      # Los pushes hechos con GITHUB_TOKEN no disparan otros workflows, así
+      # que relanzamos explícitamente CI (y el deploy en main) sobre el
+      # commit ya corregido. `workflow_dispatch` sí puede dispararse con el
+      # token de Actions.
+      - name: Relanzar CI sobre el commit reubicado
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref "${GITHUB_REF_NAME}"
+
+      - name: Relanzar deploy sobre el commit reubicado
+        if: steps.changes.outputs.changed == 'true' && github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
