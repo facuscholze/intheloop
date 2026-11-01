@@ -1,9 +1,8 @@
 {
-  "title": "Minimal & Deep House Studio Session(Lado B) (Pirate Studios).mp3",
+  "title": "Minimal & Deep House Studio Session(Lado B) (Pirate Studios)",
   "artist": "Tommy Petersen",
   "type": "track",
   "audio": "/media/content/songs/Minimal & Deep House Studio Session(Lado B)  Tommy Petersen (Pirate Studios) - In The Loop Agency/Minimal & Deep House Studio Session(Lado B)  Tommy Petersen (Pirate Studios) - In The Loop Agency.mp3",
-  "cover": null,
   "bpm": 122,
   "key": "Gm",
   "duration": 1823,
@@ -13,11 +12,6 @@
     "House"
   ],
   "colorAccent": "#C8FF00",
-  "links": {
-    "soundcloud": null,
-    "spotify": null,
-    "beatport": null
-  },
   "waveformPeaks": [
     0.63,
     0.27,
