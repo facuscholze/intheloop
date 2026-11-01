@@ -1,20 +1,12 @@
 {
   "title": "Portable DJ Set",
   "artist": "Tommy Petersen",
-  "type": "track",
+  "type": "set",
   "audio": "/media/content/songs/Portable DJ Set · From 120 to 180 BPM/Portable DJ Set · From 120 to 180 BPM.mp3",
   "cover": "/media/content/songs/Portable DJ Set · From 120 to 180 BPM/01.jpg",
   "bpm": 160,
-  "key": null,
   "duration": 6294,
-  "date": null,
-  "genres": [],
   "colorAccent": "#FF5A1F",
-  "links": {
-    "soundcloud": null,
-    "spotify": null,
-    "beatport": null
-  },
   "waveformPeaks": [
     0.93,
     0.91,
