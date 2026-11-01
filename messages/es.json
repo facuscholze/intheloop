@@ -41,7 +41,16 @@
       "city": "Ciudad",
       "message": "Mensaje",
       "submit": "Enviar",
-      "sending": "Enviando..."
+      "sending": "Enviando...",
+      "email": "Email",
+      "title": "Formulario de contacto · Todos los campos son obligatorios",
+      "messageHint": "Entre 10 y 5000 caracteres.",
+      "messageInvalid": "Escribí un mensaje de entre 10 y 5000 caracteres.",
+      "invalid": "Revisá este campo: es obligatorio y debe tener un valor válido.",
+      "success": "¡Mensaje enviado! Gracias por contactarnos.",
+      "error": "No pudimos enviar el mensaje. Intentá nuevamente o escribí a events@intheloop.agency.",
+      "timeout": "Se agotó el tiempo de espera. El envío no está confirmado; antes de reintentar podés escribir a events@intheloop.agency.",
+      "unconfigured": "El formulario todavía no está configurado. Escribí a events@intheloop.agency."
     }
   }
 }

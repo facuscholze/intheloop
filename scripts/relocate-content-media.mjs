@@ -10,6 +10,7 @@
  *   content/shows/foto.jpg
  *   content/gallery/foto.jpg
  *   content/songs/tema.mp3
+ *   content/videos/clip.mp4
  *
  * Recién al guardar la ficha, el JSON queda apuntando a
  * `/media/content/<tipo>/<archivo>`. Este script usa esa referencia para
@@ -53,15 +54,17 @@ const VERBOSE = process.argv.includes("--verbose")
 const KINDS = [
   { dir: "shows", jsonNames: ["show.json"], fields: ["hero", "photo"] },
   { dir: "gallery", jsonNames: ["city.json", "_city.json"], fields: ["cover"] },
-  { dir: "songs", jsonNames: ["track.json", "song.json"], fields: ["audio", "cover"] }
+  { dir: "songs", jsonNames: ["track.json", "song.json"], fields: ["audio", "cover"] },
+  { dir: "videos", jsonNames: ["video.json"], fields: ["src", "previewSrc", "poster"] }
 ]
 
 const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif", ".tif", ".tiff"])
+const VIDEO_EXT = new Set([".mp4", ".webm", ".mov", ".m4v", ".ogv", ".mkv"])
 const AUDIO_EXT = new Set([".mp3", ".wav", ".m4a", ".aac", ".ogg", ".oga", ".opus", ".flac", ".aiff"])
 
 function isMediaFile(name) {
   const ext = path.extname(name).toLowerCase()
-  return IMAGE_EXT.has(ext) || AUDIO_EXT.has(ext)
+  return IMAGE_EXT.has(ext) || AUDIO_EXT.has(ext) || VIDEO_EXT.has(ext)
 }
 
 function isIgnoredName(name) {
@@ -319,7 +322,7 @@ function main() {
   }
 
   if (relocations.length === 0) {
-    console.log("No hay archivos referenciados en la raíz de shows/gallery/songs.")
+    console.log("No hay archivos referenciados en la raíz de shows/gallery/songs/videos.")
     return
   }
 

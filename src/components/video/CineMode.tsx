@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/motion";
 import { useVideoStore } from "@/stores/videoStore";
+import { cinemaSource } from "@/lib/video-source";
 import { getMediaUrl } from "@/lib/media";
 import { audioEngine } from "@/lib/audio-engine";
 import { useQualityStore } from "@/stores/qualityStore";
@@ -30,7 +31,7 @@ export function CineMode() {
   const [isYoutube, setIsYoutube] = useState(false);
   const [showContent, setShowContent] = useState(false);
 
-  const videoSrc = activeVideo ? getMediaUrl(activeVideo.src) : null;
+  const videoSrc = activeVideo ? getMediaUrl(cinemaSource(activeVideo)) : null;
   const youtubeId = activeVideo?.youtubeId;
 
   useHLS(videoRef, videoSrc);
@@ -330,6 +331,7 @@ export function CineMode() {
         ) : videoSrc ? (
           <video
             ref={videoRef}
+            src={videoSrc}
             controls={false}
             autoPlay
             playsInline

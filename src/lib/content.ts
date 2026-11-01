@@ -16,6 +16,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { z } from "zod"
+import { youtubeIdFromValue } from "./video-source"
 import {
   basename,
   dedupeByDerived,
@@ -89,7 +90,12 @@ export const VideoSchema = z.object({
   title: z.string(),
   /** Archivo de video dentro de la carpeta o URL (m3u8, mp4, bucket…). */
   src: z.string().nullable().optional(),
-  youtubeId: z.string().nullable().optional(),
+  youtubeId: z.string().transform((value, ctx) => {
+    if (!value.trim()) return null
+    const id = youtubeIdFromValue(value)
+    if (!id) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "YouTube: ID o enlace inválido" })
+    return id
+  }).nullable().optional(),
   /** Imagen dentro de la carpeta (si falta, se usa la primera que haya). */
   poster: z.string().nullable().optional(),
   previewSrc: z.string().nullable().optional(),

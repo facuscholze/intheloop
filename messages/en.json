@@ -41,7 +41,16 @@
       "city": "City",
       "message": "Message",
       "submit": "Send",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "email": "Email",
+      "title": "Contact form · All fields are required",
+      "messageHint": "Between 10 and 5000 characters.",
+      "messageInvalid": "Enter a message between 10 and 5000 characters.",
+      "invalid": "Check this field: a valid value is required.",
+      "success": "Message sent! Thank you for contacting us.",
+      "error": "We could not send your message. Try again or email events@intheloop.agency.",
+      "timeout": "The request timed out. Delivery is unconfirmed; you can email events@intheloop.agency before retrying.",
+      "unconfigured": "The form is not configured yet. Please email events@intheloop.agency."
     }
   }
 }

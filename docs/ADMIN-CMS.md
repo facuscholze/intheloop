@@ -436,7 +436,7 @@ referenciado por más de un ítem.
 ## 9) Referencia técnica (para desarrollo)
 
 - Configuración del CMS: `.pages.yml` en la raíz (colecciones `shows`,
-  `galerias`, `tracks`, `sitio`; medias `shows`, `galeria` y `tracks`;
+  `galerias`, `tracks`, `videos`, `sitio`; medias `shows`, `galeria`, `tracks` y `videos`;
   componente reutilizable `pais` con los 249 códigos ISO, ordenados por
   nombre en español). `settings.content.merge: true` preserva claves JSON no
   expuestas en el formulario (ej. `id`, `photo`, `audioSrc`, `duration` o
@@ -481,3 +481,59 @@ referenciado por más de un ítem.
   ni automatización propia: el hero se reemplaza manualmente según §5. El
   único workflow nuevo de esta integración es el de reubicación de media de
   `content/` descripto arriba.
+
+
+## 10) Videos: clips cortos y YouTube
+
+1. Entrá a **Videos** y creá una ficha desde la raíz. El título crea la carpeta
+   `content/videos/<título>/video.json`; no renombres carpetas desde Media.
+2. Completá título, fecha y lugar. La fecha ordena la grilla.
+3. Subí un **Clip corto (preview)** MP4 H.264 ya comprimido (audio AAC si tiene
+   sonido), de unos **10 a 30 segundos**. Recomendamos 720p y **hasta 3 MB** por
+   archivo para facilitar la carga; si pesa más, comprimilo o usá YouTube.
+4. Opcionalmente pegá en **YouTube (link o ID)** la URL del video completo:
+   `https://www.youtube.com/watch?v=…`, `https://youtu.be/…`, shorts, live o ID de
+   11 caracteres. El build normaliza el enlace al ID; no pegues HTML de iframe.
+5. Podés agregar poster JPG/PNG/WebP y color de acento. **Video completo externo**
+   es solo para URL HTTPS de un MP4/HLS externo, no para un link de YouTube.
+6. Desactivá **Borrador**, guardá y esperá las Actions. Como con las fotos de shows,
+   la subida puede caer inicialmente en `content/videos/`. El workflow relocate
+   mueve `previewSrc`, `poster` o `src` locales referenciados a la carpeta del
+   video y corrige el JSON. **Esperá ese commit antes de seguir editando** para
+   evitar sobrescribir las referencias con una ficha vieja abierta en el CMS.
+7. Recargá el sitio cuando termine Deploy. Solo clip: preview en tarjeta y clip
+   reproducible al abrir modo cine. Solo YouTube: miniatura de YouTube y video
+   completo embebido al abrir. Ambos: preview local en tarjeta y YouTube al abrir.
+   Un YouTube debe ser público/no listado y permitir inserción; restricciones de
+   edad, región, privacidad o reproducción no dependen del sitio.
+
+### Tamaños y formatos: importante
+
+- **GitHub bloquea archivos mayores de 100 MiB** (aprox. 104,9 MB decimales);
+  eso NO significa que el formulario del CMS permita llegar a ese tamaño.
+  La subida web propia de GitHub tiene además un límite de 25 MiB por archivo.
+- En el código público actual de Pages CMS, `media` permite filtrar extensiones,
+  pero **no ofrece una opción de tamaño máximo en `.pages.yml`**. No agregamos
+  una clave inventada `maxSize`. El uploader convierte el archivo a base64 y lo
+  manda como JSON: el payload pesa aproximadamente un tercio más. El hosting o
+  proxy de la instancia de Pages CMS puede rechazarlo mucho antes de 100 MiB.
+  No hay un máximo universal del CMS verificable a partir de la configuración.
+  **Regla editorial: hasta 3 MB por clip**, sin garantía de aceptación por todas
+  las instancias; si la instancia rechaza un archivo incluso menor, reducí más
+  el tamaño o usá solo YouTube. No se ha probado una subida autenticada al CMS.
+- `sync-media` **copia los videos byte por byte, sin transcodificar**. Solo
+  optimiza imágenes. Un MOV renombrado a `.mp4` no se convierte a H.264.
+  Exportá MP4 H.264 (preferiblemente con fast-start) antes de subirlo.
+- No subir videos completos grandes al repo. Para eso usar YouTube o un CDN.
+  Los archivos borrados siguen contando en el historial Git; evitá probar los
+  límites subiendo binarios enormes. No se cambió contenido real para estas pruebas.
+
+Referencias revisadas: [schema de configuración de Pages CMS](https://github.com/pages-cms/pages-cms/blob/main/lib/config-schema.ts),
+[uploader](https://github.com/pages-cms/pages-cms/blob/main/components/media/media-upload.tsx),
+[límites de GitHub](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github).
+
+Pruebas técnicas aisladas: `pnpm exec tsx scripts/test-cms-videos.ts` comprueba
+reubicación e idempotencia, copia binaria exacta y resolución de clip solo / YouTube
+solo. No escribe en `content/` del repositorio. Para QA visual, crear las dos fichas
+en una rama de prueba del CMS, verificar hover, click, controles y Esc en escritorio
+más reproducción táctil móvil. El playback real depende de códec y acceso a YouTube.

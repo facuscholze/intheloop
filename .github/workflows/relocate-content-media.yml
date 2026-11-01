@@ -6,6 +6,7 @@ on:
       - "content/shows/**"
       - "content/gallery/**"
       - "content/songs/**"
+      - "content/videos/**"
       - "scripts/relocate-content-media.mjs"
       - ".github/workflows/relocate-content-media.yml"
   workflow_dispatch:
@@ -42,9 +43,9 @@ jobs:
         id: changes
         shell: bash
         run: |
-          if [[ -n "$(git status --porcelain -- content/shows content/gallery content/songs)" ]]; then
+          if [[ -n "$(git status --porcelain -- content/shows content/gallery content/songs content/videos)" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git status --short -- content/shows content/gallery content/songs
+            git status --short -- content/shows content/gallery content/songs content/videos
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Sin archivos para reubicar."
@@ -56,7 +57,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- content/shows content/gallery content/songs
+          git add -A -- content/shows content/gallery content/songs content/videos
           git commit -m "Mueve media del CMS a la carpeta de su ítem"
           # Si entró otro commit mientras corría el workflow, rebasamos sobre
           # la punta actual de la rama antes de pushear. Si ese commit nuevo

@@ -41,6 +41,7 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ""
           NEXT_PUBLIC_SITE_URL: https://www.intheloop.agency
           NEXT_PUBLIC_MEDIA_BASE_URL: ""
+          NEXT_PUBLIC_CONTACT_WEBHOOK_URL: ${{ vars.CONTACT_WEBHOOK_URL }}
         run: pnpm build
 
       - name: Upload Pages artifact

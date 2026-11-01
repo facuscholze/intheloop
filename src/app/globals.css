@@ -259,3 +259,12 @@ a.cta {
 .halo-magenta {
   box-shadow: 0 0 calc(20px + var(--mid) * 40px) rgba(255,46,147, calc(0.15 + var(--mid)*0.25));
 }
+
+/* Los mensajes largos scrollean dentro del campo sin alterar el layout. */
+textarea {
+  resize: none;
+  height: 8rem;
+  min-height: 8rem;
+  max-height: 8rem;
+  overflow-y: auto;
+}

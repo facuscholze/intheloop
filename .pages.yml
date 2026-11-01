@@ -1,6 +1,6 @@
 # Pages CMS — administración de contenido de In The Loop / Tommy Petersen
 #
-# Shows, galerías por ciudad, tracks y datos del sitio.
+# Shows, galerías por ciudad, tracks, videos y datos del sitio.
 # La estructura reproduce las carpetas reales que leen los loaders de
 # src/lib/content.ts: content/shows/<show>/show.json,
 # content/gallery/<ciudad>/city.json, content/songs/<track>/track.json
@@ -30,6 +30,12 @@ media:
     input: content/songs
     output: /media/content/songs
     extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff, mp3, wav, m4a, aac, ogg, oga, opus, flac, aiff]
+    rename: safe
+  - name: videos
+    label: "Clips y posters de videos"
+    input: content/videos
+    output: /media/content/videos
+    extensions: [mp4, jpg, jpeg, png, webp, avif]
     rename: safe
 components:
   pais:
@@ -673,6 +679,76 @@ content:
         label: "Descripción"
         description: "Texto breve opcional sobre la ciudad o la visita."
         type: text
+
+  - name: videos
+    label: "Videos"
+    description: "Clips MP4 H.264 comprimidos (10–30 segundos; recomendado hasta 3 MB), con YouTube opcional para el video completo. Esperá la reubicación automática antes de volver a editar."
+    type: collection
+    path: content/videos
+    format: json
+    subfolders: true
+    filename: "{fields.title}/video.json"
+    exclude: ["_TEMPLATE"]
+    view:
+      layout: tree
+      node: video.json
+      fields: [title, date, venue, draft]
+      primary: title
+      sort: [date, title]
+      search: [title, venue]
+      default:
+        sort: date
+        order: desc
+    operations:
+      rename: false
+    fields:
+      - name: title
+        label: "Título"
+        type: string
+        required: true
+      - name: date
+        label: "Fecha"
+        type: date
+        options:
+          format: "yyyy-MM-dd"
+      - name: venue
+        label: "Lugar / evento"
+        type: string
+      - name: previewSrc
+        label: "Clip corto (preview)"
+        description: "MP4 H.264 ya comprimido, 10–30 s; recomendado hasta 3 MB. Se copia sin transcodificar. Guardá y esperá la reubicación automática."
+        type: file
+        options:
+          media: videos
+          path: content/videos
+          extensions: [mp4]
+          rename: safe
+      - name: youtubeId
+        label: "YouTube (link o ID)"
+        description: "Opcional: URL watch, youtu.be, shorts o live, o ID de 11 caracteres. Solo YouTube también funciona sin clip ni poster."
+        type: string
+      - name: src
+        label: "Video completo externo (opcional)"
+        description: "URL HTTPS de un MP4/HLS externo. Para el uso habitual dejalo vacío: se reproduce YouTube o, si no hay YouTube, el clip."
+        type: string
+        pattern:
+          regex: '^$|^https://\S+$'
+          message: "Usá una URL HTTPS completa o dejalo vacío."
+      - name: poster
+        label: "Poster (opcional)"
+        type: image
+        options:
+          media: videos
+          path: content/videos
+          extensions: [jpg, jpeg, png, webp, avif]
+          rename: safe
+      - name: colorAccent
+        label: "Color de acento (opcional)"
+        type: string
+      - name: draft
+        label: "Borrador"
+        type: boolean
+        default: true
 
   - name: tracks
     label: "Tracks"

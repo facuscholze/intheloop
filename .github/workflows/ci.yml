@@ -49,6 +49,9 @@ jobs:
       - name: Content loader regression tests
         run: pnpm exec tsx scripts/test-content-loaders.ts
 
+      - name: CMS video regression tests
+        run: pnpm exec tsx scripts/test-cms-videos.ts
+
       - name: Build
         run: pnpm build
         env:
