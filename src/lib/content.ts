@@ -286,9 +286,9 @@ export function loadShows(): Show[] {
   for (const { slug, dir: itemDir } of contentItemDirs("shows")) {
     const json = readFolderJson(itemDir, KIND_JSON.shows)
     if (!json) {
-      contentError(
-        `content/shows/${slug}/ no tiene show.json (copiá content/shows/_TEMPLATE/ o corré "pnpm add:show")`
-      )
+      // Pages CMS sube media antes de guardar la ficha y puede dejarla al
+      // borrar el ítem. Sin JSON no hay un ítem publicado; conservamos la media.
+      warnOnce(`content/shows/${slug}/ sin ficha JSON: se omite el ítem y se conservan sus archivos`)
       continue
     }
     const parsed = ShowSchema.safeParse(json.data)
@@ -334,9 +334,9 @@ export function loadTracks(): Track[] {
   for (const { slug, dir: itemDir } of contentItemDirs("songs")) {
     const json = readFolderJson(itemDir, KIND_JSON.songs)
     if (!json) {
-      contentError(
-        `content/songs/${slug}/ no tiene track.json (copiá content/songs/_TEMPLATE/ o corré "pnpm add:track")`
-      )
+      // Pages CMS sube media antes de guardar la ficha y puede dejarla al
+      // borrar el ítem. Sin JSON no hay un ítem publicado; conservamos la media.
+      warnOnce(`content/songs/${slug}/ sin ficha JSON: se omite el ítem y se conservan sus archivos`)
       continue
     }
     const parsed = TrackSchema.safeParse(json.data)
@@ -473,9 +473,9 @@ export function loadVideos(): Video[] {
   for (const { slug, dir: itemDir } of contentItemDirs("videos")) {
     const json = readFolderJson(itemDir, KIND_JSON.videos)
     if (!json) {
-      contentError(
-        `content/videos/${slug}/ no tiene video.json (copiá content/videos/_TEMPLATE/ o corré "pnpm add:video")`
-      )
+      // Pages CMS sube media antes de guardar la ficha y puede dejarla al
+      // borrar el ítem. Sin JSON no hay un ítem publicado; conservamos la media.
+      warnOnce(`content/videos/${slug}/ sin ficha JSON: se omite el ítem y se conservan sus archivos`)
       continue
     }
     const parsed = VideoSchema.safeParse(json.data)
