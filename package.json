@@ -11,6 +11,7 @@
     "sync:media": "tsx scripts/sync-media.ts",
     "watch:media": "tsx scripts/sync-media.ts --watch",
     "migrate:content": "tsx scripts/migrate-content.ts",
+    "fix:content-media": "node scripts/relocate-content-media.mjs",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",

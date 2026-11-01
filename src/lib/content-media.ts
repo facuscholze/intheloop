@@ -29,9 +29,12 @@
  * Reglas de un valor de media dentro de un JSON de contenido (`hero`, `cover`,
  * `audio`, `poster`, …):
  *   1. `https://…`      → se usa tal cual (bucket/CDN/YouTube).
- *   2. `/algo`          → ruta absoluta del sitio (public/), se usa tal cual.
- *   3. `hero.jpg`       → archivo DENTRO de la carpeta del item (lo optimiza el sync).
- *   4. `audio/viejo.wav`→ formato viejo: ruta relativa a `public/media/`.
+ *   2. `hero.jpg`       → archivo DENTRO de la carpeta del item (lo optimiza el sync).
+ *   3. `/media/content/shows/<slug>/hero.jpg` → el formato que guarda Pages CMS
+ *      (ruta pública completa): si el nombre del archivo coincide con uno de
+ *      la carpeta del item, se trata como la regla 2 (pasa por el sync/WebP).
+ *   4. `/algo`          → otra ruta absoluta del sitio (public/), se usa tal cual.
+ *   5. `audio/viejo.wav`→ formato viejo: ruta relativa a `public/media/`.
  */
 
 export type ContentKind = "gallery" | "shows" | "songs" | "videos"
@@ -254,21 +257,38 @@ export function resolveMediaValue(
   if (!raw) return null
   // 1) externo (bucket, YouTube, SoundCloud…)
   if (/^(https?:)?\/\//i.test(raw)) return raw
-  // 2) ruta absoluta del sitio (public/)
-  if (raw.startsWith("/")) return raw
 
+  const isAbsolute = raw.startsWith("/")
   const rel = raw.replace(/^\.\//, "").replace(/^\/+/, "")
   const wanted = slugifySegment(rel)
-  // 3) archivo dentro de la carpeta del item (match exacto o "normalizado")
-  const hit = files.find(
+  // 2) archivo dentro de la carpeta del item (match exacto o "normalizado")
+  let hit = files.find(
     (f) => f.toLowerCase() === rel.toLowerCase() || slugifySegment(f) === wanted
   )
+  // 3) match por nombre de archivo (sin la ruta): es el formato que guarda el
+  //    CMS (Pages CMS), que escribe la ruta pública completa
+  //    ("/media/content/shows/<slug>/foto.jpg"). Si el nombre coincide con UN
+  //    solo archivo de la carpeta, no hay ambigüedad: se usa ese y así la
+  //    imagen pasa por la derivación WebP como cualquier otra de `content/`.
+  if (!hit) {
+    const base = basename(rel)
+    const wantedBase = slugifySegment(base)
+    const byName = files.filter(
+      (f) =>
+        basename(f).toLowerCase() === base.toLowerCase() ||
+        slugifySegment(basename(f)) === wantedBase
+    )
+    if (byName.length === 1) hit = byName[0]
+  }
   if (hit) {
     // audio/video: se copian tal cual (no hay variante mini)
     if (isPassthroughFile(hit)) return copiedMediaPath(kind, slug, hit)
     return derivedMediaPath(kind, slug, hit, variant)
   }
 
-  // 4) formato viejo: ruta relativa a public/media (ej. "audio/tema.wav")
+  // 4) ruta absoluta del sitio (public/) que no es un archivo de la carpeta
+  if (isAbsolute) return raw
+
+  // 5) formato viejo: ruta relativa a public/media (ej. "audio/tema.wav")
   return rel.replace(/^media\//, "")
 }

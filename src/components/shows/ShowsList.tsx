@@ -14,7 +14,7 @@ export function ShowsList({ shows }: ShowsListProps) {
   const [filterYear, setFilterYear] = useState<string>("all");
   const [hoveredShow, setHoveredShow] = useState<Show | null>(null);
 
-  const countries = Array.from(new Set(shows.map((s) => s.country))).sort();
+  const countries = Array.from(new Set(shows.map((s) => s.country).filter(Boolean))).sort();
   const years = Array.from(new Set(shows.map((s) => s.date.slice(0, 4))))
     .sort()
     .reverse();

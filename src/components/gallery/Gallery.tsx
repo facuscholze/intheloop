@@ -6,23 +6,8 @@ import { lockScroll, unlockScroll } from "@/lib/scroll-lock"
 import { useUIStore } from "@/stores/uiStore"
 import { gsap } from "@/lib/motion"
 import { getMediaUrl } from "@/lib/media"
+import { countryFlag } from "@/lib/countries"
 import type { GalleryCity } from "@/lib/content"
-
-const FLAGS: Record<string, string> = {
-  AR: "🇦🇷",
-  BR: "🇧🇷",
-  DE: "🇩🇪",
-  ES: "🇪🇸",
-  FR: "🇫🇷",
-  CZ: "🇨🇿",
-  MX: "🇲🇽",
-  US: "🇺🇸",
-  IT: "🇮🇹",
-  UY: "🇺🇾",
-  CL: "🇨🇱",
-  CO: "🇨🇴",
-  PE: "🇵🇪"
-}
 
 interface Props {
   /** Ciudades leídas de content/gallery/<ciudad>/ (una carpeta por ciudad). */
@@ -318,7 +303,7 @@ export function GalleryCarousel({ galleries }: Props) {
                 <div className="flex items-start justify-between">
                   <div className="rounded-full bg-black/60 px-3 py-1 font-mono text-[10px] tracking-widest text-white uppercase backdrop-blur">
                     {gallery.country
-                      ? `${FLAGS[gallery.country] ?? ""} ${gallery.country}`
+                      ? `${countryFlag(gallery.country)} ${gallery.country}`.trim()
                       : "Galería"}
                   </div>
                   {isActive && (
@@ -406,7 +391,9 @@ export function GalleryCarousel({ galleries }: Props) {
               <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] p-6">
                 <div>
                   <div className="font-display text-2xl uppercase md:text-3xl">
-                    {lightbox.country ? `${FLAGS[lightbox.country] ?? ""} ` : ""}
+                    {lightbox.country && countryFlag(lightbox.country)
+                      ? `${countryFlag(lightbox.country)} `
+                      : ""}
                     {lightbox.city}
                   </div>
                   <div className="font-mono text-[10px] tracking-widest text-[var(--fg-muted)] uppercase">
