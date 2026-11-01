@@ -134,18 +134,21 @@ Deploy automático con el workflow `.github/workflows/deploy.yml`:
 
 1. En el repo: **Settings → Pages → Source: GitHub Actions**.
 2. Pushear a `main` (o correr el workflow manualmente desde la pestaña Actions).
-3. El sitio queda en `https://<usuario>.github.io/<repo>/`.
+3. En **Settings → Pages → Custom domain**, guardar `www.intheloop.agency`.
+4. En el proveedor DNS, crear un registro **CNAME** con nombre `www` y destino `facuscholze.github.io` (sin `https://` ni rutas). Reemplazar cualquier registro conflictivo para `www`.
+5. Cuando GitHub valide el DNS y emita el certificado, activar **Enforce HTTPS** en Pages.
+6. El sitio queda en `https://www.intheloop.agency/`.
 
-El workflow ya configura solo `NEXT_PUBLIC_BASE_PATH` (subdirectorio `/<repo>`) y `NEXT_PUBLIC_SITE_URL`. No requiere API routes: booking usa webhook directo + fallback mailto, y el press kit txt se genera en el browser.
+El workflow configura `NEXT_PUBLIC_BASE_PATH` vacío y `NEXT_PUBLIC_SITE_URL=https://www.intheloop.agency`. `public/CNAME` incluye el dominio en el export; con GitHub Actions, el custom domain también debe configurarse en Settings → Pages. No requiere API routes: booking usa webhook directo + fallback mailto, y el press kit txt se genera en el browser.
 
 Build local equivalente al deploy:
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/intheloop NEXT_PUBLIC_SITE_URL=https://<usuario>.github.io pnpm build
+NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_SITE_URL=https://www.intheloop.agency pnpm build
 # El sitio estático queda en out/
 ```
 
-> Nota: al ser hosting estático no hay API routes. Si querés dominio propio (`www.intheloop.agency`), setealo como custom domain en Pages y dejá `NEXT_PUBLIC_BASE_PATH` vacío.
+> El cambio del workflow debe integrarse a `main` para que el próximo deploy use el dominio nuevo. No configurar el CNAME de `www` hacia `intheloop.agency`: debe apuntar directamente a `facuscholze.github.io`.
 
 ### Vercel / Netlify / cualquier estático
 

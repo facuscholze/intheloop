@@ -35,20 +35,11 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      - name: Compute base path
-        id: base
-        run: |
-          REPO=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')
-          OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
-          echo "path=$REPO" >> "$GITHUB_OUTPUT"
-          echo "owner=$OWNER" >> "$GITHUB_OUTPUT"
-
       - name: Build (static export)
         env:
-          # Project site: https://<usuario>.github.io/<repo>/
-          NEXT_PUBLIC_BASE_PATH: /${{ steps.base.outputs.path }}
-          # Origen canónico (sin basePath; Next lo agrega solo a las rutas)
-          NEXT_PUBLIC_SITE_URL: https://${{ steps.base.outputs.owner }}.github.io
+          # El dominio propio sirve el sitio desde la raíz, sin /intheloop.
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_SITE_URL: https://www.intheloop.agency
           NEXT_PUBLIC_MEDIA_BASE_URL: ""
         run: pnpm build
 

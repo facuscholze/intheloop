@@ -6,7 +6,7 @@ export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Origen canónico (sin basePath; metadataBase lo necesita así).
-  // El deploy de GitHub Pages setea NEXT_PUBLIC_SITE_URL=https://<usuario>.github.io
+  // El deploy de GitHub Pages usa el dominio propio https://www.intheloop.agency.
   const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.intheloop.agency").replace(/\/$/, "");
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   const baseUrl = `${origin}${basePath}`;
