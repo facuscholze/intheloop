@@ -1,9 +1,8 @@
 {
-  "title": "Downtempo 🇦🇷 - In The Loop Agency.mp3",
+  "title": "Downtempo 🇦🇷 - In The Loop Agency",
   "artist": "Tommy Petersen",
   "type": "track",
   "audio": "/media/content/songs/Downtempo Session in Buenos Aires 🇦🇷 - In The Loop Agency/Tommy Petersen  Downtempo Session in Buenos Aires 🇦🇷 - In The Loop Agency.mp3",
-  "cover": null,
   "bpm": 124,
   "key": "Am",
   "duration": 3503,
@@ -13,11 +12,6 @@
     "House"
   ],
   "colorAccent": "#FF5A1F",
-  "links": {
-    "soundcloud": null,
-    "spotify": null,
-    "beatport": null
-  },
   "waveformPeaks": [
     0.62,
     0.28,
