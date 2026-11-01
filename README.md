@@ -236,3 +236,13 @@ Ver `docs/CHECKLIST-CLIENTE.md` y `needsReview` dentro de cada
 
 - GSAP free (sin Club). Si tenés Club, instalar plugins pagos desde registro privado GreenSock y habilitar en `src/lib/motion.ts`.
 - No usar audio/video/imágenes con copyright de terceros sin permiso.
+
+### Guardados y eliminaciones desde Pages CMS
+
+Las carpetas de shows, canciones y videos sin ficha JSON se consideran ítems
+no publicados: se omiten con un aviso y sus archivos se conservan. Esto permite
+subir media antes de guardar la ficha y eliminar fichas desde el CMS sin bloquear
+el despliegue por los archivos residuales. Los JSON malformados, los datos que no
+validan y las referencias rotas siguen siendo errores en CI.
+
+Prueba de regresión: `pnpm exec tsx scripts/test-content-loaders.ts`.

@@ -46,6 +46,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Content loader regression tests
+        run: pnpm exec tsx scripts/test-content-loaders.ts
+
       - name: Build
         run: pnpm build
         env:
