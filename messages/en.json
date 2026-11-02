@@ -36,12 +36,65 @@
     "instagram": "Instagram",
     "form": {
       "name": "Name",
+      "email": "Email",
       "event": "Event",
       "date": "Date",
       "city": "City",
       "message": "Message",
-      "submit": "Send",
-      "sending": "Sending..."
+      "submit": "Send booking →",
+      "sending": "Sending...",
+      "formLabel": "Booking form",
+      "description": "Booking form • Reply within 24h • Fields with * are required",
+      "legend": "Contact and event information",
+      "ready": "Ready",
+      "required": "(required)",
+      "messageRequired": "(required, at least 10 characters)",
+      "honeypotLabel": "Do not fill this field (anti-spam)",
+      "submitAria": "Send booking form",
+      "submitSendingAria": "Sending form",
+      "footer": "We'll get back to you within 24 hours.",
+      "placeholders": {
+        "name": "Your name",
+        "email": "you@email.com",
+        "event": "Event / club / festival name",
+        "date": "E.g. 15 March 2026",
+        "city": "E.g. Buenos Aires, Berlin, Paris",
+        "message": "Tell us about the event, crowd, lineup, etc."
+      },
+      "hints": {
+        "email": "Optional, so we can reply faster",
+        "message": "At least 10 characters, tell us about the event"
+      },
+      "captcha": {
+        "label": "Security check",
+        "hint": "Complete the captcha before sending",
+        "loading": "Loading security check...",
+        "retry": "Try again"
+      },
+      "success": {
+        "title": "Message sent!",
+        "body": "Thanks {name}. We'll get back to you within 24h.",
+        "another": "Send another message"
+      },
+      "errors": {
+        "required": "Please fill in this field.",
+        "tooShort": "This is too short.",
+        "tooLong": "This is too long.",
+        "invalidEmail": "Please enter a valid email address.",
+        "captchaMissing": "Please complete the security check before sending.",
+        "captcha": "We couldn't verify the captcha. Please try again.",
+        "captchaLoad": "The security check couldn't load. Reload the page and try again.",
+        "network": "We couldn't connect. Check your connection and try again.",
+        "timeout": "The request took too long. Please try again.",
+        "http": "We couldn't send your message. Please try again later or email {email}.",
+        "invalidResponse": "We couldn't confirm your submission. Please try again or email {email}.",
+        "config": "The form is temporarily unavailable. Please email {email}.",
+        "domain": "The submission was rejected. Reload the page and try again.",
+        "spam": "The submission was blocked by the spam filter. Wait a moment and try again.",
+        "rateLimit": "Too many submissions in a row. Please wait a few minutes and try again.",
+        "rejected": "We couldn't send your message. Please try again or email {email}.",
+        "unknown": "Something unexpected happened. Please try again or email {email}."
+      }
     }
   }
 }

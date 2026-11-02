@@ -329,7 +329,7 @@ pnpm add:track          # CLI: crea content/songs/<id>/ con audio, cover y JSON
 pnpm add:show           # CLI: crea content/shows/<id>/ con hero y JSON
 pnpm add:video          # CLI: crea content/videos/<id>/ con poster/preview y JSON
 pnpm gen:waveform       # escribe los peaks en los song.json (los WAV ya se calculan solos)
-pnpm optimize:images    # solo hero/press/brand de media-src/ → public/media/
+pnpm optimize:images    # solo hero/brand de media-src/ → public/media/
 pnpm migrate:content    # migra contenido del formato viejo (JSON suelto) al nuevo
 ```
 

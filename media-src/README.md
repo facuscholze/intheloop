@@ -1,9 +1,8 @@
-# media-src/ — ORIGINALES PESADOS (hero, brand, press)
+# media-src/ — ORIGINALES PESADOS (hero, brand)
 
 ⚠️ **El contenido de las secciones (galería, shows, temas, videos) ya no va acá:
 cada cosa vive en su carpeta de `content/`.** Ver `content/README.md`.
-Esta carpeta queda para lo que no es contenido — la foto del hero, el logo y el
-material de prensa.
+Esta carpeta queda para lo que no es contenido — la foto del hero y el logo.
 
 Soltá acá los ORIGINALES (los mejores que tengas): no hace falta optimizarlos ni
 renombrarlos perfecto, los scripts los procesan y los copian a `public/media/`.
@@ -21,7 +20,6 @@ Esta carpeta NO se sube a git (ver .gitignore).
 | `images/hero/` | Fotos principales del artista (las mejores, alta resolución) | JPG/PNG/WebP, 2500 px+ de ancho |
 | `images/shows/` | Una foto por show/venue | JPG/PNG/WebP |
 | `images/about/` | Fotos para la bio | JPG/PNG/WebP |
-| `images/press/` | Fotos de prensa / press kit | JPG/PNG |
 | `images/galleries/<ciudad>/` | Galerías por ciudad/país (podés crear más carpetas) | JPG/PNG/WebP |
 | `covers/` | Portadas de temas/sets (cuadradas) | JPG/PNG 1400×1400 mínimo |
 | `brand/` | Logo (idealmente SVG o PNG transparente), paleta de colores, tipografías si tienen | SVG/PNG |

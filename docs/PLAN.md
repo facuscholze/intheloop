@@ -52,8 +52,8 @@
     - Contadores solo si hay datos reales (ej: países tocados = 5).
 
 11. **Booking**:
-    - Mail, WhatsApp, IG, formulario Zod -> `mailto:` + webhook opcional `BOOKING_WEBHOOK_URL`.
-    - Press kit placeholder disabled.
+    - Mail, WhatsApp, IG, formulario Zod -> Web3Forms + hCaptcha + honeypot (ver `docs/CONTACT-FORM.md`), sin backend propio.
+    - (Sección Press Kit eliminada posteriormente; no forma parte del sitio).
 
 12. **Footer**: links, newsletter (MailerLite endpoint env), créditos, favicon.
 

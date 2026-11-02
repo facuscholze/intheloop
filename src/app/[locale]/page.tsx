@@ -7,7 +7,6 @@ import { CountriesGrid } from "@/components/shows/CountriesGrid";
 import { GalleryCarousel } from "@/components/gallery/Gallery";
 import { Counters } from "@/components/effects/EasterEggs";
 import { BookingForm } from "@/components/booking/BookingForm";
-import { PressKit } from "@/components/booking/PressKit";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { loadGalleries, loadShows, loadSite, loadTracks, loadVideos } from "@/lib/content";
 import { countryName } from "@/lib/countries";
@@ -185,10 +184,6 @@ export default function HomePage() {
                       {ig.replace("https://www.instagram.com/", "").replace("/", "")}
                     </a>
                   ))}
-                </div>
-
-                <div className="mt-12">
-                  <PressKit showsCount={shows.length} countriesCount={countries.length} />
                 </div>
               </div>
 

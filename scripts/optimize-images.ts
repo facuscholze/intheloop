@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * pnpm optimize:images
- * Optimiza imágenes de media-src/ (hero, about, press, brand, covers legacy) a
+ * Optimiza imágenes de media-src/ (hero, about, brand, covers legacy) a
  * public/media/ con sharp: WebP + thumbs.
  *
  * Ojo: las imágenes del CONTENIDO (galerías, shows, temas, videos) NO pasan por
@@ -59,7 +59,6 @@ async function main() {
   await optimizeDir("media-src/images/shows", "public/media/images/shows", { width: 800 });
   await optimizeDir("media-src/images/about", "public/media/images/about", { width: 1200 });
   await optimizeDir("media-src/covers", "public/media/images/covers", { width: 800 });
-  await optimizeDir("media-src/images/press", "public/media/images/press", { width: 1600 });
   await optimizeDir("media-src/brand", "public/media/images/brand");
 
   // Galleries
