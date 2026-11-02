@@ -211,7 +211,7 @@ Build final: 32.9kB /[locale] + 171kB First Load (103kB shared) + dynamic chunks
 ## Deploy
 
 ### Vercel
-- Framework Next.js, env vars NEXT_PUBLIC_MEDIA_BASE_URL + BOOKING_WEBHOOK_URL + NEWSLETTER_ENDPOINT
+- Framework Next.js, env var NEXT_PUBLIC_MEDIA_BASE_URL (el formulario de bookings usa Web3Forms y no requiere env vars)
 - Build pnpm build, output standalone but Vercel uses .next
 - Domain https://www.intheloop.agency, sitemap https://www.intheloop.agency/sitemap.xml, OG https://www.intheloop.agency/es/opengraph-image
 - Analytics + Speed Insights optional
@@ -228,8 +228,8 @@ Build final: 32.9kB /[locale] + 171kB First Load (103kB shared) + dynamic chunks
 ### Env Example
 ```
 NEXT_PUBLIC_MEDIA_BASE_URL=https://your-bucket.r2.dev
-BOOKING_WEBHOOK_URL=https://your-n8n.com/webhook/booking
-NEWSLETTER_ENDPOINT=https://api.mailerlite.com/...
+# El formulario de bookings no usa variables de entorno: Web3Forms
+# (access key pública en src/lib/booking-config.ts).
 ```
 
 ## Testing
@@ -281,5 +281,5 @@ NEWSLETTER_ENDPOINT=https://api.mailerlite.com/...
 - GSAP Club plugins if purchased (SplitText, Draggable, Inertia, ScrambleText)
 - Rive/Lottie loaders
 - i18n EN complete + hreflang
-- Newsletter MailerLite real endpoint
-- Booking n8n webhook real
+- Newsletter MailerLite real endpoint (histórico)
+- Booking: prueba real con Web3Forms (ver `docs/CONTACT-FORM.md`)

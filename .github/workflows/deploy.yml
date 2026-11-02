@@ -41,6 +41,8 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ""
           NEXT_PUBLIC_SITE_URL: https://www.intheloop.agency
           NEXT_PUBLIC_MEDIA_BASE_URL: ""
+          # El formulario de bookings usa Web3Forms: no necesita variables ni
+          # secretos. La access key pública va en src/lib/booking-config.ts.
         run: pnpm build
 
       - name: Upload Pages artifact

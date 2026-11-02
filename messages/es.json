@@ -36,12 +36,65 @@
     "instagram": "Instagram",
     "form": {
       "name": "Nombre",
+      "email": "Email",
       "event": "Evento",
       "date": "Fecha",
       "city": "Ciudad",
       "message": "Mensaje",
-      "submit": "Enviar",
-      "sending": "Enviando..."
+      "submit": "Enviar booking →",
+      "sending": "Enviando...",
+      "formLabel": "Formulario de booking",
+      "description": "Formulario booking • Respuesta 24h • Campos con * requeridos",
+      "legend": "Información de contacto y evento",
+      "ready": "Listo",
+      "required": "(requerido)",
+      "messageRequired": "(requerido, mínimo 10 caracteres)",
+      "honeypotLabel": "No llenar este campo (anti-spam)",
+      "submitAria": "Enviar formulario de booking",
+      "submitSendingAria": "Enviando formulario",
+      "footer": "Te respondemos en menos de 24 h.",
+      "placeholders": {
+        "name": "Tu nombre",
+        "email": "tu@email.com",
+        "event": "Nombre del evento / club / festival",
+        "date": "Ej: 15 Marzo 2026",
+        "city": "Ej: CABA, Berlín, París",
+        "message": "Contame sobre el evento, público, equipo, etc."
+      },
+      "hints": {
+        "email": "Opcional, para responderte más rápido",
+        "message": "Mínimo 10 caracteres, contá sobre el evento"
+      },
+      "captcha": {
+        "label": "Verificación de seguridad",
+        "hint": "Resolvé el captcha antes de enviar",
+        "loading": "Cargando verificación de seguridad...",
+        "retry": "Reintentar"
+      },
+      "success": {
+        "title": "¡Mensaje enviado!",
+        "body": "Gracias {name}. Te respondemos en 24h.",
+        "another": "Enviar otro mensaje"
+      },
+      "errors": {
+        "required": "Completá este campo.",
+        "tooShort": "Es demasiado corto.",
+        "tooLong": "Es demasiado largo.",
+        "invalidEmail": "Escribí un email válido.",
+        "captchaMissing": "Resolvé la verificación de seguridad antes de enviar.",
+        "captcha": "No pudimos verificar el captcha. Volvé a intentarlo.",
+        "captchaLoad": "No se pudo cargar la verificación de seguridad. Recargá la página e intentá de nuevo.",
+        "network": "No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.",
+        "timeout": "El envío tardó demasiado. Intentá de nuevo.",
+        "http": "No pudimos enviar el mensaje. Intentá más tarde o escribinos a {email}.",
+        "invalidResponse": "No pudimos confirmar el envío. Intentá de nuevo o escribinos a {email}.",
+        "config": "El formulario no está disponible en este momento. Escribinos a {email}.",
+        "domain": "El envío fue rechazado. Recargá la página e intentá de nuevo.",
+        "spam": "El envío fue bloqueado por el filtro antispam. Esperá un momento e intentá de nuevo.",
+        "rateLimit": "Demasiados envíos seguidos. Esperá unos minutos e intentá de nuevo.",
+        "rejected": "No pudimos enviar el mensaje. Intentá de nuevo o escribinos a {email}.",
+        "unknown": "Ocurrió un problema inesperado. Intentá de nuevo o escribinos a {email}."
+      }
     }
   }
 }

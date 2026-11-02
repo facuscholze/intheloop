@@ -158,7 +158,7 @@ Traé el contenido real desde https://www.intheloop.agency/ (descargá las imág
 # Conversión y booking
 
 - Botón **BOOK TOMMY** siempre visible (header sticky), repetido en el hero y al final.
-- Sección de booking con mail, WhatsApp e Instagram. Formulario simple (nombre, evento, fecha, ciudad, mensaje) que por ahora haga `mailto:` y quede listo para enviar a un webhook (n8n) vía variable de entorno `BOOKING_WEBHOOK_URL`; validación con Zod, honeypot anti-spam.
+- Sección de booking con mail, WhatsApp e Instagram. Formulario simple (nombre, evento, fecha, ciudad, mensaje) que hoy envía con Web3Forms desde el navegador (ver `docs/CONTACT-FORM.md`); validación con Zod, honeypot y hCaptcha. No requiere backend propio ni variables de entorno.
 - Newsletter con endpoint por variable de entorno (hoy es MailerLite; no inventes credenciales).
 - "Press kit / Rider": placeholder deshabilitado, no inventes archivos.
 - Siempre debe haber una **vía de contacto rápida y legible** aunque estén activos los efectos al máximo.

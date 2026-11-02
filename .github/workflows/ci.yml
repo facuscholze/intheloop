@@ -49,6 +49,9 @@ jobs:
       - name: Content loader regression tests
         run: pnpm exec tsx scripts/test-content-loaders.ts
 
+      - name: Booking form tests (fetch simulado, sin envíos reales)
+        run: pnpm test:booking
+
       - name: Build
         run: pnpm build
         env:
