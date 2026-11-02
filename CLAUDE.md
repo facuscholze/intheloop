@@ -245,7 +245,7 @@ next-intl, locales ["es","en"], default "es", prefix always. Sin middleware (exp
   - opengraph-image.tsx: edge runtime ImageResponse 1200x630, radial glows fire/magenta, TOMMY PETERSEN gradient text Syne bold, tagline + URL footer
   - icon.tsx: edge 32x32 T fire borderRadius 6
   - JsonLd.tsx: MusicGroup JSON-LD (artist, agency, genres Tribal House/House/Latin, sameAs IG/YT/SC/WA, contactPoint events@intheloop.agency booking) + 5 MusicRecording from tracks
-  - BookingForm: Zod name min2/event min2/date min4/city min2/message min10/email optional + maxLengths, honeypot hidden left -5000px + botcheck, status idle/sending/success/error, Web3Forms POST JSON con AbortController 15s (src/lib/booking.ts), hCaptcha script oficial data-theme dark/size compact, textos es/en en messages/*.json, success UI lime border + thanks sin mailto, bass reactive boxShadow --bass, aria-invalid, disabled sending
+  - BookingForm: Zod name min2/event min2/city min2/message min10/email optional + maxLengths, date type=date ISO YYYY-MM-DD con fecha real y color-scheme dark (subject formateado es/en), honeypot hidden left -5000px + botcheck, status idle/sending/success/error, Web3Forms POST JSON con AbortController 15s (src/lib/booking.ts), hCaptcha script oficial data-theme dark/size compact, textos es/en en messages/*.json, success UI lime border + thanks sin mailto, bass reactive boxShadow --bass, aria-invalid, disabled sending
   - ~~Newsletter~~ eliminado: el artista no tiene newsletter. Se quitó el componente y la env `NEXT_PUBLIC_NEWSLETTER_ENDPOINT`
   - /api/booking: Zod same + email optional, honeypot bot ok, webhook fetch catch warn, always ok
   - /api/newsletter: Zod email honeypot, endpoint fetch, note no endpoint

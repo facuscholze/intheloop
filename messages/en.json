@@ -57,7 +57,6 @@
         "name": "Your name",
         "email": "you@email.com",
         "event": "Event / club / festival name",
-        "date": "E.g. 15 March 2026",
         "city": "E.g. Buenos Aires, Berlin, Paris",
         "message": "Tell us about the event, crowd, lineup, etc."
       },
@@ -81,6 +80,7 @@
         "tooShort": "This is too short.",
         "tooLong": "This is too long.",
         "invalidEmail": "Please enter a valid email address.",
+        "invalidDate": "Please choose a valid date.",
         "captchaMissing": "Please complete the security check before sending.",
         "captcha": "We couldn't verify the captcha. Please try again.",
         "captchaLoad": "The security check couldn't load. Reload the page and try again.",

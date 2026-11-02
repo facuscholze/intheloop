@@ -47,6 +47,19 @@
   }
 }
 
+/* Calendario nativo del campo Fecha: forzar tema oscuro (el popup del
+   navegador sale claro por defecto) y que el ícono se vea sobre --bg-2. */
+input[type="date"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.75;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
 
 /* Custom properties for audio-reactive */
 @property --bass {

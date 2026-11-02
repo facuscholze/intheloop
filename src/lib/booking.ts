@@ -15,12 +15,12 @@ import {
   WEB3FORMS_ENDPOINT
 } from "./booking-config"
 
-/** Límites razonables: también se aplican como `maxLength` en el DOM. */
+/** Límites razonables: también se aplican como `maxLength` en el DOM.
+ *  `date` no va acá: con `type="date"` el navegador controla el formato ISO. */
 export const BOOKING_LIMITS = {
   name: 100,
   email: 254,
   event: 120,
-  date: 60,
   city: 100,
   message: 2000
 } as const
@@ -28,7 +28,6 @@ export const BOOKING_LIMITS = {
 export const BOOKING_MIN_LENGTHS = {
   name: 2,
   event: 2,
-  date: 4,
   city: 2,
   message: 10
 } as const
@@ -36,7 +35,12 @@ export const BOOKING_MIN_LENGTHS = {
 export const BOOKING_FIELD_ORDER = ["name", "email", "event", "date", "city", "message"] as const
 
 export type BookingField = (typeof BOOKING_FIELD_ORDER)[number]
-export type BookingErrorCode = "required" | "tooShort" | "tooLong" | "invalidEmail"
+export type BookingErrorCode = "required" | "tooShort" | "tooLong" | "invalidEmail" | "invalidDate"
+export type BookingLocale = "es" | "en"
+
+export function normalizeBookingLocale(locale: string): BookingLocale {
+  return locale === "en" ? "en" : "es"
+}
 export type BookingValues = {
   name: string
   email: string
@@ -125,6 +129,33 @@ function messageField(max: number, min: number) {
     })
 }
 
+/** `type="date"` entrega `YYYY-MM-DD`; validamos también que sea una fecha real. */
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+const dateField = z.string().superRefine((value, ctx) => {
+  if (value.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "required" })
+    return
+  }
+  if (!ISO_DATE_RE.test(value)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "invalidDate" })
+    return
+  }
+  const [year, month, day] = value.split("-").map(Number)
+  if (year < 1000 || year > 9999) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "invalidDate" })
+    return
+  }
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "invalidDate" })
+  }
+})
+
 const BookingSchema = z.object({
   name: singleLine(BOOKING_MIN_LENGTHS.name, BOOKING_LIMITS.name),
   email: z
@@ -138,7 +169,7 @@ const BookingSchema = z.object({
       }
     }),
   event: singleLine(BOOKING_MIN_LENGTHS.event, BOOKING_LIMITS.event),
-  date: singleLine(BOOKING_MIN_LENGTHS.date, BOOKING_LIMITS.date),
+  date: dateField,
   city: singleLine(BOOKING_MIN_LENGTHS.city, BOOKING_LIMITS.city),
   message: messageField(BOOKING_LIMITS.message, BOOKING_MIN_LENGTHS.message),
   honeypot: z.string().optional().default(""),
@@ -187,18 +218,37 @@ export function isCaptchaTokenValid(token: string | null | undefined): boolean {
   return typeof token === "string" && token.trim().length > 0
 }
 
+const MONTHS: Record<BookingLocale, string[]> = {
+  es: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+}
+
+/** Fecha legible para el asunto; el payload conserva el ISO `YYYY-MM-DD`.
+ *  Se arma a mano (sin `Intl`/`Date` local) para no correrse un día por timezone. */
+export function formatBookingDate(iso: string, locale: BookingLocale): string {
+  if (!ISO_DATE_RE.test(iso)) return iso
+  const [year, month, day] = iso.split("-")
+  return `${Number(day)} ${MONTHS[locale][Number(month) - 1] ?? month} ${year}`
+}
+
 /**
  * Arma el body JSON según el contrato documentado de Web3Forms.
  * No se usa `to`: el destinatario está configurado en el dashboard.
  * `replyto` repite `email` (plan gratuito, opción documentada) para que
  * "Responder" apunte al visitante; `email` solo se envía si lo completó.
  * `botcheck` es el honeypot que Web3Forms valida del lado del servicio.
+ * El `subject` muestra la fecha formateada en es/en; el campo `date` viaja ISO.
  */
-export function buildBookingPayload(data: BookingData, captchaToken: string): BookingPayload {
-  const subject = `${BOOKING_SUBJECT_PREFIX} — ${data.event} · ${data.city} · ${data.date}`.slice(
-    0,
-    200
-  )
+export function buildBookingPayload(
+  data: BookingData,
+  captchaToken: string,
+  locale: BookingLocale = "es"
+): BookingPayload {
+  const subject =
+    `${BOOKING_SUBJECT_PREFIX} — ${data.event} · ${data.city} · ${formatBookingDate(data.date, locale)}`.slice(
+      0,
+      200
+    )
 
   const payload: BookingPayload = {
     access_key: WEB3FORMS_ACCESS_KEY,
