@@ -1,7 +1,7 @@
-# Fase 6 - A11y + Perf + Responsive + Press Kit + Deploy
+# Fase 6 - A11y + Perf + Responsive + Deploy
 
 ## Resumen
-Fase 6 cierra el proyecto con foco en accesibilidad WCAG 2.1 AA, performance Lighthouse ≥85/95, responsive 360-1440, press kit funcional y deploy verificado.
+Fase 6 cierra el proyecto con foco en accesibilidad WCAG 2.1 AA, performance Lighthouse ≥85/95, responsive 360-1440 y deploy verificado. La sección Press Kit que se documentaba acá fue eliminada posteriormente del sitio.
 
 Build final: 32.9kB /[locale] + 171kB First Load (103kB shared) + dynamic chunks Three/R3F/Matter/Tone/HLS
 
@@ -125,16 +125,13 @@ Build final: 32.9kB /[locale] + 171kB First Load (103kB shared) + dynamic chunks
 **404:**
 - role=main aria-label Página no encontrada, h1 aria-label Error 404, sr-only, aria-hidden chars, reducedMotion skip canvas + GSAP, links aria-label volver inicio/música
 
-**PressKit:**
-- role=region aria-label Press Kit, aria-hidden icons, aria-label descargar PDF/fotos/ZIP
-
 **SkipLink:**
 - .skip-link top -100% -> top 0 focus, bg lime black text, transition top 0.2s, focus visible
 
 ## Performance
 
 ### Bundle
-- Route /[locale] 32.9kB (was 30.7kB Fase 5) + First Load 171kB (was 166kB) - increase due lucide + PressKit + PerformanceMonitor dev only
+- Route /[locale] 32.9kB (was 30.7kB Fase 5) + First Load 171kB (was 166kB) - increase due lucide + PerformanceMonitor dev only
 - Shared 103kB: chunks 46.7kB + 54.2kB + 2.14kB
 - Middleware 46.3kB
 - Target: <150kB gz sin Three. Three chunk separado dynamic import High/Medium only
@@ -186,27 +183,6 @@ Build final: 32.9kB /[locale] + 171kB First Load (103kB shared) + dynamic chunks
 
 ### Safe Areas
 - 100svh not 100vh for mobile, pb calc(3rem+var(--player-h)) footer, bottom calc(var(--player-h)+16px) club toggle
-
-## Press Kit
-
-### Component
-- src/components/booking/PressKit.tsx: bio ES/EN, stats shows/countries/years, genres, equipment, socials, contact
-- Includes: FileText bio+rider, Image HD, Music logos, Video links EPK
-- Grid 3 stats, rounded-2xl border bg, genres pills, includes list role=list
-- Buttons: Download PDF, Fotos HD, ZIP completo, Download lucide icons aria-hidden, aria-label descargar
-- Logic: getMediaUrl press/... check HEAD ok -> open, else /api/press-kit fallback, alert if no files
-- Note: Subí PDFs a media-src/press/ + fotos media-src/images/press/ + pnpm optimize:images
-
-### API
-- src/app/api/press-kit/route.ts: GET generates text/plain press kit with site.json + shows.json + bio + stats + contact + shows recent 10 + tech rider + links + generated date
-- Headers Content-Type text/plain charset utf-8 Content-Disposition attachment filename tommy-petersen-press-kit.txt
-- Future: jsPDF for real PDF, or link to bucket ZIP
-
-### Media
-- media-src/press/ -> public/media/press/ via optimize-images.ts
-- public/media/press/tommy-petersen-press-kit.pdf (real PDF upload)
-- public/media/press/images.zip (HD photos)
-- public/media/press/press-kit-complete.zip (all)
 
 ## Deploy
 
@@ -261,7 +237,6 @@ NEXT_PUBLIC_MEDIA_BASE_URL=https://your-bucket.r2.dev
 - [x] ClubMode respect reducedMotion + low tier + safe flash
 - [x] Player lucide icons + aria + progressbar
 - [x] BookingForm fieldset legend labels htmlFor aria-invalid aria-describedby role alert focus first error
-- [x] PressKit component + API /api/press-kit + download logic
 - [x] PerformanceMonitor dev only LCP CLS FPS tier
 - [x] 404 a11y reducedMotion
 - [x] Hero a11y dl dt dd sr-only reducedMotion
@@ -273,7 +248,6 @@ NEXT_PUBLIC_MEDIA_BASE_URL=https://your-bucket.r2.dev
 - [x] Docs FASE6-REPORT + README + CLAUDE update
 
 ## Next (Post Fase 6)
-- Real press kit PDF with jsPDF + high-res photos upload
 - CMS Keystatic/Decap for client no-code content edit
 - Playwright tests + Lighthouse CI
 - Vercel Analytics + Speed Insights

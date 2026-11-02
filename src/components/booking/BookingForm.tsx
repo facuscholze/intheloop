@@ -455,7 +455,7 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
               rows={4}
               minLength={BOOKING_MIN_LENGTHS.message}
               maxLength={BOOKING_LIMITS.message}
-              className={`mt-1 w-full rounded-2xl border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.message ? "border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
+              className={`mt-1 h-28 w-full resize-none overflow-y-auto rounded-2xl border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.message ? "border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
               required
               aria-invalid={!!errors.message}
               aria-describedby={

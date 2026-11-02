@@ -6,12 +6,13 @@
  * su propio `fetchImpl`. Correr con `pnpm test:booking`.
  */
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import test from "node:test"
 import {
   BOOKING_ERROR_MESSAGE_KEYS,
   EMPTY_BOOKING_FORM,
   BOOKING_LIMITS,
+  BOOKING_MIN_LENGTHS,
   bookingErrorMessageKey,
   buildBookingPayload,
   classifyWeb3FormsError,
@@ -372,6 +373,57 @@ test("mensajes es/en: cobertura completa, sin jerga técnica y con email de cont
   assert.notEqual(es.booking.form.errors.network, en.booking.form.errors.network)
   assert.notEqual(es.booking.form.success.title, en.booking.form.success.title)
   assert.equal(bookingErrorMessageKey("in-flight"), null, "doble clic no muestra mensaje")
+})
+
+test("textarea: resize none, alto fijo, scroll interno y mínimo 10 caracteres", () => {
+  const component = readFileSync(
+    new URL("../src/components/booking/BookingForm.tsx", import.meta.url),
+    "utf8"
+  )
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8")
+  const textarea = component.match(/<textarea[\s\S]*?\/>/)?.[0] ?? ""
+
+  assert.ok(textarea, "debe existir el textarea de Mensaje")
+  assert.match(css, /textarea\s*\{[^}]*resize:\s*none/, "regla global resize: none")
+  assert.match(css, /textarea\s*\{[^}]*overflow-y:\s*auto/, "scroll interno global")
+  assert.match(textarea, /resize-none/, "la esquina no se puede arrastrar")
+  assert.match(textarea, /\bh-28\b/, "altura fija")
+  assert.match(textarea, /overflow-y-auto/, "scroll interno si el texto es largo")
+  assert.match(textarea, /minLength=\{BOOKING_MIN_LENGTHS\.message\}/)
+  assert.equal(BOOKING_MIN_LENGTHS.message, 10)
+  assert.match(component, /rows=\{4\}/, "se conserva el alto de 4 filas como fallback")
+})
+
+test("Press Kit eliminado: sin componente, sin links rotos y contadores intactos", () => {
+  assert.equal(
+    existsSync(new URL("../src/components/booking/PressKit.tsx", import.meta.url)),
+    false,
+    "el componente PressKit.tsx no debe existir"
+  )
+
+  const page = readFileSync(new URL("../src/app/[locale]/page.tsx", import.meta.url), "utf8")
+  assert.doesNotMatch(page, /PressKit|press[- ]?kit|\/press\//i, "page.tsx sin Press Kit")
+  assert.match(
+    page,
+    /<Counters\s+shows=\{shows\.length\}\s+countries=\{countries\}\s+yearsRange=\{yearsRange\}/,
+    "contadores del hero intactos"
+  )
+  assert.match(page, /<Hero countries=\{countries\}/, "hero intacto")
+
+  const noPress = /press[- ]?kit|#press|\/press\/|PressKit/i
+  const files = [
+    "../src/app/sitemap.ts",
+    "../src/app/opengraph-image.alt.txt",
+    "../src/app/[locale]/layout.tsx",
+    "../src/components/ui/Header.tsx",
+    "../src/components/ui/Menu.tsx",
+    "../messages/es.json",
+    "../messages/en.json"
+  ]
+  for (const file of files) {
+    const content = readFileSync(new URL(file, import.meta.url), "utf8")
+    assert.doesNotMatch(content, noPress, `sin referencias a Press Kit en ${file}`)
+  }
 })
 
 test("ningún test tocó la red real", () => {

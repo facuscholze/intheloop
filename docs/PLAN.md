@@ -53,7 +53,7 @@
 
 11. **Booking**:
     - Mail, WhatsApp, IG, formulario Zod -> Web3Forms + hCaptcha + honeypot (ver `docs/CONTACT-FORM.md`), sin backend propio.
-    - Press kit placeholder disabled.
+    - (Sección Press Kit eliminada posteriormente; no forma parte del sitio).
 
 12. **Footer**: links, newsletter (MailerLite endpoint env), créditos, favicon.
 

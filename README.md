@@ -40,9 +40,9 @@ content/              # UNA CARPETA POR COSA (JSON + archivos + validación Zod)
   */_TEMPLATE/        #   plantillas para copiar (las carpetas con _ se ignoran)
 public/media/         # Generado - no editar a mano
   content/            #   derivado de content/ (WebP + thumbs) por `pnpm sync:media`
-  images/hero/ ...    #   hero/press/brand desde media-src/
-media-src/            # ORIGINALES pesados para hero/brand/press (no va a git)
-  images/hero/ about/ press/
+  images/hero/ ...    #   hero/brand desde media-src/
+media-src/            # ORIGINALES pesados para hero/brand (no va a git)
+  images/hero/ about/
   brand/
 src/
   app/                # Next App Router, layout, page, globals.css, API routes
@@ -102,7 +102,7 @@ Ver guía completa: `docs/CONTENT-GUIDE.md` · resumen para el artista: `content
 - Las imágenes de `content/` se optimizan a `public/media/content/` con
   `pnpm sync:media` (lo corren `pnpm dev` y `pnpm build` solos). Esa carpeta es
   generada y no se versiona.
-- Originales pesados de hero/brand/press en `media-src/` (no se sube a git).
+- Originales pesados de hero/brand en `media-src/` (no se sube a git).
 - En producción, setear `NEXT_PUBLIC_MEDIA_BASE_URL=https://tu-bucket.r2.dev` y `getMediaUrl()` resuelve (subí ahí `public/media/` tal cual).
 - Un JSON inválido avisa por consola en local y **falla el build en CI**
   (`ITL_ALLOW_INVALID_CONTENT=1` para forzar uno permisivo).
@@ -144,7 +144,7 @@ Deploy automático con el workflow `.github/workflows/deploy.yml`:
 5. Cuando GitHub valide el DNS y emita el certificado, activar **Enforce HTTPS** en Pages.
 6. El sitio queda en `https://www.intheloop.agency/`.
 
-El workflow configura `NEXT_PUBLIC_BASE_PATH` vacío y `NEXT_PUBLIC_SITE_URL=https://www.intheloop.agency`. `public/CNAME` incluye el dominio en el export; con GitHub Actions, el custom domain también debe configurarse en Settings → Pages. No requiere API routes: el booking se envía con Web3Forms + hCaptcha desde el navegador (`docs/CONTACT-FORM.md`), y el press kit txt se genera en el browser.
+El workflow configura `NEXT_PUBLIC_BASE_PATH` vacío y `NEXT_PUBLIC_SITE_URL=https://www.intheloop.agency`. `public/CNAME` incluye el dominio en el export; con GitHub Actions, el custom domain también debe configurarse en Settings → Pages. No requiere API routes: el booking se envía con Web3Forms + hCaptcha desde el navegador (`docs/CONTACT-FORM.md`).
 
 Build local equivalente al deploy:
 
@@ -215,7 +215,7 @@ Objetivo: 60fps móvil medio en Medium, LCP <2.5s, contenido principal visible s
 - **Fase 3 ✅** videos Modo Cine: VideoStore, VideoCard preview scrub distortion, useHLS dynamic, Ambilight canvas, VideoControls PiP/Fullscreen, CineMode Flip letterbox ducking, 4 demos
 - **Fase 4 ✅** shows/mapa/galerías/pads/física/easter eggs: ShowsList filtros Flip + floating photo, MapRoute SVG animada, GalleryCarousel drag inertia tilt 3D + lightbox, PadsSection 8 pads Web Audio + crossfader + visualizer, TribalPhysics canvas + Matter.js dynamic, Konami rave confetti + Screensaver 30s + Counters reales, 404 visualizer
 - **Fase 5 ✅** booking + SEO + CLI: robots.txt + sitemap.xml dinámico + OG edge 1200x630 + icon 32x32 + JSON-LD MusicGroup/MusicRecording + BookingForm Zod + Web3Forms + hCaptcha + honeypot (sin backend propio) + cli.ts helpers + add-track/add-video/add-show/gen-waveform/optimize-images scripts + docs/CONTENT-GUIDE.md + metadataBase openGraph twitter alternates hreflang — Build 30.7kB /[locale] 166kB First Load
-- **Fase 6 ✅** a11y + perf + responsive + press kit + deploy: skip link + main landmark, focus visible lime 3px, contraste AA fg-muted #a8a6b0 7.2:1 fg-dim #6e6c78 4.8:1, touch 44px min, keyboard Tab/Esc focus trap Menu dialog, aria labels roles live, reduced-motion disable flashes <3Hz FIXED rave 0.1s 10Hz -> 0.6s 1.6Hz, Marquee pausa + IntersectionObserver, ClubMode safe flash, Player lucide icons progressbar, BookingForm fieldset labels htmlFor aria-invalid aria-describedby role alert, PressKit download + /api/press-kit txt fallback + getMediaUrl check, PerformanceMonitor dev LCP CLS FPS, 404 a11y, Hero dl dt dd, VideoCard role button keyboard, bundle 32.9kB /[locale] 171kB First Load analyzer .next/analyze/, responsive 360/768/1024/1440 safe areas 100svh, deploy Vercel + Dockerfile standalone Coolify verified, docs FASE6-REPORT WCAG checklist + perf Lighthouse 85/95 targets — Build final 32.9kB /[locale] 171kB
+- **Fase 6 ✅** a11y + perf + responsive + deploy: skip link + main landmark, focus visible lime 3px, contraste AA fg-muted #a8a6b0 7.2:1 fg-dim #6e6c78 4.8:1, touch 44px min, keyboard Tab/Esc focus trap Menu dialog, aria labels roles live, reduced-motion disable flashes <3Hz FIXED rave 0.1s 10Hz -> 0.6s 1.6Hz, Marquee pausa + IntersectionObserver, ClubMode safe flash, Player lucide icons progressbar, BookingForm fieldset labels htmlFor aria-invalid aria-describedby role alert, PerformanceMonitor dev LCP CLS FPS, 404 a11y, Hero dl dt dd, VideoCard role button keyboard, bundle 32.9kB /[locale] 171kB First Load analyzer .next/analyze/, responsive 360/768/1024/1440 safe areas 100svh, deploy Vercel + Dockerfile standalone Coolify verified, docs FASE6-REPORT WCAG checklist + perf Lighthouse 85/95 targets — Build final 32.9kB /[locale] 171kB
 
 ---
 

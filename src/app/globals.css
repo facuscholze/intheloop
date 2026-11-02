@@ -38,6 +38,13 @@
     background: var(--accent-fire);
     color: var(--bg);
   }
+  /* Los textarea nunca se agrandan arrastrando la esquina: rompía el layout
+     del formulario de booking. Altura fija + scroll interno si el texto es
+     largo (regla global para todos los textarea del sitio). */
+  textarea {
+    resize: none;
+    overflow-y: auto;
+  }
 }
 
 

@@ -39,12 +39,6 @@ archivo es la única lista interna (no se renderiza en la UI pública).
       (las `paris` y `tandil` que hay hoy son de EJEMPLO, borrarlas al subir las reales).
 - [ ] Posters de videos → `content/videos/<video>/poster.jpg`.
 
-## Press kit
-
-- [ ] PDF oficial en `media-src/press/tommy-petersen-press-kit.pdf`
-      (hoy se genera un TXT con bio + stats).
-- [ ] ZIP de fotos HD (`press/images.zip`, `press/press-kit-complete.zip`).
-
 > Los contadores públicos (shows, países, rango de años) se calculan
 > automáticamente desde las carpetas de `content/shows/` — al cargar shows
 > nuevos se actualizan solos.

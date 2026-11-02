@@ -160,7 +160,7 @@ Traé el contenido real desde https://www.intheloop.agency/ (descargá las imág
 - Botón **BOOK TOMMY** siempre visible (header sticky), repetido en el hero y al final.
 - Sección de booking con mail, WhatsApp e Instagram. Formulario simple (nombre, evento, fecha, ciudad, mensaje) que hoy envía con Web3Forms desde el navegador (ver `docs/CONTACT-FORM.md`); validación con Zod, honeypot y hCaptcha. No requiere backend propio ni variables de entorno.
 - Newsletter con endpoint por variable de entorno (hoy es MailerLite; no inventes credenciales).
-- "Press kit / Rider": placeholder deshabilitado, no inventes archivos.
+- Sección Press Kit: eliminada del sitio; no se requiere material de prensa ni descargas.
 - Siempre debe haber una **vía de contacto rápida y legible** aunque estén activos los efectos al máximo.
 
 # Accesibilidad y seguridad (no negociables)
@@ -188,7 +188,7 @@ Traé el contenido real desde https://www.intheloop.agency/ (descargá las imág
 
 # Entregables finales
 
-Repo funcionando; `README.md` y `CLAUDE.md` completos; guía de "cómo agregar una canción / video / show"; guía de deploy (Vercel y Docker/Coolify); lista de correcciones de contenido a confirmar con el cliente; lista de decisiones de diseño y qué librería hace qué; y un checklist de lo que **me falta conseguir del cliente** (audios/stems con derechos, videos, covers, press kit, paleta/logo si tiene).
+Repo funcionando; `README.md` y `CLAUDE.md` completos; guía de "cómo agregar una canción / video / show"; guía de deploy (Vercel y Docker/Coolify); lista de correcciones de contenido a confirmar con el cliente; lista de decisiones de diseño y qué librería hace qué; y un checklist de lo que **me falta conseguir del cliente** (audios/stems con derechos, videos, covers, paleta/logo si tiene).
 
 # Restricciones
 
