@@ -11,6 +11,7 @@ import {
   buildBookingPayload,
   createBookingSubmitter,
   isCaptchaTokenValid,
+  normalizeBookingLocale,
   validateBooking
 } from "@/lib/booking"
 import type { BookingFailureReason, BookingField, BookingValues } from "@/lib/booking"
@@ -155,7 +156,9 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
 
     setStatus("sending")
     try {
-      const result = await submitter.submit(buildBookingPayload(validation.data, token))
+      const result = await submitter.submit(
+        buildBookingPayload(validation.data, token, normalizeBookingLocale(locale))
+      )
       if (result.ok) {
         // Éxito SÓLO cuando Web3Forms respondió 2xx + success:true.
         setStatus("success")
@@ -380,15 +383,15 @@ export function BookingForm({ contactEmail }: { contactEmail: string }) {
                 {translate("date")} <span aria-hidden="true">*</span>
                 <span className="sr-only">{translate("required")}</span>
               </label>
+              {/* Calendario nativo: el navegador entrega `YYYY-MM-DD`.
+                  `color-scheme: dark` (globals.css) evita un popup claro. */}
               <input
                 id={`${formId}-date`}
-                type="text"
+                type="date"
                 name="date"
                 value={form.date}
                 onChange={(e) => handleChange("date", e.target.value)}
-                placeholder={translate("placeholders.date")}
-                maxLength={BOOKING_LIMITS.date}
-                className={`mt-1 w-full rounded-full border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.date ? "border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
+                className={`mt-1 w-full rounded-full border bg-[var(--bg-2)] px-4 py-3 font-sans text-sm [color-scheme:dark] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-lime)] ${errors.date ? "border-red-500" : "border-[var(--border)] focus:border-[var(--accent-fire)]"}`}
                 required
                 aria-invalid={!!errors.date}
                 aria-describedby={errors.date ? `${formId}-date-error` : undefined}

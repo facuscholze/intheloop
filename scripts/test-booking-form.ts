@@ -17,7 +17,9 @@ import {
   buildBookingPayload,
   classifyWeb3FormsError,
   createBookingSubmitter,
+  formatBookingDate,
   isCaptchaTokenValid,
+  normalizeBookingLocale,
   submitBooking,
   validateBooking
 } from "../src/lib/booking"
@@ -47,7 +49,7 @@ function validValues(overrides: Partial<BookingValues> = {}): BookingValues {
     name: "Tommy Petersen",
     email: "booker@club.example",
     event: "Tribal Sunset Festival",
-    date: "15 Marzo 2026",
+    date: "2026-03-15",
     city: "Córdoba",
     message: "Queremos cerrar el lineup del sábado con un set de tribal house.",
     ...overrides
@@ -108,10 +110,12 @@ test("envío válido: contrato Web3Forms, todos los campos, reply-to, sin `to`",
   assert.equal("to" in payload, false)
   assert.equal(String(payload.subject).includes("In The Loop Agency"), true)
   assert.equal(String(payload.subject).includes("Tribal Sunset Festival"), true)
+  assert.equal(String(payload.subject).includes("15 mar 2026"), true, "asunto con fecha legible")
   assert.equal(payload.from_name, "In The Loop Agency")
   for (const field of ["name", "event", "date", "city", "message", "email"] as const) {
     assert.equal(payload[field], validation.data[field])
   }
+  assert.equal(payload.date, "2026-03-15", "el campo date viaja en ISO a Web3Forms")
   assert.equal(payload.replyto, validation.data.email)
   assert.equal(payload.botcheck, false)
   assert.equal(payload["h-captcha-response"], "hcaptcha-token")
@@ -317,6 +321,7 @@ test("mensajes es/en: cobertura completa, sin jerga técnica y con email de cont
   keys.add("tooShort")
   keys.add("tooLong")
   keys.add("invalidEmail")
+  keys.add("invalidDate")
 
   for (const [locale, messages] of [
     ["es", es],
@@ -424,6 +429,59 @@ test("Press Kit eliminado: sin componente, sin links rotos y contadores intactos
     const content = readFileSync(new URL(file, import.meta.url), "utf8")
     assert.doesNotMatch(content, noPress, `sin referencias a Press Kit en ${file}`)
   }
+})
+
+test("campo fecha: datepicker ISO, validación y asunto es/en", () => {
+  const valid = validateBooking(validValues())
+  assert.equal(valid.ok, true)
+  const data = valid.ok ? valid.data : null
+  assert.ok(data, "fixture con fecha ISO válida")
+
+  for (const bad of [
+    "",
+    "15 Marzo 2026",
+    "2026-1-5",
+    "2026-02-30",
+    "2026-13-01",
+    "0000-01-01",
+    "2026-03-15 extra"
+  ]) {
+    const result = validateBooking(validValues({ date: bad }))
+    assert.equal(result.ok, false, `fecha inválida: ${bad}`)
+    if (result.ok || result.blocked) throw new Error("se esperaba error de campo")
+    assert.equal(result.errors.date, bad === "" ? "required" : "invalidDate")
+  }
+
+  assert.equal(formatBookingDate("2026-03-15", "es"), "15 mar 2026")
+  assert.equal(formatBookingDate("2026-03-15", "en"), "15 Mar 2026")
+  assert.equal(normalizeBookingLocale("en"), "en")
+  assert.equal(normalizeBookingLocale("es"), "es")
+  assert.equal(normalizeBookingLocale("fr"), "es")
+
+  const esPayload = buildBookingPayload(data, "tok", "es")
+  const enPayload = buildBookingPayload(data, "tok", "en")
+  assert.match(String(esPayload.subject), /15 mar 2026/)
+  assert.match(String(enPayload.subject), /15 Mar 2026/)
+  assert.equal(esPayload.date, "2026-03-15", "ISO en el payload (es)")
+  assert.equal(enPayload.date, "2026-03-15", "ISO en el payload (en)")
+})
+
+test("campo fecha: type=date con tema oscuro y mínimo 10 del mensaje intacto", () => {
+  const component = readFileSync(
+    new URL("../src/components/booking/BookingForm.tsx", import.meta.url),
+    "utf8"
+  )
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8")
+
+  assert.match(component, /type="date"/, "calendario nativo")
+  assert.doesNotMatch(component, /placeholders\.date/, "sin placeholder de texto libre")
+  assert.doesNotMatch(component, /BOOKING_LIMITS\.date/, "sin maxLength obsoleto")
+  assert.match(component, /\[color-scheme:dark\]/, "input en tema oscuro")
+  assert.match(css, /input\[type="date"\]\s*\{[^}]*color-scheme:\s*dark/, "CSS color-scheme dark")
+  assert.match(css, /::-webkit-calendar-picker-indicator/, "ícono del picker visible")
+  assert.equal("date" in BOOKING_LIMITS, false)
+  assert.equal(BOOKING_MIN_LENGTHS.message, 10)
+  assert.match(component, /minLength=\{BOOKING_MIN_LENGTHS\.message\}/)
 })
 
 test("ningún test tocó la red real", () => {
