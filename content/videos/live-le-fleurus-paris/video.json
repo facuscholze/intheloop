@@ -1,11 +1,13 @@
 {
   "title": "Live @ Le Fleurus Paris",
   "src": null,
-  "youtubeId": null,
+  "youtubeId": "RixbjTCUPJ8",
   "poster": null,
   "previewSrc": null,
-  "date": "2025-09-12",
+  "date": "2025-10-16",
   "venue": "Le Fleurus",
+  "category": "Live",
+  "order": null,
   "colorAccent": "#FF2E93",
   "draft": false
 }
