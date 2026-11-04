@@ -2,9 +2,12 @@
   "title": "Live @ Nombre del venue",
   "src": null,
   "youtubeId": null,
-  "poster": "poster.jpg",
+  "poster": null,
   "previewSrc": null,
   "date": "2026-01-01",
   "venue": "Nombre del venue",
-  "colorAccent": "#ff2e93"
+  "category": "Live",
+  "order": null,
+  "colorAccent": "#ff2e93",
+  "draft": false
 }

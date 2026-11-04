@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { VideoCard } from "./VideoCard";
 import type { Video } from "@/lib/content";
 
@@ -8,10 +9,12 @@ interface VideoGridProps {
 }
 
 export function VideoGrid({ videos }: VideoGridProps) {
+  const t = useTranslations("videos");
+
   if (videos.length === 0) {
     return (
       <div className="rounded-[2rem] border border-dashed border-[var(--border)] bg-[var(--bg-2)] p-12 text-center font-mono text-sm uppercase text-[var(--fg-muted)]">
-        Muy pronto: live sets y aftermovies
+        {t("empty")}
       </div>
     );
   }

@@ -87,14 +87,21 @@ export const TrackSchema = z.object({
 export const VideoSchema = z.object({
   id: z.string().optional(),
   title: z.string(),
-  /** Archivo de video dentro de la carpeta o URL (m3u8, mp4, bucket…). */
+  /** Archivo de video dentro de la carpeta o URL (m3u8, mp4, bucket…).
+   *  Se mantiene por compatibilidad; lo habitual ahora es usar youtubeId. */
   src: z.string().nullable().optional(),
+  /** URL o ID de YouTube (watch, youtu.be, shorts, live…). El loader no valida
+   *  el ID aquí: la validación y el rechazo de IDs inválidos se hace en la UI. */
   youtubeId: z.string().nullable().optional(),
   /** Imagen dentro de la carpeta (si falta, se usa la primera que haya). */
   poster: z.string().nullable().optional(),
   previewSrc: z.string().nullable().optional(),
   date: z.string().nullable().optional(),
   venue: z.string().nullable().optional(),
+  /** Categoría del video: Live / Aftermovie / Set. Se muestra en la tarjeta. */
+  category: z.enum(["Live", "Aftermovie", "Set"]).nullable().optional(),
+  /** Orden de aparición en la grilla (ascendente). Los sin orden van al final. */
+  order: z.number().int().min(0).nullable().optional(),
   colorAccent: z.string().nullable().optional(),
   draft: z.boolean().default(false)
 })
@@ -189,6 +196,10 @@ export interface Video {
   previewSrc: string | null
   date: string | null
   venue: string | null
+  /** Categoría: "Live" | "Aftermovie" | "Set". Default de la UI: "Live". */
+  category: string | null
+  /** Orden de aparición (ascendente). Los nulos quedan al final. */
+  order: number | null
   colorAccent: string | null
   folder: string
 }
@@ -503,12 +514,21 @@ export function loadVideos(): Video[] {
       previewSrc: resolveMedia(raw.previewSrc, ctx),
       date: raw.date ?? null,
       venue: raw.venue ?? null,
+      category: raw.category ?? null,
+      order: raw.order ?? null,
       colorAccent: raw.colorAccent ?? null,
       folder: `content/videos/${slug}`
     })
   }
 
-  return videos.sort(byDateDesc)
+  // Primero los que tienen `orden` (ascendente), después el resto por fecha
+  // descendente. Sin órdenes definidos queda exactamente el orden de hoy.
+  return videos.sort((a, b) => {
+    const oa = a.order ?? Number.MAX_SAFE_INTEGER
+    const ob = b.order ?? Number.MAX_SAFE_INTEGER
+    if (oa !== ob) return oa - ob
+    return byDateDesc(a, b)
+  })
 }
 
 /**

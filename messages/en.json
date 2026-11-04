@@ -28,6 +28,16 @@
     "shuffle": "Shuffle",
     "repeat": "Repeat"
   },
+  "videos": {
+    "ariaLabel": "Videos - Live sets and aftermovies",
+    "title": "VISUALS",
+    "description": "Live sets and aftermovies • Tap a video to watch it full screen",
+    "count": "{count} videos",
+    "countAria": "{count} videos available",
+    "empty": "Coming soon: live sets and aftermovies",
+    "error": "Could not load the video",
+    "watchOnYoutube": "Watch on YouTube"
+  },
   "booking": {
     "title": "BOOK TOMMY",
     "subtitle": "Let's create something unforgettable",

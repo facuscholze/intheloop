@@ -2,24 +2,36 @@ UN VIDEO = UNA CARPETA
 ======================
 
 content/videos/mi-video/
-  video.json        ← los datos (copiá este ejemplo)
-  mi-video.mp4      ← el video CON su audio adentro (un solo archivo)
-  poster.jpg        ← la miniatura (opcional: si no está, se usa la 1ª imagen)
-  preview.mp4       ← opcional: loop de 3-6 s sin audio para el hover
+  video.json   ← los datos (copiá este ejemplo)
 
-¿VIDEO Y AUDIO POR SEPARADO? Se unen ANTES de subir, en un solo MP4:
+Campo de video: ahora es YouTube. No hay archivos de video ni preview en el repo.
+  "youtubeId": acepta el ID crudo o cualquiera de estas URLs, y se extrae el ID solo:
+    - https://www.youtube.com/watch?v=VIDEO_ID
+    - https://youtu.be/VIDEO_ID
+    - https://www.youtube.com/shorts/VIDEO_ID
+    - https://www.youtube.com/live/VIDEO_ID
+  Un ID inválido no rompe la página: la tarjeta queda como borrador oculto.
 
-  ffmpeg -i video.mp4 -i audio.wav -map 0:v:0 -map 1:a:0 \
-    -c:v copy -c:a aac -b:a 256k -shortest mi-video.mp4
+Poster (opcional): poné poster.jpg dentro de la carpeta si querés una miniatura
+personalizada; si no, la tarjeta usa la miniatura oficial de YouTube
+(https://i.ytimg.com/vi/VIDEO_ID/hqdefault.jpg).
 
-El sitio reproduce el archivo con su propio sonido (no hay campo para una pista
-de audio aparte). En el modo cine, el player del sitio se baja solo.
+Campos:
+  - title:        título que se muestra en la tarjeta y en Modo Cine
+  - youtubeId:    ID o URL de YouTube
+  - poster:       poster.jpg opcional dentro de la carpeta
+  - date:         fecha (YYYY-MM-DD)
+  - venue:        lugar / subtítulo ("Lugar • fecha • Modo Cine")
+  - category:     "Live" | "Aftermovie" | "Set" (se muestra como categoría de la tarjeta)
+  - order:        número para ordenar la grilla (ascendente). Los vacíos van al final y se ordenan por fecha
+  - colorAccent:  color de la tarjeta (hex)
+  - draft:        true para ocultar el video
 
-RECOMENDADO: MP4 (H.264 + AAC), 1080p, menos de 100 MB.
-Si pesa más, subilo a un bucket y poné la URL en "src".
-Si es un video largo, HLS también funciona: "src": "stream.m3u8" con los
-segmentos .ts en la misma carpeta (nombres en minúsculas, sin espacios).
-
-Si usás YouTube: dejá "src" en null, poné "youtubeId" y no hace falta el archivo.
+Cómo agregar uno nuevo:
+  1. copiá content/videos/_TEMPLATE/ a content/videos/<id>/
+  2. editalo video.json con el youtubeId y los datos
+  3. (opcional) agregá poster.jpg en la carpeta
+  4. `pnpm sync:media` (o `pnpm dev`) y mirá /es#videos
+  O usando el CLI: `pnpm add:video`
 
 Las carpetas que empiezan con "_" (como _TEMPLATE) se ignoran.

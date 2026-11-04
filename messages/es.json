@@ -28,6 +28,16 @@
     "shuffle": "Aleatorio",
     "repeat": "Repetir"
   },
+  "videos": {
+    "ariaLabel": "Videos - Live sets y aftermovies",
+    "title": "VISUALS",
+    "description": "Live sets y aftermovies • Tocá un video para verlo en grande",
+    "count": "{count} videos",
+    "countAria": "{count} videos disponibles",
+    "empty": "Muy pronto: live sets y aftermovies",
+    "error": "No se pudo cargar el video",
+    "watchOnYoutube": "Ver en YouTube"
+  },
   "booking": {
     "title": "BOOK TOMMY",
     "subtitle": "Hagamos algo inolvidable",

@@ -1,17 +1,18 @@
 #!/usr/bin/env tsx
 /**
  * pnpm add:video
- * CLI para agregar un video: crea su carpeta en `content/videos/<id>/` con el
- * `video.json`, el poster y (si lo tenés) el archivo de video.
+ * CLI para agregar un video de YouTube a la sección VISUALS:
+ * crea su carpeta en `content/videos/<id>/` con el `video.json` y, opcionalmente,
+ * un poster (miniatura personalizada) dentro de la carpeta.
  *
  * También podés hacerlo a mano: copiá `content/videos/_TEMPLATE/` a
- * `content/videos/<id>/` y soltá ahí el poster.
+ * `content/videos/<id>/`, editar el `video.json` con el `youtubeId` y listo.
  */
 
-import fs from "node:fs"
-import path from "node:path"
-import { execSync } from "node:child_process"
-import { VideoSchema } from "../src/lib/content"
+import fs from "node:fs";
+import path from "node:path";
+import { VideoSchema } from "../src/lib/content";
+import { extractYouTubeId } from "../src/lib/youtube";
 import {
   copyIntoContentFolder,
   findFirstExisting,
@@ -19,81 +20,51 @@ import {
   logSuccess,
   logWarn,
   prompt,
+  promptNumber,
   slugify
-} from "../src/lib/cli"
+} from "../src/lib/cli";
+
+const CATEGORIES = ["Live", "Aftermovie", "Set"] as const;
 
 async function main() {
-  console.log("🎬 In The Loop — Agregar Video\n")
+  console.log("🎬 In The Loop — Agregar Video (YouTube)\n");
 
-  const title = await prompt("Título del video", "Live @ Venue")
-  const id = slugify(await prompt("ID (nombre de la carpeta)", slugify(title)))
-  const venue = await prompt("Venue", "Nombre del venue")
+  const title = await prompt("Título del video", "Live @ Venue");
+  const id = slugify(await prompt("ID (nombre de la carpeta)", slugify(title)));
+
+  // ---- YouTube: URL o ID crudo, se extrae y valida el ID automáticamente
+  logStep("YouTube")
+  console.log(
+    "📎 Pegá la URL del video (youtube.com/watch?v=..., youtu.be/..., /shorts/, /live/)\n"
+  )
+  const ytInput = await prompt("URL o ID de YouTube", "")
+  const youtubeId = extractYouTubeId(ytInput)
+  if (!youtubeId) {
+    logWarn("No se pudo extraer un ID de YouTube válido: el video se guarda como borrador (no se verá hasta que se corrija).")
+  }
+
+  // ---- Categoría
+  logStep("Categoría")
+  CATEGORIES.forEach((c, i) => console.log(`   ${i + 1}) ${c}`))
+  const categoryInput = await prompt("Categoría (1-3)", "1")
+  const categoryIndex = Number(categoryInput)
+  const category = Number.isInteger(categoryIndex) && categoryIndex >= 1 && categoryIndex <= CATEGORIES.length
+    ? CATEGORIES[categoryIndex - 1]
+    : "Live"
+
+  // ---- Fecha / venue / color
   const date = await prompt("Fecha (YYYY-MM-DD)", new Date().toISOString().slice(0, 10))
+  const venue = await prompt("Venue / lugar", "Nombre del venue")
   const colorAccent = await prompt("Color accent", "#FF2E93")
-  const youtubeId = await prompt("YouTube ID (opcional)", "")
 
   const itemDir = path.join("content", "videos", id)
 
-  // ---- Video local (o embed de YouTube)
-  logStep("Video")
-  console.log("📎 Subí UN archivo de video con el audio adentro (si grabaste video y")
-  console.log(
-    "   audio por separado, unilos antes con ffmpeg: ver content/videos/_TEMPLATE/LEEME.txt)\n"
-  )
-  const srcInput = await prompt(
-    "Ruta del video local (Enter para buscar en media-src/video/, o dejalo vacío si usás YouTube)",
-    ""
-  )
-  const videoSource =
-    srcInput ||
-    findFirstExisting([
-      `media-src/video/live/${id}.mp4`,
-      `media-src/video/clips/${id}.mp4`,
-      `media-src/video/${id}.mp4`
-    ])
-  const src = videoSource ? copyIntoContentFolder(videoSource, itemDir, id) : null
-
-  if (src) {
-    const sizeMb = fs.statSync(path.join(itemDir, src)).size / 1024 / 1024
-    if (sizeMb > 100) {
-      logWarn(
-        `${src} pesa ${sizeMb.toFixed(0)} MB: mejor subilo a un bucket y usá una URL en "src".`
-      )
-    }
-    // Poster automático con ffmpeg si está disponible
-    if (!fs.existsSync(path.join(itemDir, "poster.jpg"))) {
-      try {
-        execSync(
-          `ffmpeg -y -i "${path.join(itemDir, src)}" -ss 00:00:01 -vframes 1 -q:v 2 "${path.join(itemDir, "poster.jpg")}"`,
-          { stdio: "pipe" }
-        )
-        logSuccess("Poster generado con ffmpeg (poster.jpg)")
-      } catch {
-        logWarn("ffmpeg no disponible: agregá un poster.jpg a mano en la carpeta.")
-      }
-    }
-    // Preview corto para el hover
-    if (!fs.existsSync(path.join(itemDir, "preview.mp4"))) {
-      try {
-        execSync(
-          `ffmpeg -y -i "${path.join(itemDir, src)}" -ss 00:00:02 -t 5 -an -vf scale=640:-2 -c:v libx264 -crf 28 "${path.join(itemDir, "preview.mp4")}"`,
-          { stdio: "pipe" }
-        )
-        logSuccess("Preview 5s generado (preview.mp4)")
-      } catch {
-        logWarn("No se pudo generar el preview: la card usa el video completo.")
-      }
-    }
-  } else if (!youtubeId) {
-    logWarn("Sin video ni YouTube ID: la card queda como placeholder.")
-  }
-
-  // ---- Poster manual (si no lo generó ffmpeg)
+  // ---- Poster opcional (miniatura personalizada; si falta se usa la de YouTube)
   let poster = fs.existsSync(path.join(itemDir, "poster.jpg")) ? "poster.jpg" : null
   if (!poster) {
-    logStep("Poster")
+    logStep("Poster (opcional)")
     const posterInput = await prompt(
-      "Ruta del poster (Enter para buscar en media-src/images/posters/)",
+      "Ruta del poster (Enter para buscar en media-src/images/posters/, o dejar vacío para usar la miniatura de YouTube)",
       ""
     )
     const posterSource =
@@ -104,21 +75,21 @@ async function main() {
         `media-src/images/posters/${id}.webp`
       ])
     poster = posterSource ? copyIntoContentFolder(posterSource, itemDir, "poster") : null
-    if (!poster) logWarn("Sin poster: la card usa un degradado.")
+    if (!poster) logWarn("Sin poster personalizado: la card usará la miniatura oficial de YouTube (i.ytimg.com).")
   }
-
-  const preview = fs.existsSync(path.join(itemDir, "preview.mp4")) ? "preview.mp4" : null
 
   const videoData = {
     title,
-    src,
-    youtubeId: youtubeId || null,
+    src: null,
+    youtubeId: youtubeId ?? null,
     poster,
-    previewSrc: preview,
+    previewSrc: null,
     date,
     venue,
+    category,
+    order: null,
     colorAccent,
-    draft: !src && !youtubeId
+    draft: !youtubeId
   }
 
   const parsed = VideoSchema.safeParse(videoData)
@@ -134,8 +105,9 @@ async function main() {
 
   console.log("\n✅ Video agregado!")
   console.log(`   - Carpeta: ${itemDir}`)
-  console.log(`   - Video: ${src ?? youtubeId ?? "placeholder"}`)
-  console.log(`   - Poster: ${poster ?? "placeholder gradient"}`)
+  console.log(`   - YouTube: ${youtubeId ?? "ID inválido (borrador)"}`)
+  console.log(`   - Categoría: ${category}`)
+  console.log(`   - Poster: ${poster ?? "miniatura de YouTube"}`)
   console.log("\nSiguiente: `pnpm sync:media` (o `pnpm dev`) y mirá /es#videos")
 }
 

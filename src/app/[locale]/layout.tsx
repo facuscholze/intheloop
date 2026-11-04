@@ -82,6 +82,8 @@ export default async function LocaleLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Miniaturas de YouTube (solo se cargan tras el primer clic en Modo Cine) */}
+        <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Anton&family=Sora:wght@300..700&family=Space+Mono:wght@400;700&display=swap"
