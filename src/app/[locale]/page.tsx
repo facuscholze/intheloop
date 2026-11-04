@@ -1,7 +1,7 @@
 import { Hero } from "@/components/hero/Hero";
 import { Marquee, MarqueeGiant } from "@/components/effects/Marquee";
 import { MusicSection } from "@/components/music/MusicSection";
-import { VideoGrid } from "@/components/video/VideoGrid";
+import { VideoSection } from "@/components/video/VideoSection";
 import { ShowsList } from "@/components/shows/ShowsList";
 import { CountriesGrid } from "@/components/shows/CountriesGrid";
 import { GalleryCarousel } from "@/components/gallery/Gallery";
@@ -76,23 +76,7 @@ export default function HomePage() {
         <MarqueeGiant text="IN THE LOOP — EVERY DANCEFLOOR HAS ITS OWN STORY —" />
 
         {/* Videos - Fase 3 */}
-        <section id="videos" className="border-t border-[var(--border)] bg-[var(--bg)] px-6 py-24 md:px-10" aria-label="Videos - Live sets y aftermovies">
-          <div className="mx-auto max-w-[var(--content-max)]">
-            <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="font-display text-[clamp(44px,11vw,132px)] font-bold leading-none tracking-tight">
-                  VISUALS<span className="text-[var(--accent-magenta)]" aria-hidden="true">.</span>
-                </h2>
-                <p className="mt-2 max-w-xl font-mono text-xs uppercase tracking-widest text-[var(--fg-muted)]">
-                  Live sets y aftermovies • Tocá un video para verlo en grande
-                </p>
-              </div>
-              <div className="font-mono text-xs uppercase text-[var(--fg-muted)]" aria-label={`${videos.length} videos disponibles`}>{videos.length} videos</div>
-            </div>
-
-            <VideoGrid videos={videos} />
-          </div>
-        </section>
+        <VideoSection videos={videos} />
 
         {/* Shows - Fase 4 */}
         <section id="shows" className="border-t border-[var(--border)] bg-[var(--bg-2)] px-6 py-24 md:px-10" aria-label="Shows - Historial de presentaciones">

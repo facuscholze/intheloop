@@ -5,6 +5,7 @@ import { Play } from "lucide-react";
 import { useVideoStore } from "@/stores/videoStore";
 import { useIntersectionPause } from "@/hooks/useIntersectionPause";
 import { getMediaUrl } from "@/lib/media";
+import { extractYouTubeId, youtubeThumbnail } from "@/lib/youtube";
 import { useUIStore } from "@/stores/uiStore";
 import type { Video } from "@/lib/content";
 
@@ -27,6 +28,11 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
   const posterUrl = getMediaUrl(video.posterThumb ?? video.poster);
   const previewSrc = getMediaUrl(video.previewSrc) || getMediaUrl(video.src);
   const isYoutube = !!video.youtubeId;
+  /** ID de YouTube válido (acepta URL o ID crudo); uno inválido no rompe la tarjeta. */
+  const youtubeId = isYoutube ? extractYouTubeId(video.youtubeId) : null;
+  const ytThumb = youtubeId ? youtubeThumbnail(youtubeId) : null;
+  /** La miniatura personalizada del CMS gana sobre la de YouTube. */
+  const cardThumb = posterUrl || ytThumb;
 
   useEffect(() => {
     const preview = previewRef.current;
@@ -108,16 +114,18 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
         aria-hidden="true"
       />
 
-      {isYoutube ? (
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {youtubeId ? (
         <div className="absolute inset-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
-            alt={`Miniatura del video ${video.title}`}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            loading="lazy"
-            decoding="async"
-          />
+          {cardThumb ? (
+            <img
+              src={cardThumb}
+              alt={`Miniatura del video ${video.title}`}
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : null}
           <div
             className="absolute inset-0 bg-black/20 group-hover:bg-black/10"
             aria-hidden="true"
@@ -181,7 +189,7 @@ export const VideoCard = memo(function VideoCard({ video }: VideoCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <div className="rounded-full bg-black/60 px-3 py-1 font-mono text-[10px] tracking-widest text-white uppercase backdrop-blur">
-              {isYoutube ? "YouTube" : "Live"} • {video.date}
+              {video.category || "Live"} • {video.date}
             </div>
             {isHovered && (
               <div
