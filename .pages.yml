@@ -31,6 +31,12 @@ media:
     output: /media/content/songs
     extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff, mp3, wav, m4a, aac, ogg, oga, opus, flac, aiff]
     rename: safe
+  - name: videos
+    label: "Videos de YouTube"
+    input: content/videos
+    output: /media/content/videos
+    extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+    rename: safe
 components:
   pais:
     label: "País"
@@ -901,3 +907,92 @@ content:
         type: string
         required: true
         list: true
+
+  - name: videos
+    label: "Videos (VISUALS)"
+    description: "Cada video es una carpeta con su video.json y su poster opcional. Pegá la URL de YouTube (watch, youtu.be, /shorts, /live) o el ID de 11 caracteres; el ID se extrae solo al guardar. El poster es opcional: si no subís uno, la tarjeta usa la miniatura oficial de YouTube."
+    type: collection
+    path: content/videos
+    format: json
+    subfolders: true
+    filename: "{fields.title}/video.json"
+    exclude: ["_TEMPLATE"]
+    view:
+      layout: tree
+      node: video.json
+      fields: [title, category, youtubeId, date, venue, draft]
+      primary: title
+      sort: [order, date, title]
+      search: [title, venue, category]
+      default:
+        sort: date
+        order: desc
+    operations:
+      rename: false
+    fields:
+      - name: title
+        label: "Título"
+        description: "Nombre del video, tal como debe aparecer en la tarjeta y en Modo Cine. También define el nombre de su carpeta al crearlo."
+        type: string
+        required: true
+      - name: youtubeId
+        label: "YouTube (URL o ID)"
+        description: "Pegá la URL completa (youtube.com/watch?v=..., youtu.be/..., /shorts/, /live/) o solo el ID de 11 caracteres. Se extrae y valida automáticamente al guardar."
+        type: string
+        required: true
+        pattern:
+          regex: '^(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/|youtube\.com/live/|youtube\.com/embed/|youtube\.com/v/)?[A-Za-z0-9_-]{11}([?&].*)?$'
+          message: "Pegá una URL de YouTube válida o el ID de 11 caracteres."
+      - name: poster
+        label: "Poster / miniatura personalizada"
+        description: "Subí una imagen para la miniatura de la tarjeta. Si lo dejás vacío, se usa la miniatura oficial de YouTube (i.ytimg.com)."
+        type: image
+        options:
+          media: videos
+          path: content/videos
+          rename: safe
+          extensions: [jpg, jpeg, png, webp, avif, gif, tif, tiff]
+      - name: date
+        label: "Fecha"
+        description: "Fecha de publicación o grabación (AAAA-MM-DD). Podés dejarla vacía."
+        type: date
+        default: ""
+        options:
+          format: "yyyy-MM-dd"
+      - name: venue
+        label: "Lugar / subtitle"
+        description: "Lugar o lugar corto que se muestra en la tarjeta (ej. \"Le Fleurus\", \"Pirata\", \"Buenos Aires\")."
+        type: string
+      - name: category
+        label: "Categoría"
+        description: "Categoría del video: Live, Aftermovie o Set. Se muestra en la tarjeta (por defecto Live)."
+        type: select
+        required: true
+        default: "Live"
+        options:
+          values:
+            - name: Live
+              label: "Live"
+            - name: Aftermovie
+              label: "Aftermovie"
+            - name: Set
+              label: "Set"
+      - name: order
+        label: "Orden"
+        description: "Número para ordenar la grilla (ascendente). Los vacíos van al final y se ordenan por fecha descendente."
+        type: number
+        options:
+          min: 0
+          step: 1
+      - name: colorAccent
+        label: "Color de acento"
+        description: "Color opcional para el brillo de la tarjeta, en formato #RRGGBB (ej. #FF5A1F)."
+        type: string
+        pattern:
+          regex: '^$|^#[0-9A-Fa-f]{6}$'
+          message: "Usá un color #RRGGBB (ej. #FF5A1F) o dejá el campo vacío."
+      - name: draft
+        label: "Borrador"
+        description: "Si está activado, el video no aparece en VISUALS."
+        type: boolean
+        default: false
